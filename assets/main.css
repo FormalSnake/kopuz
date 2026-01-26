@@ -1,9 +1,9 @@
 /* App-wide styling */
 body {
-    background-color: #0f1116;
+    background-color: #000000;
     color: #ffffff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 20px;
+    margin: 0;
 }
 
 #hero {
@@ -41,6 +41,3 @@ body {
 #header {
     max-width: 1200px;
 }
-
-
-

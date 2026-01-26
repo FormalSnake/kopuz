@@ -1,0 +1,81 @@
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Album {
+    pub id: String,
+    pub title: String,
+    pub artist: String,
+    pub genre: String,
+    pub year: u16,
+    pub cover_path: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Track {
+    pub path: PathBuf,
+    pub album_id: String,
+    pub title: String,
+    pub artist: String,
+    pub album: String,
+    pub duration: u64,
+    pub track_number: Option<u32>,
+    pub disc_number: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct Library {
+    #[serde(default)]
+    pub root_path: PathBuf,
+    pub tracks: Vec<Track>,
+    pub albums: Vec<Album>,
+}
+
+impl Library {
+    pub fn new(root_path: PathBuf) -> Self {
+        Self {
+            root_path,
+            ..Default::default()
+        }
+    }
+
+    pub fn load(path: &Path) -> std::io::Result<Self> {
+        if !path.exists() {
+            return Ok(Self::default());
+        }
+        let data = fs::read_to_string(path)?;
+        let library = serde_json::from_str(&data)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))?;
+        Ok(library)
+    }
+
+    pub fn save(&self, path: &Path) -> std::io::Result<()> {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        let data = serde_json::to_string_pretty(self)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))?;
+        fs::write(path, data)
+    }
+
+    pub fn add_track(&mut self, track: Track) {
+        if let Some(index) = self.tracks.iter().position(|t| t.path == track.path) {
+            self.tracks[index] = track;
+        } else {
+            self.tracks.push(track);
+        }
+    }
+
+    pub fn add_album(&mut self, album: Album) {
+        if let Some(index) = self.albums.iter().position(|a| a.id == album.id) {
+            let mut new_album = album;
+            if new_album.cover_path.is_none() {
+                new_album.cover_path = self.albums[index].cover_path.clone();
+            }
+            self.albums[index] = new_album;
+        } else {
+            self.albums.push(album);
+        }
+    }
+}

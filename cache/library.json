@@ -1,0 +1,2693 @@
+{
+  "root_path": "/Users/lidldev/Downloads",
+  "tracks": [
+    {
+      "path": "/Users/lidldev/Downloads/badapple_mono.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "badapple_mono",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 232,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/1. Spalexma - We Are Charlie Kirk.flac",
+      "album_id": "alb_spalexma_we_are_charlie_kirk",
+      "title": "We Are Charlie Kirk",
+      "artist": "Spalexma",
+      "album": "We Are Charlie Kirk",
+      "duration": 224,
+      "track_number": 1,
+      "disc_number": 1
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ElevenLabs_2025-05-12T18_21_30_Enes – Confident & Assertive_pvc_sp100_s50_sb70_se60_b_m2.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ElevenLabs_2025-05-12T18_21_30_Enes – Confident & Assertive_pvc_sp100_s50_sb70_se60_b_m2",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/[Alstroemeria Records]Bad Apple!! feat.nomico(Shadow Animation Version)[ACVS.008_Tr (i41KoE0iMYU).m4a",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "[Alstroemeria Records]Bad Apple!! feat.nomico(Shadow Animation Version)[ACVS.008_Tr (i41KoE0iMYU)",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 232,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/xxhardbit3s - IN YOUR HEAD!! (´☢｀).flac",
+      "album_id": "alb_xxhardbit3s_unknown_album",
+      "title": "IN YOUR HEAD!! (´☢｀)",
+      "artist": "xxhardbit3s",
+      "album": "Unknown Album",
+      "duration": 170,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/badpapple.flac",
+      "album_id": "alb_alstroemeria_records_feat_のみこ_bad_apple_10th_anniversary_phase2",
+      "title": "Bad Apple!!",
+      "artist": "Alstroemeria Records feat. のみこ",
+      "album": "Bad Apple!! 10th Anniversary PHASE2",
+      "duration": 316,
+      "track_number": 1,
+      "disc_number": 1
+    },
+    {
+      "path": "/Users/lidldev/Downloads/06 - unravel.flac",
+      "album_id": "alb_ado_adoのベストアドバム",
+      "title": "unravel",
+      "artist": "Ado",
+      "album": "Adoのベストアドバム",
+      "duration": 238,
+      "track_number": 6,
+      "disc_number": 1
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ElevenLabs_2025-05-12T18_20_54_Enes – Confident & Assertive_pvc_sp100_s50_sb70_se60_b_m2.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ElevenLabs_2025-05-12T18_20_54_Enes – Confident & Assertive_pvc_sp100_s50_sb70_se60_b_m2",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/brackeys_platformer_assets/music/time_for_adventure.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "time_for_adventure",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 40,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/brackeys_platformer_assets/sounds/hurt.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "hurt",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/brackeys_platformer_assets/sounds/tap.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "tap",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/brackeys_platformer_assets/sounds/jump.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "jump",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/brackeys_platformer_assets/sounds/power_up.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "power_up",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/brackeys_platformer_assets/sounds/coin.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "coin",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/brackeys_platformer_assets/sounds/explosion.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "explosion",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ElevenLabs_2025-05-12T18_19_28_Enes – Confident & Assertive_pvc_sp100_s0_sb70_se60_b_m2.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ElevenLabs_2025-05-12T18_19_28_Enes – Confident & Assertive_pvc_sp100_s0_sb70_se60_b_m2",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/input.wav",
+      "album_id": "alb_spalexma_we_are_charlie_kirk",
+      "title": "We Are Charlie Kirk",
+      "artist": "Spalexma",
+      "album": "We Are Charlie Kirk",
+      "duration": 224,
+      "track_number": 1,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Whisper Me a Love Song - STAND BY YOU.mp3",
+      "album_id": "alb_miku_ito_moe_toyota_stand_by_you",
+      "title": "STAND BY YOU",
+      "artist": "Miku Ito, Moe Toyota",
+      "album": "STAND BY YOU",
+      "duration": 274,
+      "track_number": 1,
+      "disc_number": 1
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ElevenLabs_2025-05-12T21_22_14_Enes – Confident & Assertive_pvc_sp100_s50_sb70_se60_b_m2.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ElevenLabs_2025-05-12T21_22_14_Enes – Confident & Assertive_pvc_sp100_s50_sb70_se60_b_m2",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 4,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Walk Through The Park - TrackTribe.flac",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Walk Through The Park - TrackTribe",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 161,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Whisper Me a Love Song - Follow your arrows.mp3",
+      "album_id": "alb_ssgirls_follow_your_arrows",
+      "title": "Follow your arrows",
+      "artist": "SSGIRLS",
+      "album": "Follow your arrows",
+      "duration": 222,
+      "track_number": 1,
+      "disc_number": 1
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/16. Sunny Spot (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Sunny Spot (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 296,
+      "track_number": 16,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/12. ギフティ ～SSGIRLS Ver.～ (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "ギフティ ～SSGIRLS Ver.～ (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 246,
+      "track_number": 12,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/03. ギフティ ～SSGIRLS Ver.～.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "ギフティ ～SSGIRLS Ver.～",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 246,
+      "track_number": 3,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/14. オレンジに染まった大空 (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "オレンジに染まった大空 (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 143,
+      "track_number": 14,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/04. 屋上のメロディー.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "屋上のメロディー",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 157,
+      "track_number": 4,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/13. 屋上のメロディー (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "屋上のメロディー (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 157,
+      "track_number": 13,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/02. Follow your arrows.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Follow your arrows",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 220,
+      "track_number": 2,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/06. 金糸雀～カナリヤ～(亜季).flac",
+      "album_id": "alb_ssgirls_feat水口亜季cv小松未可子_sing_a_song",
+      "title": "金糸雀～カナリヤ～(亜季)",
+      "artist": "SSGIRLS feat.水口亜季(CV.小松未可子)",
+      "album": "Sing a SonG",
+      "duration": 259,
+      "track_number": 6,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/07. Sunny Spot.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Sunny Spot",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 296,
+      "track_number": 7,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/11. Follow your arrows (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Follow your arrows (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 220,
+      "track_number": 11,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/10. Humming Love (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Humming Love (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 256,
+      "track_number": 10,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/05. オレンジに染まった大空.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "オレンジに染まった大空",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 143,
+      "track_number": 5,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/15. 金糸雀～カナリヤ～(亜季) (Instrumental).flac",
+      "album_id": "alb_ssgirls_feat水口亜季cv小松未可子_sing_a_song",
+      "title": "金糸雀～カナリヤ～(亜季) (Instrumental)",
+      "artist": "SSGIRLS feat.水口亜季(CV.小松未可子)",
+      "album": "Sing a SonG",
+      "duration": 259,
+      "track_number": 15,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/18. Swimming with words (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Swimming with words (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 187,
+      "track_number": 18,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/09. Swimming with words.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Swimming with words",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 188,
+      "track_number": 9,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/17. Time Flies (Instrumental).flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Time Flies (Instrumental)",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 234,
+      "track_number": 17,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/01. Humming Love.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Humming Love",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 257,
+      "track_number": 1,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/アニメ「ささやくように恋を唄う」劇中歌アルバム「Sing a SonG」/08. Time Flies.flac",
+      "album_id": "alb_ssgirls_sing_a_song",
+      "title": "Time Flies",
+      "artist": "SSGIRLS",
+      "album": "Sing a SonG",
+      "duration": 235,
+      "track_number": 8,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Walk Through The Park - TrackTribe.m4a",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Walk Through The Park - TrackTribe",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 161,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/circuitplayground/dip.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "dip",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/circuitplayground/rise.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "rise",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/circuitplayground/dip.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "dip",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/circuitplayground/rise.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "rise",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/color_terminal/beep.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "beep",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa/Mystery.wav",
+      "album_id": "alb_adafruit_e_is_for_electronics_coloring_book_abcs",
+      "title": "A",
+      "artist": "Adafruit",
+      "album": "\"E is for Electronics\" Coloring Book ABCs",
+      "duration": 31,
+      "track_number": 1,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa/home.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "home",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 7,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa/happy_ending.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "happy_ending",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa/sound_04.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sound_04",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 13,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa/startup.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "startup",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 1,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa/sound_01.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sound_01",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa/sound_03.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sound_03",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cave/pub.wav",
+      "album_id": "alb_yap_audio_production_yap_audio_production_sfx",
+      "title": "pub",
+      "artist": "Yap Audio Production",
+      "album": "Yap Audio Production SFX",
+      "duration": 18,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cave/scream.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "scream",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cave/creak.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "creak",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 11,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cave/cave.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cave",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 14,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa_titano/Mystery.wav",
+      "album_id": "alb_adafruit_e_is_for_electronics_coloring_book_abcs",
+      "title": "A",
+      "artist": "Adafruit",
+      "album": "\"E is for Electronics\" Coloring Book ABCs",
+      "duration": 31,
+      "track_number": 1,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa_titano/home.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "home",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 7,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa_titano/happy_ending.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "happy_ending",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa_titano/sound_04.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sound_04",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 13,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa_titano/startup.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "startup",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 1,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa_titano/sound_01.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sound_01",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyoa/cyoa_titano/sound_03.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sound_03",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/fruitjam/wav/dip.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "dip",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/fruitjam/wav/beep.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "beep",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/fruitjam/wav/rise.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "rise",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/wave/sample.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sample",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/F5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/F4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/G3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/F3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/G4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/G5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/A3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/A4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/A5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/C3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/B4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/B5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/C5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/C4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/B3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/D4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/D5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/E3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/D3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/E5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sawtooth/E4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/F5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/F4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/G3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/F3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/G4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/G5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/A3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/A4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/A5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/C3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/B4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/B5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/C5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/C4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/B3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/D4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/D5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/E3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/D3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/E5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/square/E4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/F5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/F4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/G3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/F3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/G4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/G5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/A3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/A4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/A5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/C3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/B4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/B5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/C5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/C4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/B3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/D4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/D5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/E3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/D3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/E5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/sine/E4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/F5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/F4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/G3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/F3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "F3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/G4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/G5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "G5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/A3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/A4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/A5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "A5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/C3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/B4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/B5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/C5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/C4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "C4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/B3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "B3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/D4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/D5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/E3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/D3.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "D3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/E5.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E5",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/trellism4/trellism4_wavefile_synth/notes/triangle/E4.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "E4",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 0,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/pyportal/pyportal_startup.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "pyportal_startup",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 1,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/macropad/macropad_mp3/beats.mp3",
+      "album_id": "alb_bartlebeats_unknown_album",
+      "title": "beats",
+      "artist": "Bartlebeats",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/macropad/macropad_mp3/slow.mp3",
+      "album_id": "alb_bartlebeats_unknown_album",
+      "title": "slow",
+      "artist": "Bartlebeats",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/macropad/macropad_mp3/upbeats.mp3",
+      "album_id": "alb_bartlebeats_unknown_album",
+      "title": "3-8-16",
+      "artist": "Bartlebeats",
+      "album": "Unknown Album",
+      "duration": 17,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/adafruit-circuitpython-bundle-py-20250930/examples/macropad/macropad_mp3/happy.mp3",
+      "album_id": "alb_bartlebeats_unknown_album",
+      "title": "happy",
+      "artist": "Bartlebeats",
+      "album": "Unknown Album",
+      "duration": 12,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/badapple.wav",
+      "album_id": "alb_alstroemeria_records_feat_のみこ_bad_apple_10th_anniversary_phase2",
+      "title": "Bad Apple!!",
+      "artist": "Alstroemeria Records feat. のみこ",
+      "album": "Bad Apple!! 10th Anniversary PHASE2",
+      "duration": 316,
+      "track_number": 1,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen08_165.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen08_165",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen09_175.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen09_175",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen19_172.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen19_172",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen01_175.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen01_175",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen02_165.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen02_165",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen13_173.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen13_173",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen03_167.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen03_167",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen06_169.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen06_169",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen10_135.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen10_135",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen17_175.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen17_175",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen16_167.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen16_167",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen20_164.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen20_164",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen07_172.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen07_172",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen18_178.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen18_178",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen14_175.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen14_175",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen05_158.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen05_158",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen11_145.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen11_145",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen04_170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen04_170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen15_174.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen15_174",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 1/WAV/cw_amen12_137.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen12_137",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_drumroll.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_drumroll",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_finger.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_finger",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_onbreak.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_onbreak",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 1,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_oldskool.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_oldskool",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_downstratch.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_downstratch",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 4,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_deeptouch.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_deeptouch",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 8,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_stretch.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_stretch",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_negative.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_negative",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_italian.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_italian",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_overlimit.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_overlimit",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_tube.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_tube",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 4,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_comp.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_comp",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_distorted.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_distorted",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 1,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_apache.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_apache",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_vinyl.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_vinyl",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 8,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_zinc.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_zinc",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_equil.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_equil",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_decay.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_decay",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_downtempo.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_downtempo",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 4,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_replay.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_replay",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 8,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_chopper.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_chopper",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_funk1.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_funk1",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_beasty.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_beasty",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 7,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_breaking.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_breaking",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_funk2.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_funk2",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_reride.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_reride",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_downshift.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_downshift",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_highpass.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_highpass",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_updown.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_updown",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_tick.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_tick",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_freak.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_freak",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_rough.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_rough",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 4,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_lo-fi.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_lo-fi",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 1,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_idm.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_idm",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 5,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_hype.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_hype",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_nuskool.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_nuskool",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_classic.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_classic",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 4,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_jungle.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_jungle",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_early.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_early",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 2/WAV/cw_amen_tape.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "cw_amen_tape",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Creek Break 160.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Creek Break 160",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Hype Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Hype Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Crot Break 165.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Crot Break 165",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Bibop Break 160.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Bibop Break 160",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Assasin Break 168.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Assasin Break 168",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Hydro Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Hydro Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Snap Break 165.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Snap Break 165",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Rust Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Rust Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Samurai Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Samurai Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Tube Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Tube Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Stick Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Stick Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Grid Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Grid Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Ruffa Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Ruffa Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Orb Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Orb Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Attake Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Attake Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Wazo Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Wazo Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Karate Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Karate Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Fringe Break 170.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Fringe Break 170",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Riddim Break 168.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Riddim Break 168",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Amen Breaks Compilation/Amen Breaks Volume 3/WAV/Promo Break 168.wav",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Promo Break 168",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 2,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ElevenLabs_2025-05-12T18_20_39_Enes – Confident & Assertive_pvc_sp100_s0_sb70_se60_b_m2.mp3",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ElevenLabs_2025-05-12T18_20_39_Enes – Confident & Assertive_pvc_sp100_s0_sb70_se60_b_m2",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 3,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/output.wav",
+      "album_id": "alb_spalexma_we_are_charlie_kirk",
+      "title": "We Are Charlie Kirk",
+      "artist": "Spalexma",
+      "album": "We Are Charlie Kirk",
+      "duration": 224,
+      "track_number": 1,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/Touhou | Bad Apple!! feat (GsgciH45ZzA).m4a",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "Touhou | Bad Apple!! feat (GsgciH45ZzA)",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 116,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/downloadfile-3.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "downloadfile-3",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 16,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/1762971751039.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "1762971751039",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 20,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ssstwitter.com_1762691010097.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ssstwitter.com_1762691010097",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 15,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/a6647c7d732ea639b6c57cd0ee440f7e0c18f3b8.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "a6647c7d732ea639b6c57cd0ee440f7e0c18f3b8",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 271,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/sansar salvo kriz #memes #sansarsalvo #sansar #kriz #kesfeteyyiz #rap #türkçerap #türkçerap (GBZW0CES3uI).mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "sansar salvo kriz #memes #sansarsalvo #sansar #kriz #kesfeteyyiz #rap #türkçerap #türkçerap (GBZW0CES3uI)",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 6,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ssstwitter.com_1768298443824.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ssstwitter.com_1768298443824",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 18,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/f8b0496ed958accf61080ab8684a25653beb2488.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "f8b0496ed958accf61080ab8684a25653beb2488",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 236,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/lv_0_20250414141700.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "lv_0_20250414141700",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 18,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/ssstwitter.com_1762036840794.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "ssstwitter.com_1762036840794",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 9,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/3a9b1921951e0be6d59ecab23c75cecaca08b7e8.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "3a9b1921951e0be6d59ecab23c75cecaca08b7e8",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 219,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/IMG_6033.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "IMG_6033",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 50,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/66041f0c01b498632f30794fa7b6ed8a826de6e7.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "66041f0c01b498632f30794fa7b6ed8a826de6e7",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 134,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/6ba44886f5ad2f02eaae3fd0dd094f512652c733.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "6ba44886f5ad2f02eaae3fd0dd094f512652c733",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 438,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/SnapInsta.to_AQOQpRHjisUhAtQGHRtUGMkFeHFZ6ydY9EEFzyFmtQFiY-e0w3BQZs9O3Pk1n-DDNzdtqN-glLOH5vQAVU8eTOl27rVsj4bGzhR6BlY.MP4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "SnapInsta.to_AQOQpRHjisUhAtQGHRtUGMkFeHFZ6ydY9EEFzyFmtQFiY-e0w3BQZs9O3Pk1n-DDNzdtqN-glLOH5vQAVU8eTOl27rVsj4bGzhR6BlY",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 18,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/3a9b1921951e0be6d59ecab23c75cecaca08b7e8 2.MP4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "3a9b1921951e0be6d59ecab23c75cecaca08b7e8 2",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 219,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/VID_20241029_134025.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "VID_20241029_134025",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 14,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/515d95854d8551b18bb9e33dc047908f1079ae08.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "515d95854d8551b18bb9e33dc047908f1079ae08",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 208,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/badaple.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "badaple",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 232,
+      "track_number": null,
+      "disc_number": null
+    },
+    {
+      "path": "/Users/lidldev/Downloads/d81d20e2bef4b1ed5ac15a3d4a6e2cb01fd0b0aa.mp4",
+      "album_id": "alb_unknown_artist_unknown_album",
+      "title": "d81d20e2bef4b1ed5ac15a3d4a6e2cb01fd0b0aa",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "duration": 244,
+      "track_number": null,
+      "disc_number": null
+    }
+  ],
+  "albums": [
+    {
+      "id": "alb_unknown_artist_unknown_album",
+      "title": "Unknown Album",
+      "artist": "Unknown Artist",
+      "genre": "Unknown",
+      "year": 0,
+      "cover_path": null
+    },
+    {
+      "id": "alb_spalexma_we_are_charlie_kirk",
+      "title": "We Are Charlie Kirk",
+      "artist": "Spalexma",
+      "genre": "Unknown",
+      "year": 2025,
+      "cover_path": "./cache/covers/alb_spalexma_we_are_charlie_kirk.jpg"
+    },
+    {
+      "id": "alb_xxhardbit3s_unknown_album",
+      "title": "Unknown Album",
+      "artist": "xxhardbit3s",
+      "genre": "Unknown",
+      "year": 2021,
+      "cover_path": "./cache/covers/alb_xxhardbit3s_unknown_album.jpg"
+    },
+    {
+      "id": "alb_alstroemeria_records_feat_のみこ_bad_apple_10th_anniversary_phase2",
+      "title": "Bad Apple!! 10th Anniversary PHASE2",
+      "artist": "Alstroemeria Records feat. のみこ",
+      "genre": "Electronic",
+      "year": 2017,
+      "cover_path": null
+    },
+    {
+      "id": "alb_ado_adoのベストアドバム",
+      "title": "Adoのベストアドバム",
+      "artist": "Ado",
+      "genre": "Edm",
+      "year": 2025,
+      "cover_path": "./cache/covers/alb_ado_adoのベストアドバム.jpg"
+    },
+    {
+      "id": "alb_miku_ito_moe_toyota_stand_by_you",
+      "title": "STAND BY YOU",
+      "artist": "Miku Ito, Moe Toyota",
+      "genre": "JPOP",
+      "year": 2024,
+      "cover_path": "./cache/covers/alb_miku_ito_moe_toyota_stand_by_you.jpg"
+    },
+    {
+      "id": "alb_ssgirls_follow_your_arrows",
+      "title": "Follow your arrows",
+      "artist": "SSGIRLS",
+      "genre": "JPOP",
+      "year": 0,
+      "cover_path": "./cache/covers/alb_ssgirls_follow_your_arrows.jpg"
+    },
+    {
+      "id": "alb_ssgirls_sing_a_song",
+      "title": "Sing a SonG",
+      "artist": "SSGIRLS",
+      "genre": "Anime",
+      "year": 2024,
+      "cover_path": "./cache/covers/alb_ssgirls_sing_a_song.jpg"
+    },
+    {
+      "id": "alb_ssgirls_feat水口亜季cv小松未可子_sing_a_song",
+      "title": "Sing a SonG",
+      "artist": "SSGIRLS feat.水口亜季(CV.小松未可子)",
+      "genre": "Anime",
+      "year": 2024,
+      "cover_path": "./cache/covers/alb_ssgirls_feat水口亜季cv小松未可子_sing_a_song.jpg"
+    },
+    {
+      "id": "alb_adafruit_e_is_for_electronics_coloring_book_abcs",
+      "title": "\"E is for Electronics\" Coloring Book ABCs",
+      "artist": "Adafruit",
+      "genre": "Speech",
+      "year": 2018,
+      "cover_path": null
+    },
+    {
+      "id": "alb_yap_audio_production_yap_audio_production_sfx",
+      "title": "Yap Audio Production SFX",
+      "artist": "Yap Audio Production",
+      "genre": "Other",
+      "year": 2014,
+      "cover_path": null
+    },
+    {
+      "id": "alb_bartlebeats_unknown_album",
+      "title": "Unknown Album",
+      "artist": "Bartlebeats",
+      "genre": "Unknown",
+      "year": 0,
+      "cover_path": null
+    }
+  ]
+}
