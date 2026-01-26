@@ -78,6 +78,10 @@ impl Library {
             self.albums.push(album);
         }
     }
+
+    pub fn remove_track(&mut self, path: &Path) {
+        self.tracks.retain(|t| t.path != path);
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

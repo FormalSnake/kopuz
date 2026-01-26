@@ -1,7 +1,69 @@
+use crate::{player::player::Player, reader::Library};
 use dioxus::prelude::*;
 
 #[component]
-pub fn Bottombar() -> Element {
+pub fn Bottombar(
+    library: Signal<Library>,
+    player: Signal<Player>,
+    mut is_playing: Signal<bool>,
+    mut current_song_duration: Signal<u64>,
+    mut current_song_progress: Signal<u64>,
+    queue: Signal<Vec<crate::reader::models::Track>>,
+    mut current_queue_index: Signal<usize>,
+    mut current_song_title: Signal<String>,
+    mut current_song_artist: Signal<String>,
+    mut current_song_cover_url: Signal<String>,
+    mut volume: Signal<f32>,
+) -> Element {
+    let format_time = |seconds: u64| {
+        let minutes = seconds / 60;
+        let seconds = seconds % 60;
+        format!("{}:{:02}", minutes, seconds)
+    };
+
+    let progress_percent = if *current_song_duration.read() > 0 {
+        (*current_song_progress.read() as f64 / *current_song_duration.read() as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    let volume_percent = *volume.read() * 100.0;
+
+    let mut play_song_at_index = move |index: usize| {
+        let q = queue.read();
+        if index < q.len() {
+            let track = &q[index];
+            if let Ok(file) = std::fs::File::open(&track.path) {
+                if let Ok(source) = rodio::Decoder::new(std::io::BufReader::new(file)) {
+                    player.write().play(source);
+
+                    player.read().set_volume(*volume.peek());
+
+                    current_song_title.set(track.title.clone());
+                    current_song_artist.set(track.artist.clone());
+                    current_song_duration.set(track.duration);
+                    current_song_progress.set(0);
+
+                    let lib = library.read();
+                    if let Some(album) = lib.albums.iter().find(|a| a.id == track.album_id) {
+                        if let Some(url) =
+                            crate::utils::format_artwork_url(album.cover_path.as_ref())
+                        {
+                            current_song_cover_url.set(url);
+                        } else {
+                            current_song_cover_url.set(String::new());
+                        }
+                    } else {
+                        current_song_cover_url.set(String::new());
+                    }
+
+                    current_queue_index.set(index);
+                    is_playing.set(true);
+                }
+            }
+        }
+    };
+
     rsx! {
         div {
             class: "h-24 bg-[#050505] border-t border-white/5 px-4 flex items-center justify-between select-none shrink-0",
@@ -11,14 +73,14 @@ pub fn Bottombar() -> Element {
                 div {
                     class: "w-14 h-14 bg-white/5 rounded-md flex-shrink-0 overflow-hidden shadow-lg",
                     img {
-                        src: "https://api.dicebear.com/7.x/identicon/svg?seed=music",
+                        src: "{current_song_cover_url}",
                         class: "w-full h-full object-cover"
                     }
                 }
                 div {
                     class: "flex flex-col min-w-0",
-                    span { class: "text-sm font-bold text-white/90 truncate hover:underline cursor-pointer", "Song Title" }
-                    span { class: "text-xs text-slate-400 truncate hover:text-white/70 cursor-pointer", "Artist Name" }
+                    span { class: "text-sm font-bold text-white/90 truncate hover:underline cursor-pointer", "{current_song_title}" }
+                    span { class: "text-xs text-slate-400 truncate hover:text-white/70 cursor-pointer", "{current_song_artist}" }
                 }
                 button {
                     class: "ml-2 text-slate-400 hover:text-red-400 transition-colors",
@@ -31,26 +93,67 @@ pub fn Bottombar() -> Element {
                 div {
                     class: "flex items-center gap-6",
                     button { class: "text-slate-400 hover:text-white transition-all active:scale-95", i { class: "fa-solid fa-shuffle text-sm" } }
-                    button { class: "text-slate-400 hover:text-white transition-all active:scale-90", i { class: "fa-solid fa-backward-step text-xl" } }
+                    button {
+                        class: "text-slate-400 hover:text-white transition-all active:scale-90",
+                        onclick: move |_| {
+                            let idx = *current_queue_index.read();
+                            if idx > 0 {
+                                play_song_at_index(idx - 1);
+                            }
+                        },
+                        i { class: "fa-solid fa-backward-step text-xl" }
+                    }
                     button {
                         class: "w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 active:scale-95 transition-all",
-                        i { class: "fa-solid fa-play text-lg ml-0.5" }
+                        onclick: move |_| {
+                            if *is_playing.read() {
+                                player.write().pause();
+                                is_playing.set(false);
+                            } else {
+                                player.write().play_resume();
+                                is_playing.set(true);
+                            }
+                        },
+                        i { class: if *is_playing.read() { "fa-solid fa-pause text-lg" } else { "fa-solid fa-play text-lg ml-0.5" } }
                     }
-                    button { class: "text-slate-400 hover:text-white transition-all active:scale-90", i { class: "fa-solid fa-forward-step text-xl" } }
+                    button {
+                        class: "text-slate-400 hover:text-white transition-all active:scale-90",
+                        onclick: move |_| {
+                            let idx = *current_queue_index.read();
+                            if idx + 1 < queue.read().len() {
+                                play_song_at_index(idx + 1);
+                            }
+                        },
+                        i { class: "fa-solid fa-forward-step text-xl" }
+                    }
                     button { class: "text-slate-400 hover:text-white transition-all active:scale-95", i { class: "fa-solid fa-repeat text-sm" } }
                 }
 
                 div {
                     class: "flex items-center gap-2 w-full",
-                    span { class: "text-[10px] text-slate-500 w-8 text-right font-mono", "0:00" }
+                    span { class: "text-[10px] text-slate-500 w-8 text-right font-mono", "{format_time(*current_song_progress.read())}" }
                     div {
                         class: "flex-1 h-1 bg-white/10 rounded-full group cursor-pointer relative",
                         div {
-                            class: "absolute top-0 left-0 h-full w-1/3 bg-white group-hover:bg-green-500 rounded-full transition-colors",
+                            class: "absolute top-0 left-0 h-full bg-white group-hover:bg-green-500 rounded-full transition-colors pointer-events-none",
+                            style: "width: {progress_percent}%",
                             div { class: "absolute -right-1.5 -top-1 w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" }
                         }
+                        input {
+                            r#type: "range",
+                            min: "0",
+                            max: "{*current_song_duration.read()}",
+                            value: "{*current_song_progress.read()}",
+                            class: "absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10",
+                            oninput: move |evt| {
+                                if let Ok(val) = evt.value().parse::<u64>() {
+                                    player.write().seek(std::time::Duration::from_secs(val));
+                                    current_song_progress.set(val);
+                                }
+                            }
+                        }
                     }
-                    span { class: "text-[10px] text-slate-500 w-8 font-mono", "3:45" }
+                    span { class: "text-[10px] text-slate-500 w-8 font-mono", "{format_time(*current_song_duration.read())}" }
                 }
             }
 
@@ -64,8 +167,23 @@ pub fn Bottombar() -> Element {
                     div {
                         class: "w-24 h-1 bg-white/10 rounded-full group/vol cursor-pointer relative",
                         div {
-                            class: "absolute top-0 left-0 h-full w-2/3 bg-white group-hover/vol:bg-green-500 rounded-full transition-colors",
+                            class: "absolute top-0 left-0 h-full bg-white group-hover/vol:bg-green-500 rounded-full transition-colors pointer-events-none",
+                            style: "width: {volume_percent}%",
                             div { class: "absolute -right-1.5 -top-1 w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover/vol:opacity-100 transition-opacity" }
+                        }
+                         input {
+                            r#type: "range",
+                            min: "0",
+                            max: "1",
+                            step: "0.01",
+                            value: "{*volume.read()}",
+                            class: "absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10",
+                            oninput: move |evt| {
+                                if let Ok(val) = evt.value().parse::<f32>() {
+                                    player.read().set_volume(val);
+                                    volume.set(val);
+                                }
+                            }
                         }
                     }
                 }

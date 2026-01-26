@@ -1,4 +1,5 @@
 use crate::Route;
+use dioxus::desktop::use_window;
 use dioxus::prelude::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -23,6 +24,11 @@ const TOP_MENU: &[SidebarItem] = &[
         name: "Library",
         route: Route::Library,
         icon: "fa-solid fa-book",
+    },
+    SidebarItem {
+        name: "Album",
+        route: Route::Album,
+        icon: "fa-solid fa-music",
     },
     SidebarItem {
         name: "Playlists",
@@ -74,6 +80,12 @@ pub fn Sidebar(props: SidebarProps) -> Element {
         "justify-between px-6"
     };
 
+    let extra_padding = if cfg!(target_os = "macos") {
+        "pt-10"
+    } else {
+        ""
+    };
+
     rsx! {
         if *is_resizing.read() {
              div {
@@ -84,11 +96,25 @@ pub fn Sidebar(props: SidebarProps) -> Element {
         }
 
         div {
-            class: "h-screen bg-[#050505] text-slate-400 flex flex-col flex-shrink-0 select-none relative transition-all duration-300 ease-out border-r border-white/5",
+            class: "h-screen bg-[#050505] text-slate-400 flex flex-col flex-shrink-0 select-none relative transition-all duration-300 ease-out border-r border-white/5 {extra_padding}",
             style: "width: {current_width}px",
 
             div {
+                class: "absolute top-0 left-0 w-full h-10 z-50",
+                onmousedown: move |_| {
+                    if cfg!(target_os = "macos") {
+                        use_window().drag();
+                    }
+                }
+            }
+
+            div {
                 class: "h-20 flex items-center mb-4 transition-all {header_class}",
+                onmousedown: move |_| {
+                    if cfg!(target_os = "macos") {
+                        use_window().drag();
+                    }
+                },
                 if !*is_collapsed.read() {
                     h2 {
                         class: "text-lg font-bold tracking-widest text-white/90 uppercase",

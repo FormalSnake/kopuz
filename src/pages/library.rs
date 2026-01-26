@@ -1,19 +1,29 @@
-use crate::reader::Library;
-use dioxus::prelude::*;
-
-use crate::components::stat_card::StatCard;
 use crate::components::playlist_modal::PlaylistModal;
+use crate::components::stat_card::StatCard;
 use crate::components::track_row::TrackRow;
 use crate::hooks::use_library_items::{use_library_items, SortOrder};
+use crate::player::player;
+use crate::reader::Library;
+use dioxus::prelude::*;
 
 #[component]
 pub fn LibraryPage(
     library: Signal<Library>,
     playlist_store: Signal<crate::reader::PlaylistStore>,
-    on_rescan: EventHandler
+    on_rescan: EventHandler,
+    player: Signal<player::Player>,
+    mut is_playing: Signal<bool>,
+    mut current_playing: Signal<u64>,
+    mut current_song_cover_url: Signal<String>,
+    mut current_song_title: Signal<String>,
+    mut current_song_artist: Signal<String>,
+    mut current_song_duration: Signal<u64>,
+    mut current_song_progress: Signal<u64>,
+    mut queue: Signal<Vec<crate::reader::models::Track>>,
+    mut current_queue_index: Signal<usize>,
 ) -> Element {
     let lib = library.read();
-    
+
     let items = use_library_items(library);
     let mut sort_order = items.sort_order;
 
@@ -89,41 +99,71 @@ pub fn LibraryPage(
                 if lib.tracks.is_empty() {
                     p { class: "text-slate-500 italic", "Scanning your music collection..." }
                 } else {
-                    {items.all_tracks.iter().map(|(track, cover_url)| {
-                        let track_menu = track.clone();
-                        let track_add = track.clone();
-                        let track_key = track.path.display().to_string();
-                        let is_menu_open = active_menu_track.read().as_ref() == Some(&track.path);
-                        
-                        rsx! {
-                            TrackRow {
-                                key: "{track_key}",
-                                track: track.clone(),
-                                cover_url: cover_url.clone(),
-                                is_menu_open: is_menu_open,
-                                on_click_menu: move |_| {
-                                    if active_menu_track.read().as_ref() == Some(&track_menu.path) {
-                                        active_menu_track.set(None);
-                                    } else {
-                                        active_menu_track.set(Some(track_menu.path.clone()));
-                                    }
-                                },
-                                on_add_to_playlist: move |_| {
-                                    selected_track_for_playlist.set(Some(track_add.path.clone()));
-                                    show_playlist_modal.set(true);
+                {items.all_tracks.iter().enumerate().map(|(idx, (track, cover_url))| {
+                    let track_menu = track.clone();
+                    let track_add = track.clone();
+                    let track_play = track.clone();
+                    let track_delete = track.clone();
+                    let cover_play = cover_url.clone();
+                    let all_tracks: Vec<crate::reader::models::Track> = items.all_tracks.iter().map(|(t, _)| t.clone()).collect();
+
+                    let track_key = track.path.display().to_string();
+                    let is_menu_open = active_menu_track.read().as_ref() == Some(&track.path);
+
+                    rsx! {
+                        TrackRow {
+                            key: "{track_key}",
+                            track: track.clone(),
+                            cover_url: cover_url.clone(),
+                            is_menu_open: is_menu_open,
+                            on_click_menu: move |_| {
+                                if active_menu_track.read().as_ref() == Some(&track_menu.path) {
                                     active_menu_track.set(None);
-                                },
-                                on_close_menu: move |_| active_menu_track.set(None)
+                                } else {
+                                    active_menu_track.set(Some(track_menu.path.clone()));
+                                }
+                            },
+                            on_add_to_playlist: move |_| {
+                                selected_track_for_playlist.set(Some(track_add.path.clone()));
+                                show_playlist_modal.set(true);
+                                active_menu_track.set(None);
+                            },
+                            on_close_menu: move |_| active_menu_track.set(None),
+                            on_delete: move |_| {
+                                active_menu_track.set(None);
+                                if std::fs::remove_file(&track_delete.path).is_ok() {
+                                    library.write().remove_track(&track_delete.path);
+                                    let cache_dir = std::path::Path::new("./cache").to_path_buf();
+                                    let lib_path = cache_dir.join("library.json");
+                                    let _ = library.read().save(&lib_path);
+                                }
+                            },
+                            on_play: move |_| {
+                                queue.set(all_tracks.clone());
+                                current_queue_index.set(idx);
+
+                                if let Ok(file) = std::fs::File::open(&track_play.path) {
+                                     if let Ok(source) = rodio::Decoder::new(std::io::BufReader::new(file)) {
+                                        player.write().play(source);
+                                        current_song_title.set(track_play.title.clone());
+                                        current_song_artist.set(track_play.artist.clone());
+                                        current_song_duration.set(track_play.duration);
+                                        current_song_progress.set(0);
+                                        is_playing.set(true);
+                                        if let Some(cover) = &cover_play {
+                                            current_song_cover_url.set(cover.clone());
+                                        }
+                                     }
+                                }
                             }
                         }
-                    })}
+                    }
+                })}
                 }
             }
         }
     }
 }
-
-
 #[component]
 fn SortButton(active: bool, label: &'static str, onclick: EventHandler) -> Element {
     rsx! {
