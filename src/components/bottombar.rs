@@ -6,6 +6,7 @@ pub fn Bottombar(
     library: Signal<Library>,
     player: Signal<Player>,
     mut is_playing: Signal<bool>,
+    mut is_fullscreen: Signal<bool>,
     mut current_song_duration: Signal<u64>,
     mut current_song_progress: Signal<u64>,
     queue: Signal<Vec<crate::reader::models::Track>>,
@@ -189,7 +190,6 @@ pub fn Bottombar(
             div {
                 class: "flex items-center justify-end gap-4 w-1/4",
                 button { class: "text-slate-400 hover:text-white", i { class: "fa-solid fa-list-ul text-xs" } }
-                button { class: "text-slate-400 hover:text-white", i { class: "fa-solid fa-desktop text-xs" } }
                 div {
                     class: "flex items-center gap-2 group",
                     i { class: "fa-solid fa-volume-high text-xs text-slate-400 group-hover:text-white" }
@@ -216,7 +216,11 @@ pub fn Bottombar(
                         }
                     }
                 }
-                button { class: "text-slate-400 hover:text-white", i { class: "fa-solid fa-up-right-and-down-left-from-center text-xs" } }
+                button {
+                    class: "text-slate-400 hover:text-white",
+                    onclick: move |_| is_fullscreen.set(true),
+                    i { class: "fa-solid fa-up-right-and-down-left-from-center text-xs" }
+                }
             }
         }
     }

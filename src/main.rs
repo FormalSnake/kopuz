@@ -12,7 +12,7 @@ pub mod pages;
 pub mod player;
 pub mod reader;
 pub mod utils;
-use components::{bottombar::Bottombar, sidebar::Sidebar};
+use components::{bottombar::Bottombar, fullscreen::Fullscreen, sidebar::Sidebar};
 pub mod remote;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -121,11 +121,15 @@ fn App() -> Element {
     let current_song_cover_url = use_signal(String::new);
     let current_song_title = use_signal(String::new);
     let current_song_artist = use_signal(String::new);
+    let current_song_album = use_signal(String::new);
     let current_song_duration = use_signal(|| 0u64);
+    let current_song_khz = use_signal(|| 0u32);
+    let current_song_bitrate = use_signal(|| 0u8);
     let current_song_progress = use_signal(|| 0u64);
     let volume = use_signal(|| 1.0f32);
 
     let is_playing = use_signal(|| false);
+    let is_fullscreen = use_signal(|| false);
 
     let mut selected_album_id = use_signal(String::new);
     let mut search_query = use_signal(String::new);
@@ -179,6 +183,8 @@ fn App() -> Element {
         current_queue_index,
         current_song_title,
         current_song_artist,
+        current_song_khz,
+        current_song_bitrate,
         current_song_duration,
         current_song_progress,
         current_song_cover_url,
@@ -301,6 +307,23 @@ fn App() -> Element {
                     }
                 }
             }
+            Fullscreen {
+                library: library,
+                player: player,
+                is_playing: is_playing,
+                is_fullscreen: is_fullscreen,
+                current_song_duration: current_song_duration,
+                current_song_progress: current_song_progress,
+                queue: queue,
+                current_song_album: current_song_album,
+                current_queue_index: current_queue_index,
+                current_song_title: current_song_title,
+                current_song_khz: current_song_khz,
+                current_song_bitrate: current_song_bitrate,
+                current_song_artist: current_song_artist,
+                current_song_cover_url: current_song_cover_url,
+                volume: volume,
+            }
             Bottombar {
                 library: library,
                 current_song_cover_url: current_song_cover_url,
@@ -308,6 +331,7 @@ fn App() -> Element {
                 current_song_artist: current_song_artist,
                 player: player,
                 is_playing: is_playing,
+                is_fullscreen: is_fullscreen,
                 current_song_duration: current_song_duration,
                 current_song_progress: current_song_progress,
                 queue: queue,

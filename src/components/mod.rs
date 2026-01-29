@@ -1,5 +1,6 @@
 pub mod album_details;
 pub mod bottombar;
+pub mod fullscreen;
 pub mod playlist_detail;
 pub mod playlist_modal;
 pub mod search_bar;

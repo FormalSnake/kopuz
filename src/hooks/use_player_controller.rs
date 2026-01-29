@@ -11,6 +11,8 @@ pub struct PlayerController {
     pub current_queue_index: Signal<usize>,
     pub current_song_title: Signal<String>,
     pub current_song_artist: Signal<String>,
+    pub current_song_khz: Signal<u32>,
+    pub current_song_bitrate: Signal<u8>,
     pub current_song_duration: Signal<u64>,
     pub current_song_progress: Signal<u64>,
     pub current_song_cover_url: Signal<String>,
@@ -46,6 +48,8 @@ impl PlayerController {
 
                     self.current_song_title.set(track.title.clone());
                     self.current_song_artist.set(track.artist.clone());
+                    self.current_song_khz.set(track.khz);
+                    self.current_song_bitrate.set(track.bitrate);
                     self.current_song_duration.set(track.duration);
                     self.current_song_progress.set(0);
 
@@ -108,6 +112,8 @@ pub fn use_player_controller(
     current_queue_index: Signal<usize>,
     current_song_title: Signal<String>,
     current_song_artist: Signal<String>,
+    current_song_khz: Signal<u32>,
+    current_song_bitrate: Signal<u8>,
     current_song_duration: Signal<u64>,
     current_song_progress: Signal<u64>,
     current_song_cover_url: Signal<String>,
@@ -121,6 +127,8 @@ pub fn use_player_controller(
         current_queue_index,
         current_song_title,
         current_song_artist,
+        current_song_khz,
+        current_song_bitrate,
         current_song_duration,
         current_song_progress,
         current_song_cover_url,
