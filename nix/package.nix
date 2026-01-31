@@ -10,7 +10,6 @@
 , alsa-lib
 , xdotool
 , openssl
-, nodejs
 , src
 }:
 
@@ -30,7 +29,6 @@ rustPlatform.buildRustPackage {
     pkg-config
     wrapGAppsHook3
     makeWrapper
-    nodejs
   ];
 
   buildInputs = [
@@ -45,24 +43,15 @@ rustPlatform.buildRustPackage {
 
   cargoBuildFlags = [ "--package" "rusic" ];
 
-  preBuild = ''
-    # Build Tailwind CSS
-    npm install
-    npx @tailwindcss/cli -i ./tailwind.css -o ./rusic/assets/tailwind.css \
-      --content './rusic/**/*.rs,./components/**/*.rs,./pages/**/*.rs,./hooks/**/*.rs,./player/**/*.rs,./reader/**/*.rs'
-  '';
-
   postInstall = ''
-    # Create assets directory next to binary
+    mkdir -p $out/share/rusic/run
     mkdir -p $out/share/rusic/assets
     cp -r rusic/assets/* $out/share/rusic/assets/
     
-    # Wrap binary to run from assets directory
     wrapProgram $out/bin/rusic \
-      --chdir $out/share/rusic \
+      --chdir $out/share/rusic/run \
       --set GIO_MODULE_DIR "${glib-networking}/lib/gio/modules/"
     
-    # Desktop file and icon
     mkdir -p $out/share/applications
     mkdir -p $out/share/icons/hicolor/scalable/apps
     cp data/com.temidaradev.rusic.desktop $out/share/applications/
