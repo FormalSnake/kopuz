@@ -18,89 +18,82 @@ Rusic allows you to scan your local directories for audio files, automatically o
 
 ## Installation
 
-### NixOS / Nix
+### 🚀 Quick Install (Recommended)
+
+**One-Command Install** - works on any Linux distro:
+
+```bash
+git clone https://github.com/temidaradev/rusic
+cd rusic
+chmod +x install.sh
+./install.sh
+```
+
+Or with Make:
+
+```bash
+git clone https://github.com/temidaradev/rusic
+cd rusic
+make install
+```
+
+This will:
+
+- Build the application
+- Install it to `~/.local/bin`
+- Create a desktop icon automatically
+- Add Rusic to your application menu
+
+**Alternative: Download AppImage** from [Releases](https://github.com/temidaradev/rusic/releases)
+
+```bash
+chmod +x Rusic-x86_64.AppImage
+./Rusic-x86_64.AppImage
+```
+
+### 📦 Other Installation Methods
+
+<details>
+<summary><b>NixOS / Nix</b></summary>
 
 ```bash
 nix run github:temidaradev/rusic
 ```
 
 Or add to your flake:
+
 ```nix
 inputs.rusic.url = "github:temidaradev/rusic";
 # Then use: inputs.rusic.packages.${system}.default
 ```
 
-### Ubuntu / Debian
+</details>
+
+<details>
+<summary><b>Build from Source</b></summary>
+
+**One-command build** (auto-installs dependencies):
 
 ```bash
-# Install dependencies
-sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev libasound2-dev libxdo-dev libssl-dev pkg-config nodejs npm
-
-# Install Dioxus CLI
-cargo install dioxus-cli
-
-# Build and install
 git clone https://github.com/temidaradev/rusic
 cd rusic
-npm install
-make build
-# Binary is at: target/dx/rusic/release/linux/app/rusic
+chmod +x build.sh
+./build.sh
 ```
 
-### Arch Linux
+The script automatically detects your distro (Ubuntu, Arch, Fedora, etc.) and installs dependencies.
+
+**Manual build** (if you already have dependencies):
 
 ```bash
-# Install dependencies
-sudo pacman -S webkit2gtk-4.1 gtk3 alsa-lib xdotool openssl pkg-config nodejs npm rust
-
-# Install Dioxus CLI
-cargo install dioxus-cli
-
-# Build
-git clone https://github.com/temidaradev/rusic
-cd rusic
-npm install
-make build
-# Binary is at: target/dx/rusic/release/linux/app/rusic
+./build.sh --skip-deps
 ```
 
-### Fedora
+**Binary location:** `target/dx/rusic/release/linux/app/rusic`
 
-```bash
-# Install dependencies
-sudo dnf install webkit2gtk4.1-devel gtk3-devel alsa-lib-devel libxdo-devel openssl-devel pkg-config nodejs npm rust cargo
+</details>
 
-# Install Dioxus CLI
-cargo install dioxus-cli
-
-# Build
-git clone https://github.com/temidaradev/rusic
-cd rusic
-npm install
-make build
-# Binary is at: target/dx/rusic/release/linux/app/rusic
-```
-
-### AppImage (Portable)
-
-1. **Download** `Rusic-x86_64.AppImage` from [Releases](https://github.com/temidaradev/rusic/releases).
-2. **Run**:
-   ```bash
-   chmod +x Rusic-x86_64.AppImage
-   ./Rusic-x86_64.AppImage
-   ```
-
-### Desktop Installation
-To add Rusic to your application menu:
-
-1. **Download** `scripts/install_appimage.sh` and place it in the same folder as the AppImage.
-2. **Install**:
-   ```bash
-   chmod +x install_appimage.sh
-   ./install_appimage.sh
-   ```
-
-*Note: If the application fails to start on Ubuntu 22.04+, install libfuse2: `sudo apt install libfuse2`*
+_Note: If the application fails to start on Ubuntu 22.04+, install libfuse2: `sudo apt install libfuse2`_
 
 ## Development
 

@@ -12,6 +12,9 @@ build: tailwind
 run-release:
 	cd target/dx/rusic/release/linux/app && ./rusic
 
+install:
+	@./install.sh
+
 clean:
 	cargo clean
 	rm -rf target/dx dist
