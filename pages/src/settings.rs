@@ -4,6 +4,14 @@ use rfd::AsyncFileDialog;
 
 #[component]
 pub fn Settings(config: Signal<AppConfig>) -> Element {
+    let mut show_popup = use_signal(|| false);
+
+    let mut server_name = use_signal(|| String::new());
+    let mut server_url = use_signal(|| String::new());
+    let mut api_key = use_signal(|| String::new());
+
+    let mut error = use_signal(|| Option::<String>::None);
+
     rsx! {
         div {
             class: "p-8 max-w-4xl",
@@ -51,6 +59,38 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                 }
                             }
                         }
+                        SettingItem {
+                            title: "Jellyfin Server",
+                            description: format!("Current server: {}", config.read().server),
+                            control: rsx! {
+                                button {
+                                    onclick: move |_| {
+                                        show_popup.set(true);
+
+                                    },
+                                    class: "bg-white/10 hover:bg-white/20 px-3 py-1 rounded text-sm text-white transition-colors",
+                                    "Add Server"
+                                }
+                                if show_popup() {
+                                    AddServerPopup {
+                                        server_name,
+                                        server_url,
+                                        api_key,
+                                        error,
+                                        on_close: move |_| show_popup.set(false),
+                                        on_save: move |_| {
+                                            if !server_url().starts_with("http") {
+                                                error.set(Some("Invalid server URL".into()));
+                                                return;
+                                            }
+
+                                            show_popup.set(false);
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
                     }
                 }
             }
@@ -67,6 +107,63 @@ fn SettingItem(title: &'static str, description: String, control: Element) -> El
                 p { class: "text-sm text-slate-500", "{description}" }
             }
             {control}
+        }
+    }
+}
+
+#[component]
+fn AddServerPopup(
+    server_name: Signal<String>,
+    server_url: Signal<String>,
+    api_key: Signal<String>,
+    error: Signal<Option<String>>,
+    on_close: EventHandler<()>,
+    on_save: EventHandler<()>,
+) -> Element {
+    rsx! {
+        div {
+            class: "overlay",
+            onclick: move |_| on_close.call(()),
+
+            div {
+                class: "popup",
+                onclick: |e| e.stop_propagation(),
+
+                h2 { "Add Jellyfin Server" }
+
+                if let Some(err) = error() {
+                    p { class: "error", "{err}" }
+                }
+
+                input {
+                    placeholder: "Server name (optional)",
+                    value: "{server_name()}",
+                    oninput: move |e| server_name.set(e.value())
+                }
+
+                input {
+                    placeholder: "http://localhost:8096",
+                    value: "{server_url()}",
+                    oninput: move |e| server_url.set(e.value())
+                }
+
+                input {
+                    placeholder: "API Key (optional)",
+                    value: "{api_key()}",
+                    oninput: move |e| api_key.set(e.value())
+                }
+
+                div { class: "actions",
+                    button {
+                        onclick: move |_| on_close.call(()),
+                        "Cancel"
+                    }
+                    button {
+                        onclick: move |_| on_save.call(()),
+                        "Save"
+                    }
+                }
+            }
         }
     }
 }

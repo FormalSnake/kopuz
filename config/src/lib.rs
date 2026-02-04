@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
+    pub server: String,
     pub music_directory: PathBuf,
     #[serde(default = "default_theme")]
     pub theme: String,
@@ -16,6 +17,7 @@ fn default_theme() -> String {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
+            server: String::new(),
             music_directory: PathBuf::from("./assets"),
             theme: default_theme(),
         }

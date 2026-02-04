@@ -31,4 +31,5 @@ pages = { path = "./pages" }
 utils = { path = "./utils" }
 config = { path = "./config" }
 rusic = { path = "./rusic" }
+server = { path = "./server" }
 rusic_route = { path = "./rusic_route" }
