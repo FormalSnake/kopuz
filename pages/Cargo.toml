@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-dioxus = { workspace = true }
+dioxus = { workspace = true, features = ["desktop"] }
 uuid = { workspace = true }
 player = { workspace = true }
 reader = { workspace = true }
@@ -15,3 +15,6 @@ rfd = { workspace = true }
 utils = { workspace = true }
 rusic_route = { workspace = true }
 rodio = { workspace = true }
+server = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true }
