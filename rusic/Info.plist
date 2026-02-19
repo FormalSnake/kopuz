@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>Rusic</string>
+    <key>CFBundleExecutable</key>
+    <string>rusic</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.temidaradev.rusic</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>Rusic</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.2.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.15</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2024 Temidara.</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAppNap</key>
+    <false/>
+    
+    <!-- Crucial for background audio -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+    </array>
+    
+    <!-- Prevent automatic termination -->
+    <key>NSSupportsAutomaticTermination</key>
+    <false/>
+    
+    <!-- Suggest to the OS that we shouldn't sleep (though modern macOS often ignores this) -->
+    <key>NSAppSleepDisabled</key>
+    <true/>
+</dict>
+</plist>

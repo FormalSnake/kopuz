@@ -3,6 +3,14 @@ name = "rusic"
 version = "0.2.0"
 edition = "2024"
 
+[package.metadata.bundle]
+identifier = "com.temidaradev.rusic"
+icon = ["../assets/logo.png"]
+category = "public.app-category.music"
+
+[package.metadata.bundle.macos]
+info_plist_path = "Info.plist"
+
 [dependencies]
 dioxus = { workspace = true, features = ["desktop"] }
 uuid = { workspace = true }
