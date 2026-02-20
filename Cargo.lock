@@ -2033,6 +2033,7 @@ dependencies = [
  "reader",
  "reqwest 0.12.28",
  "rodio",
+ "server",
  "tokio",
  "utils",
 ]

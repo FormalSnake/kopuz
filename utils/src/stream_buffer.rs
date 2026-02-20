@@ -55,6 +55,9 @@ impl StreamBuffer {
                     let mut total_buffered = 0usize;
 
                     while let Ok(Some(chunk)) = response.chunk().await {
+                        if Arc::strong_count(&state_clone) == 1 {
+                            break;
+                        }
                         let chunk_len = chunk.len();
 
                         if total_buffered + chunk_len > MAX_BUFFER_SIZE {

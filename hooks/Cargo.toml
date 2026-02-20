@@ -14,3 +14,4 @@ config = { workspace = true }
 rand = { workspace = true }
 discord-presence = { workspace = true }
 reqwest = { workspace = true }
+server = { workspace = true }

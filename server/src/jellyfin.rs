@@ -1,8 +1,33 @@
 use jellyfin_sdk_rust::JellyfinSDK;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize)]
+struct PlaybackProgressRequest<'a> {
+    #[serde(rename = "ItemId")]
+    item_id: &'a str,
+    #[serde(rename = "PositionTicks")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    position_ticks: Option<u64>,
+    #[serde(rename = "IsPaused")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    is_paused: Option<bool>,
+    #[serde(rename = "CanSeek")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    can_seek: Option<bool>,
+}
+
+#[derive(Serialize)]
+struct PlaybackStopRequest<'a> {
+    #[serde(rename = "ItemId")]
+    item_id: &'a str,
+    #[serde(rename = "PositionTicks")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    position_ticks: Option<u64>,
+}
+
 pub struct JellyfinRemote {
     client: JellyfinSDK,
+    http_client: reqwest::Client,
     base_url: String,
     device_id: String,
     user_id: Option<String>,
@@ -112,6 +137,7 @@ impl JellyfinRemote {
 
         Self {
             client,
+            http_client: reqwest::Client::new(),
             base_url: clean_base_url.to_string(),
             device_id: device_id.to_string(),
             user_id: user_id.map(|s| s.to_string()),
@@ -126,7 +152,6 @@ impl JellyfinRemote {
     ) -> Result<(String, String), String> {
         let url = format!("{}/Users/AuthenticateByName", self.base_url);
 
-        let client = reqwest::Client::new();
         let body = LoginRequest { username, password };
 
         let auth_header = format!(
@@ -134,7 +159,8 @@ impl JellyfinRemote {
             self.device_id
         );
 
-        let resp = client
+        let resp = self
+            .http_client
             .post(&url)
             .header("X-Emby-Authorization", auth_header)
             .json(&body)
@@ -169,14 +195,14 @@ impl JellyfinRemote {
             "{}/Users/{}/Items/{}/Metadata",
             self.base_url, user_id, item_id
         );
-        let client = reqwest::Client::new();
 
         let auth_header = format!(
             "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.1.0\", Token=\"{}\"",
             self.device_id, token
         );
 
-        let resp = client
+        let resp = self
+            .http_client
             .get(&url)
             .header("X-Emby-Authorization", auth_header)
             .send()
@@ -199,14 +225,14 @@ impl JellyfinRemote {
             .ok_or("No access token available")?;
 
         let url = format!("{}/Users/{}/Views", self.base_url, user_id);
-        let client = reqwest::Client::new();
 
         let auth_header = format!(
             "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.1.0\", Token=\"{}\"",
             self.device_id, token
         );
 
-        let resp = client
+        let resp = self
+            .http_client
             .get(&url)
             .header("X-Emby-Authorization", auth_header)
             .send()
@@ -243,7 +269,6 @@ impl JellyfinRemote {
             .ok_or("No access token available")?;
 
         let url = format!("{}/Users/{}/Items", self.base_url, user_id);
-        let client = reqwest::Client::new();
 
         let auth_header = format!(
             "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.1.0\", Token=\"{}\"",
@@ -253,7 +278,7 @@ impl JellyfinRemote {
         let start = start_index.to_string();
         let limit_val = limit.to_string();
 
-        let resp = client
+        let resp = self.http_client
             .get(&url)
             .query(&[
                 ("ParentId", parent_id),
@@ -292,7 +317,6 @@ impl JellyfinRemote {
             .ok_or("No access token available")?;
 
         let url = format!("{}/Users/{}/Items", self.base_url, user_id);
-        let client = reqwest::Client::new();
 
         let auth_header = format!(
             "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.1.0\", Token=\"{}\"",
@@ -302,7 +326,8 @@ impl JellyfinRemote {
         let start = start_index.to_string();
         let limit_val = limit.to_string();
 
-        let resp = client
+        let resp = self
+            .http_client
             .get(&url)
             .query(&[
                 ("ParentId", parent_id),
@@ -328,5 +353,153 @@ impl JellyfinRemote {
 
         let albums_resp: AlbumsResponse = resp.json().await.map_err(|e| e.to_string())?;
         Ok((albums_resp.items, albums_resp.total_record_count))
+    }
+
+    pub async fn report_playback_start(&self, item_id: &str) -> Result<(), String> {
+        let token = self
+            .access_token
+            .as_ref()
+            .ok_or("No access token available")?;
+        let url = format!("{}/Sessions/Playing", self.base_url);
+
+        let auth_header = format!(
+            "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.1.0\", Token=\"{}\"",
+            self.device_id, token
+        );
+
+        let body = PlaybackProgressRequest {
+            item_id,
+            position_ticks: Some(0),
+            is_paused: Some(false),
+            can_seek: Some(true),
+        };
+
+        let resp = self
+            .http_client
+            .post(&url)
+            .header("X-Emby-Authorization", auth_header)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if !resp.status().is_success() {
+            return Err(format!(
+                "Failed to report playback start: {}",
+                resp.status()
+            ));
+        }
+
+        Ok(())
+    }
+
+    pub async fn report_playback_progress(
+        &self,
+        item_id: &str,
+        position_ticks: u64,
+        is_paused: bool,
+    ) -> Result<(), String> {
+        let token = self
+            .access_token
+            .as_ref()
+            .ok_or("No access token available")?;
+        let url = format!("{}/Sessions/Playing/Progress", self.base_url);
+
+        let auth_header = format!(
+            "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.1.0\", Token=\"{}\"",
+            self.device_id, token
+        );
+
+        let body = PlaybackProgressRequest {
+            item_id,
+            position_ticks: Some(position_ticks),
+            is_paused: Some(is_paused),
+            can_seek: Some(true),
+        };
+
+        let resp = self
+            .http_client
+            .post(&url)
+            .header("X-Emby-Authorization", auth_header)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if !resp.status().is_success() {
+            return Err(format!(
+                "Failed to report playback progress: {}",
+                resp.status()
+            ));
+        }
+
+        Ok(())
+    }
+
+    pub async fn report_playback_stopped(
+        &self,
+        item_id: &str,
+        position_ticks: u64,
+    ) -> Result<(), String> {
+        let token = self
+            .access_token
+            .as_ref()
+            .ok_or("No access token available")?;
+        let url = format!("{}/Sessions/Playing/Stopped", self.base_url);
+
+        let auth_header = format!(
+            "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.1.0\", Token=\"{}\"",
+            self.device_id, token
+        );
+
+        let body = PlaybackStopRequest {
+            item_id,
+            position_ticks: Some(position_ticks),
+        };
+
+        let resp = self
+            .http_client
+            .post(&url)
+            .header("X-Emby-Authorization", auth_header)
+            .json(&body)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if !resp.status().is_success() {
+            return Err(format!(
+                "Failed to report playback stopped: {}",
+                resp.status()
+            ));
+        }
+
+        Ok(())
+    }
+
+    pub async fn ping(&self) -> Result<(), String> {
+        let token = self
+            .access_token
+            .as_ref()
+            .ok_or("No access token available")?;
+        let url = format!("{}/Sessions/Ping", self.base_url);
+
+        let auth_header = format!(
+            "MediaBrowser Client=\"Rusic\", Device=\"Rusic\", DeviceId=\"{}\", Version=\"0.3.0\", Token=\"{}\"",
+            self.device_id, token
+        );
+
+        let resp = self
+            .http_client
+            .post(&url)
+            .header("X-Emby-Authorization", auth_header)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if !resp.status().is_success() {
+            return Err(format!("Ping failed: {}", resp.status()));
+        }
+
+        Ok(())
     }
 }

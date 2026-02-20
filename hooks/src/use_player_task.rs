@@ -2,6 +2,7 @@ use crate::use_player_controller::PlayerController;
 use config::AppConfig;
 use dioxus::prelude::*;
 use discord_presence::Presence;
+use server::jellyfin::JellyfinRemote;
 use std::sync::Arc;
 
 pub fn use_player_task(ctrl: PlayerController) {
@@ -67,6 +68,9 @@ pub fn use_player_task(ctrl: PlayerController) {
         let mut ctrl = ctrl;
         let presence = presence.clone();
         let mut last_discord_enabled = false;
+        let mut last_jellyfin_id: Option<String> = None;
+        let mut last_ping = std::time::Instant::now();
+        let mut last_progress_report = std::time::Instant::now();
 
         async move {
             loop {
@@ -74,9 +78,75 @@ pub fn use_player_task(ctrl: PlayerController) {
 
                 let is_playing = *ctrl.is_playing.read();
                 let discord_enabled = config.read().discord_presence.unwrap_or(true);
+                let pos = ctrl.player.read().get_position();
+
+                let jellyfin_info = {
+                    let conf = config.read();
+                    conf.server.clone().map(|s| (s, conf.device_id.clone()))
+                };
+
+                if let Some((server, device_id)) = jellyfin_info {
+                    let remote = JellyfinRemote::new(
+                        &server.url,
+                        server.access_token.as_deref(),
+                        &device_id,
+                        server.user_id.as_deref(),
+                    );
+
+                    if last_ping.elapsed().as_secs() >= 30 {
+                        let _ = remote.ping().await;
+                        last_ping = std::time::Instant::now();
+                    }
+
+                    let track = {
+                        let q = ctrl.queue.read();
+                        let idx = *ctrl.current_queue_index.read();
+                        q.get(idx).cloned()
+                    };
+
+                    if let Some(track) = track {
+                        let path_str = track.path.to_string_lossy();
+                        if path_str.starts_with("jellyfin:") {
+                            let parts: Vec<&str> = path_str.split(':').collect();
+                            if let Some(id) = parts.get(1) {
+                                let current_id = id.to_string();
+
+                                if last_jellyfin_id.as_ref() != Some(&current_id) {
+                                    if let Some(old_id) = last_jellyfin_id {
+                                        let _ = remote
+                                            .report_playback_stopped(
+                                                &old_id,
+                                                pos.as_micros() as u64 * 10,
+                                            )
+                                            .await;
+                                    }
+                                    let _ = remote.report_playback_start(&current_id).await;
+                                    last_jellyfin_id = Some(current_id.clone());
+                                }
+
+                                if last_progress_report.elapsed().as_secs() >= 5
+                                    || is_playing != *was_playing.peek()
+                                {
+                                    let ticks = pos.as_micros() as u64 * 10;
+                                    let _ = remote
+                                        .report_playback_progress(&current_id, ticks, !is_playing)
+                                        .await;
+                                    last_progress_report = std::time::Instant::now();
+                                }
+                            }
+                        } else if let Some(old_id) = last_jellyfin_id.take() {
+                            let _ = remote
+                                .report_playback_stopped(&old_id, pos.as_micros() as u64 * 10)
+                                .await;
+                        }
+                    } else if let Some(old_id) = last_jellyfin_id.take() {
+                        let _ = remote
+                            .report_playback_stopped(&old_id, pos.as_micros() as u64 * 10)
+                            .await;
+                    }
+                }
 
                 if is_playing {
-                    let pos = ctrl.player.read().get_position();
                     ctrl.current_song_progress.set(pos.as_secs());
 
                     if let Some(ref p) = presence {
