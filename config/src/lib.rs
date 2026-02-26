@@ -34,6 +34,9 @@ pub struct AppConfig {
     pub sort_order: SortOrder,
     #[serde(default)]
     pub listen_counts: HashMap<String, u64>,
+    #[serde(default)]
+    pub musicbrainz_token: String,
+    pub lastfm_token: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -74,6 +77,8 @@ impl Default for AppConfig {
             discord_presence: Some(true),
             sort_order: default_sort_order(),
             listen_counts: HashMap::new(),
+            musicbrainz_token: String::new(),
+            lastfm_token: String::new(),
         }
     }
 }

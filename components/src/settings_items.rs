@@ -133,3 +133,35 @@ pub fn DiscordPresenceSettings(enabled: bool, on_change: EventHandler<bool>) -> 
         }
     }
 }
+
+#[component]
+pub fn MusicBrainzSettings(on_change: EventHandler<bool>) -> Element {
+    rsx! {
+        div {
+            class: "bg-white/5 p-1 rounded-xl flex relative h-10 items-center border border-white/5 w-48",
+            div {
+                class: "absolute h-8 bg-white/10 rounded-lg transition-all duration-300 ease-out",
+            }
+            input {
+                placeholder: "Enter you MusicBrainz token",
+
+
+            }
+        }
+    }
+}
+
+#[component]
+pub fn LastFmSettings(on_change: EventHandler<bool>) -> Element {
+    rsx! {
+        div {
+            class: "bg-white/5 p-1 rounded-xl flex relative h-10 items-center border border-white/5 w-48",
+            div {
+                class: "absolute h-8 bg-white/10 rounded-lg transition-all duration-300 ease-out",
+            }
+            input {
+                placeholder: "Enter your last.fm token",
+            }
+        }
+    }
+}
