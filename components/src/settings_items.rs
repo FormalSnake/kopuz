@@ -147,16 +147,12 @@ pub fn MusicBrainzSettings(current: String, on_save: EventHandler<String>) -> El
                     class: "bg-transparent w-full px-3 py-2 text-sm text-white placeholder:text-white/50 outline-none",
                     placeholder: "Enter your MusicBrainz token",
                     value: "{input()}",
-                    oninput: move |evt| input.set(evt.value()),
+                    oninput: move |evt| {
+                        input.set(evt.value());
+                        on_save.call(evt.value());
+                    },
                     r#type: "text",
                 }
-            }
-            button {
-                class: "text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white/80",
-                onclick: move |_| {
-                    on_save.call(input().clone());
-                },
-                "Save"
             }
         }
     }
@@ -173,16 +169,12 @@ pub fn LastFmSettings(current: String, on_save: EventHandler<String>) -> Element
                     class: "bg-transparent w-full px-3 py-2 text-sm text-white placeholder:text-white/50 outline-none",
                     placeholder: "Enter your last.fm token",
                     value: "{input()}",
-                    oninput: move |evt| input.set(evt.value()),
+                    oninput: move |evt| {
+                        input.set(evt.value());
+                        on_save.call(evt.value());
+                    },
                     r#type: "text",
                 }
-            }
-            button {
-                class: "text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white/80",
-                onclick: move |_| {
-                    on_save.call(input().clone());
-                },
-                "Save"
             }
         }
     }
