@@ -1,0 +1,427 @@
+use components::dots_menu::{DotsMenu, MenuAction};
+use config::AppConfig;
+use dioxus::prelude::*;
+use reader::{Library, PlaylistStore};
+use server::jellyfin::JellyfinRemote;
+
+#[component]
+pub fn JellyfinAlbum(
+    library: Signal<Library>,
+    config: Signal<AppConfig>,
+    album_id: Signal<String>,
+    playlist_store: Signal<PlaylistStore>,
+    mut queue: Signal<Vec<reader::models::Track>>,
+    mut open_album_menu: Signal<Option<String>>,
+    mut show_album_playlist_modal: Signal<bool>,
+    mut pending_album_id_for_playlist: Signal<Option<String>>,
+) -> Element {
+    let jellyfin_albums = use_memo(move || {
+        let lib = library.read();
+        let conf = config.read();
+
+        lib.jellyfin_albums
+            .iter()
+            .map(|album| {
+                let cover_url = if let Some(server) = &conf.server {
+                    if let Some(cover_path) = &album.cover_path {
+                        let path_str = cover_path.to_string_lossy();
+                        let parts: Vec<&str> = path_str.split(':').collect();
+                        if parts.len() >= 2 {
+                            let id = parts[1];
+                            let mut url = format!("{}/Items/{}/Images/Primary", server.url, id);
+                            let mut params = Vec::new();
+                            if parts.len() >= 3 {
+                                params.push(format!("tag={}", parts[2]));
+                            }
+                            if let Some(token) = &server.access_token {
+                                params.push(format!("api_key={}", token));
+                            }
+                            if !params.is_empty() {
+                                url.push('?');
+                                url.push_str(&params.join("&"));
+                            }
+                            Some(url)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+                (
+                    album.id.clone(),
+                    album.title.clone(),
+                    album.artist.clone(),
+                    cover_url,
+                )
+            })
+            .collect::<Vec<_>>()
+    });
+
+    let album_menu_actions = vec![
+        MenuAction::new("Add All to Playlist", "fa-solid fa-list-music"),
+        MenuAction::new("Remove from Cache", "fa-solid fa-trash").destructive(),
+    ];
+
+    rsx! {
+        div {
+            if jellyfin_albums().is_empty() {
+                p { class: "text-slate-500", "No albums found in Jellyfin library." }
+            } else {
+                div { class: "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6",
+                    for (album_id_val, album_title, artist, cover_url) in jellyfin_albums() {
+                        {
+                            let id_for_nav    = album_id_val.clone();
+                            let id_for_menu   = album_id_val.clone();
+                            let id_for_action = album_id_val.clone();
+                            let is_open = open_album_menu.read().as_deref() == Some(&album_id_val);
+                            rsx! {
+                                div {
+                                    key: "{album_id_val}",
+                                    class: "group relative p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors",
+
+                                    div {
+                                        class: "cursor-pointer",
+                                        onclick: {
+                                            let id = id_for_nav.clone();
+                                            move |_| album_id.set(id.clone())
+                                        },
+                                        div { class: "aspect-square rounded-lg bg-stone-800 mb-3 overflow-hidden relative",
+                                            if let Some(url) = &cover_url {
+                                                img { src: "{url}", class: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" }
+                                            } else {
+                                                div { class: "w-full h-full flex items-center justify-center",
+                                                    i { class: "fa-solid fa-compact-disc text-4xl text-white/20" }
+                                                }
+                                            }
+                                        }
+                                        h3 { class: "text-white font-medium truncate", "{album_title}" }
+                                        p { class: "text-sm text-stone-400 truncate", "{artist}" }
+                                    }
+
+                                    div {
+                                        class: "absolute bottom-3 right-3",
+                                        DotsMenu {
+                                            actions: album_menu_actions.clone(),
+                                            is_open,
+                                            on_open: {
+                                                let id = id_for_menu.clone();
+                                                move |_| open_album_menu.set(Some(id.clone()))
+                                            },
+                                            on_close: move |_| open_album_menu.set(None),
+                                            button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100 bg-black/40".to_string(),
+                                            anchor: "right".to_string(),
+                                            on_action: {
+                                                let id = id_for_action.clone();
+                                                move |idx: usize| {
+                                                    open_album_menu.set(None);
+                                                    match idx {
+                                                        0 => {
+                                                            pending_album_id_for_playlist.set(Some(id.clone()));
+                                                            show_album_playlist_modal.set(true);
+                                                        }
+                                                        1 => {
+                                                            library.write().jellyfin_albums.retain(|a| a.id != id);
+                                                            library.write().jellyfin_tracks.retain(|t| t.album_id != id);
+                                                        }
+                                                        _ => {}
+                                                    }
+                                                }
+                                            },
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+pub fn JellyfinAlbumDetails(
+    album_jellyfin_id: String,
+    library: Signal<Library>,
+    config: Signal<AppConfig>,
+    playlist_store: Signal<PlaylistStore>,
+    mut queue: Signal<Vec<reader::models::Track>>,
+    on_close: EventHandler<()>,
+) -> Element {
+    let mut ctrl = use_context::<hooks::use_player_controller::PlayerController>();
+    let mut active_menu_track = use_signal(|| None::<std::path::PathBuf>);
+    let mut show_playlist_modal = use_signal(|| false);
+    let mut selected_track_for_playlist = use_signal(|| None::<std::path::PathBuf>);
+
+    let album_id_for_info = album_jellyfin_id.clone();
+    let album_info = use_memo(move || {
+        let lib = library.read();
+        lib.jellyfin_albums
+            .iter()
+            .find(|a| a.id == album_id_for_info)
+            .cloned()
+    });
+
+    let album_id_for_tracks = album_jellyfin_id.clone();
+    let album_tracks = use_memo(move || {
+        let lib = library.read();
+        let conf = config.read();
+
+        let mut tracks: Vec<_> = lib
+            .jellyfin_tracks
+            .iter()
+            .filter(|t| t.album_id == album_id_for_tracks)
+            .map(|t| {
+                let cover_url = if let Some(server) = &conf.server {
+                    let path_str = t.path.to_string_lossy();
+                    let parts: Vec<&str> = path_str.split(':').collect();
+                    if parts.len() >= 2 {
+                        let id = parts[1];
+                        let mut url = format!("{}/Items/{}/Images/Primary", server.url, id);
+                        let mut params = Vec::new();
+                        if parts.len() >= 3 {
+                            params.push(format!("tag={}", parts[2]));
+                        }
+                        if let Some(token) = &server.access_token {
+                            params.push(format!("api_key={}", token));
+                        }
+                        if !params.is_empty() {
+                            url.push('?');
+                            url.push_str(&params.join("&"));
+                        }
+                        Some(url)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+                (t.clone(), cover_url)
+            })
+            .collect();
+
+        tracks.sort_by(|a, b| {
+            let disc_cmp =
+                a.0.disc_number
+                    .unwrap_or(1)
+                    .cmp(&b.0.disc_number.unwrap_or(1));
+            if disc_cmp == std::cmp::Ordering::Equal {
+                a.0.track_number
+                    .unwrap_or(0)
+                    .cmp(&b.0.track_number.unwrap_or(0))
+            } else {
+                disc_cmp
+            }
+        });
+
+        tracks
+    });
+
+    let album = album_info();
+    let album_title = album.as_ref().map(|a| a.title.clone()).unwrap_or_default();
+    let artist = album.as_ref().map(|a| a.artist.clone()).unwrap_or_default();
+
+    let total_seconds: u64 = album_tracks().iter().map(|(t, _)| t.duration).sum();
+    let duration_min = total_seconds / 60;
+
+    let cover_url = {
+        let conf = config.read();
+        if let Some(server) = &conf.server {
+            album.as_ref().and_then(|a| {
+                a.cover_path.as_ref().and_then(|cover_path| {
+                    let path_str = cover_path.to_string_lossy();
+                    let parts: Vec<&str> = path_str.split(':').collect();
+                    if parts.len() >= 2 {
+                        let id = parts[1];
+                        let mut url = format!("{}/Items/{}/Images/Primary", server.url, id);
+                        let mut params = Vec::new();
+                        if parts.len() >= 3 {
+                            params.push(format!("tag={}", parts[2]));
+                        }
+                        if let Some(token) = &server.access_token {
+                            params.push(format!("api_key={}", token));
+                        }
+                        if !params.is_empty() {
+                            url.push('?');
+                            url.push_str(&params.join("&"));
+                        }
+                        Some(url)
+                    } else {
+                        None
+                    }
+                })
+            })
+        } else {
+            None
+        }
+    };
+
+    rsx! {
+        div {
+            class: "w-full max-w-[1600px] mx-auto",
+
+            if *show_playlist_modal.read() {
+                components::playlist_modal::PlaylistModal {
+                    playlist_store,
+                    is_jellyfin: true,
+                    on_close: move |_| show_playlist_modal.set(false),
+                    on_add_to_playlist: move |playlist_id: String| {
+                        if let Some(path) = selected_track_for_playlist.read().clone() {
+                            let path_clone = path.clone();
+                            let pid = playlist_id.clone();
+                            spawn(async move {
+                                let conf = config.peek();
+                                if let Some(server) = &conf.server {
+                                    if let (Some(token), Some(user_id)) = (&server.access_token, &server.user_id) {
+                                        let remote = JellyfinRemote::new(
+                                            &server.url,
+                                            Some(token),
+                                            &conf.device_id,
+                                            Some(user_id),
+                                        );
+                                        let parts: Vec<&str> = path_clone.to_str().unwrap_or_default().split(':').collect();
+                                        if parts.len() >= 2 {
+                                            let item_id = parts[1];
+                                            let _ = remote.add_to_playlist(&pid, item_id).await;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        show_playlist_modal.set(false);
+                        active_menu_track.set(None);
+                    },
+                    on_create_playlist: move |name: String| {
+                        if let Some(path) = selected_track_for_playlist.read().clone() {
+                            let path_clone = path.clone();
+                            let playlist_name = name.clone();
+                            spawn(async move {
+                                let conf = config.peek();
+                                if let Some(server) = &conf.server {
+                                    if let (Some(token), Some(user_id)) = (&server.access_token, &server.user_id) {
+                                        let remote = JellyfinRemote::new(
+                                            &server.url,
+                                            Some(token),
+                                            &conf.device_id,
+                                            Some(user_id),
+                                        );
+                                        let parts: Vec<&str> = path_clone.to_str().unwrap_or_default().split(':').collect();
+                                        if parts.len() >= 2 {
+                                            let item_id = parts[1];
+                                            let _ = remote.create_playlist(&playlist_name, &[item_id]).await;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        show_playlist_modal.set(false);
+                        active_menu_track.set(None);
+                    }
+                }
+            }
+
+            div { class: "flex items-center justify-between mb-8",
+                button {
+                    class: "flex items-center gap-2 text-slate-400 hover:text-white transition-colors",
+                    onclick: move |_| on_close.call(()),
+                    i { class: "fa-solid fa-arrow-left" }
+                    "Back to Albums"
+                }
+            }
+
+            div {
+                class: "flex flex-col md:flex-row items-end gap-8 mb-12",
+                div { class: "w-64 h-64 rounded-xl bg-stone-800 overflow-hidden relative flex-shrink-0",
+                    if let Some(url) = &cover_url {
+                        img { src: "{url}", class: "w-full h-full object-cover" }
+                    } else {
+                        div { class: "w-full h-full flex flex-col items-center justify-center text-white/20",
+                            i { class: "fa-solid fa-music text-6xl mb-4" }
+                        }
+                    }
+                }
+                div { class: "flex-1",
+                    if !artist.is_empty() {
+                        h5 { class: "text-sm font-bold tracking-widest text-white/60 uppercase mb-2", "{artist}" }
+                    }
+                    h1 { class: "text-5xl md:text-7xl font-bold text-white mb-6", "{album_title}" }
+                    div { class: "flex items-center gap-6 text-slate-400",
+                        p { "{album_tracks().len()} songs" }
+                        span { "•" }
+                        p { "{duration_min} min" }
+                    }
+                }
+                div { class: "flex items-center gap-4",
+                    if !album_tracks().is_empty() {
+                        button {
+                            class: "w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-400 text-black flex items-center justify-center transition-transform hover:scale-105",
+                            onclick: {
+                                let tracks_for_play: Vec<reader::models::Track> =
+                                    album_tracks().iter().map(|(t, _)| t.clone()).collect();
+                                move |_| {
+                                    queue.set(tracks_for_play.clone());
+                                    ctrl.play_track(0);
+                                }
+                            },
+                            i { class: "fa-solid fa-play text-xl ml-1" }
+                        }
+                    }
+                }
+            }
+
+            div { class: "space-y-1",
+                if album_tracks().is_empty() {
+                    div { class: "py-12 flex flex-col items-center justify-center text-slate-600",
+                        i { class: "fa-regular fa-folder-open text-4xl mb-4" }
+                        p { class: "text-lg", "No songs here." }
+                    }
+                } else {
+                    div { class: "grid grid-cols-[auto_1fr_1fr_auto_auto] gap-4 px-4 py-2 border-b border-white/5 text-sm font-medium text-slate-500 mb-2 uppercase tracking-wider",
+                        div { class: "w-8 text-center", "#" }
+                        div { "Title" }
+                        div { "Album" }
+                    }
+                    for (idx, (track, track_cover_url)) in album_tracks().into_iter().enumerate() {
+                        {
+                            let track_key = track.path.display().to_string();
+                            let track_menu = track.clone();
+                            let track_add  = track.clone();
+                            let is_menu_open = active_menu_track.read().as_ref() == Some(&track.path);
+                            let album_queue: Vec<reader::models::Track> =
+                                album_tracks().iter().map(|(t, _)| t.clone()).collect();
+                            rsx! {
+                                components::track_row::TrackRow {
+                                    key: "{track_key}",
+                                    track: track.clone(),
+                                    cover_url: track_cover_url,
+                                    is_menu_open,
+                                    on_click_menu: move |_| {
+                                        if active_menu_track.read().as_ref() == Some(&track_menu.path) {
+                                            active_menu_track.set(None);
+                                        } else {
+                                            active_menu_track.set(Some(track_menu.path.clone()));
+                                        }
+                                    },
+                                    on_add_to_playlist: move |_| {
+                                        selected_track_for_playlist.set(Some(track_add.path.clone()));
+                                        show_playlist_modal.set(true);
+                                        active_menu_track.set(None);
+                                    },
+                                    on_close_menu: move |_| active_menu_track.set(None),
+                                    on_delete: move |_| active_menu_track.set(None),
+                                    on_play: move |_| {
+                                        queue.set(album_queue.clone());
+                                        ctrl.play_track(idx);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

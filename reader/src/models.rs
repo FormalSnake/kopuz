@@ -92,6 +92,11 @@ impl Library {
     pub fn remove_track(&mut self, path: &Path) {
         self.tracks.retain(|t| t.path != path);
     }
+
+    pub fn remove_album(&mut self, album_id: &str) {
+        self.albums.retain(|a| a.id != album_id);
+        self.tracks.retain(|t| t.album_id != album_id);
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

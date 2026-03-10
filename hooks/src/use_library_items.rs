@@ -15,17 +15,6 @@ pub fn use_library_items(library: Signal<Library>) -> LibraryItems {
     let initial_sort_order = config.read().sort_order.clone();
     let sort_order = use_signal(move || initial_sort_order);
 
-    use_effect({
-        let mut config = config.clone();
-        let sort_order = sort_order.clone();
-        move || {
-            let curr = sort_order.read().clone();
-            if config.read().sort_order != curr {
-                config.write().sort_order = curr;
-            }
-        }
-    });
-
     let artist_count = use_memo(move || {
         let lib = library.read();
         let mut artists = std::collections::HashSet::new();
