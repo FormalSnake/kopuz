@@ -29,4 +29,6 @@ jobs:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Build package
-        run: nix build .#packages.${{ matrix.system }}.default
+        run: |
+          nix build .#packages.${{ matrix.system }}.default
+          cachix push rusic result
