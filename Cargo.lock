@@ -560,6 +560,7 @@ dependencies = [
  "rodio",
  "rusic_route",
  "server",
+ "tokio",
  "utils",
  "uuid 1.20.0",
 ]

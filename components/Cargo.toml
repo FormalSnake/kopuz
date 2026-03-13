@@ -16,3 +16,4 @@ rfd = { workspace = true }
 hooks = { workspace = true }
 rand = { workspace = true }
 server = { workspace = true }
+tokio = { workspace = true, features = ["time"] }

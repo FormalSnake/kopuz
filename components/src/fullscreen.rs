@@ -30,6 +30,14 @@ pub fn Fullscreen(
 
     let mut active_tab = use_signal(|| 1usize);
     let mut ctrl = use_context::<PlayerController>();
+    let mut exact_progress = use_signal(|| 0.0_f64);
+
+    use_future(move || async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            exact_progress.set(player.peek().get_position().as_secs_f64());
+        }
+    });
 
     let format_time = |seconds: u64| {
         let minutes = seconds / 60;
@@ -75,7 +83,7 @@ pub fn Fullscreen(
     let active_lyric_index = use_memo(move || {
         if *active_tab.read() == 2 {
             if let Some(Some(utils::lyrics::Lyrics::Synced(lines))) = &*lyrics.read() {
-                let current_time = *current_song_progress.read() as f64;
+                let current_time = *exact_progress.read();
                 return lines
                     .iter()
                     .rposition(|l| l.start_time <= current_time)
