@@ -142,6 +142,20 @@ fn App() -> Element {
 
     let is_playing = use_signal(|| false);
     let is_fullscreen = use_signal(|| false);
+    let mut palette = use_signal(|| Option::<Vec<utils::color::Color>>::None);
+
+    use_effect(move || {
+        let url = current_song_cover_url.read().clone();
+        if !url.is_empty() {
+            spawn(async move {
+                if let Some(colors) = utils::color::get_palette_from_url(&url).await {
+                    palette.set(Some(colors));
+                }
+            });
+        } else {
+            palette.set(None);
+        }
+    });
 
     let presence = PRESENCE.get().cloned().flatten();
 
@@ -298,6 +312,17 @@ fn App() -> Element {
 
     hooks::use_player_task(ctrl);
 
+    let theme_class = if config.read().theme == "album-art" {
+        "theme-default".to_string()
+    } else {
+        format!("theme-{}", config.read().theme)
+    };
+
+    let background_style = if config.read().theme == "album-art" {
+        utils::color::get_background_style(palette.read().as_deref())
+    } else {
+        "background-color: var(--color-black); background-image: none;".to_string()
+    };
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: MAIN_CSS }
@@ -307,7 +332,8 @@ fn App() -> Element {
         document::Link { rel: "stylesheet", href: "https://fonts.bunny.net/css?family=jetbrains-mono:400,500,700,800&display=swap" }
         document::Link { rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" }
         div {
-            class: "flex flex-col h-screen bg-black text-white theme-{config.read().theme}",
+            class: "flex flex-col h-screen text-white {theme_class}",
+            style: "{background_style}",
             "data-reduce-animations": "{config.read().reduce_animations}",
             tabindex: "0",
             autofocus: true,
@@ -521,6 +547,7 @@ fn App() -> Element {
                 current_song_artist: current_song_artist,
                 current_song_cover_url: current_song_cover_url,
                 volume: volume,
+                palette: palette,
             }
             Bottombar {
                 library: library,

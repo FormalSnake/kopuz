@@ -436,7 +436,7 @@ pub fn JellyfinLibrary(
                 class: "flex items-center justify-between mb-4",
                 h2 { class: "text-xl font-semibold text-white/80", "Jellyfin Tracks" }
                 div {
-                    class: "flex space-x-1 bg-indigo-900 border border-white/5 p-1 rounded-lg",
+                    class: "flex space-x-1 bg-white/5 border border-white/5 p-1 rounded-lg",
                     button {
                         class: if *sort_order.read() == config::SortOrder::Title {
                             "px-3 py-1 text-xs rounded-md bg-white/10 text-white font-medium transition-all"

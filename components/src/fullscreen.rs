@@ -22,6 +22,7 @@ pub fn Fullscreen(
     mut current_song_cover_url: Signal<String>,
     mut current_song_album: Signal<String>,
     mut volume: Signal<f32>,
+    palette: Signal<Option<Vec<utils::color::Color>>>,
 ) -> Element {
     if !*is_fullscreen.read() {
         return rsx! { div {} };
@@ -137,10 +138,16 @@ pub fn Fullscreen(
         }
     };
 
+    let background_style = if config.read().theme == "album-art" {
+        utils::color::get_background_style(palette.read().as_deref())
+    } else {
+        "background-color: var(--color-black); background-image: none;".to_string()
+    };
+
     rsx! {
         div {
             class: "fixed inset-0 z-50 flex text-white select-none",
-            style: "background-color: var(--color-black);",
+            style: "{background_style}",
 
             div {
                 class: "flex flex-col items-center justify-center p-8 lg:p-12 relative flex-shrink-0",

@@ -1,3 +1,4 @@
+pub mod color;
 pub mod lyrics;
 pub mod stream_buffer;
 

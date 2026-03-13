@@ -27,6 +27,8 @@ hooks = { workspace = true }
 percent-encoding = { workspace = true }
 discord-presence = { workspace = true }
 discord-rich-presence = { workspace = true }
+utils = { workspace = true }
+rand = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6.3", features = ["std"] }

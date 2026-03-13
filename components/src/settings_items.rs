@@ -22,6 +22,9 @@ pub fn ThemeSelector(current_theme: String, on_change: EventHandler<String>) -> 
             class: "bg-white/5 border border-white/10 rounded px-3 py-1 text-sm text-white focus:outline-none focus:border-white/20",
             value: "{current_theme}",
             onchange: move |evt| on_change.call(evt.value()),
+            optgroup { label: "── Dynamic ──",
+                option { value: "album-art", "Album Art Gradient" }
+            }
             optgroup { label: "── Dark ──",
                 option { value: "default", "Default" }
                 option { value: "gruvbox", "Gruvbox Material" }
