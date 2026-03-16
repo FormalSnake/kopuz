@@ -21,7 +21,7 @@ mpris-server = "0.9.0"
 tokio = { workspace = true, features = ["full"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.61.3", features = [
+windows = { version = "0.62", features = [
     "Foundation",
     "Media",
     "Win32_Foundation",
