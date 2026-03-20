@@ -68,7 +68,11 @@ pub fn TrackRow(
                     if let Some(handler) = on_select {
                         handler.call(!is_selected);
                     }
-                } else {
+                }
+            },
+            ondoubleclick: move |evt| {
+                evt.stop_propagation();
+                if !is_selection_mode {
                     on_play.call(());
                 }
             },

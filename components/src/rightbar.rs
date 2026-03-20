@@ -262,7 +262,7 @@ pub fn Rightbar(
                                 div {
                                     key: "{i}",
                                     class: "flex items-center gap-3 px-2 py-2 hover:bg-white/5 cursor-pointer rounded-lg transition-colors group",
-                                    onclick: move |_| play_song_at_index(i),
+                                    ondoubleclick: move |_| play_song_at_index(i),
                                     div {
                                         class: "rounded-md overflow-hidden bg-black/30 flex-shrink-0 shadow-sm",
                                         style: "width: 40px; height: 40px;",
@@ -296,7 +296,7 @@ pub fn Rightbar(
                                 div {
                                     key: "{i}",
                                     class: "flex items-center gap-3 px-2 py-2 hover:bg-white/5 cursor-pointer rounded-lg transition-colors group",
-                                    onclick: move |_| play_song_at_index(i),
+                                    ondoubleclick: move |_| play_song_at_index(i),
                                     div {
                                         class: "rounded-md overflow-hidden bg-black/30 flex-shrink-0 shadow-sm",
                                         style: "width: 40px; height: 40px;",
