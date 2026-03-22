@@ -3,7 +3,6 @@ name = "rusic"
 default_platform = "desktop"
 
 [application.assets]
-# The folder which contains assets
 base_path = "rusic/assets"
 
 [bundle]
@@ -19,7 +18,6 @@ info_plist_path = "rusic/Info.plist"
 title = "rusic"
 
 [web.resource]
-# Additional CSS style files for web only
 style = []
 script = []
 
@@ -29,4 +27,3 @@ script = []
 [web.tailwind]
 input = "tailwind.css"
 config = "tailwind.config.js"
-
