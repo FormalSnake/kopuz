@@ -1,8 +1,10 @@
 use crate::systemint;
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use rb::{RB, RbConsumer, RbProducer, SpscRb};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
 use symphonia::core::audio::{AudioBufferRef, Signal};
 use symphonia::core::codecs::{CODEC_TYPE_NULL, DecoderOptions};
 use symphonia::core::formats::{FormatOptions, SeekMode, SeekTo};
@@ -35,10 +37,8 @@ pub struct Player {
     ring_buf_consumer: Option<Arc<Mutex<rb::Consumer<f32>>>>,
     decoder_handle: Option<std::thread::JoinHandle<()>>,
 
-    start_time: Option<Instant>,
-    elapsed: Duration,
-
     now_playing: Option<NowPlayingMeta>,
+    position_micros: Arc<AtomicU64>,
 }
 
 impl Player {
@@ -67,9 +67,8 @@ impl Player {
             _stream: None,
             ring_buf_consumer: None,
             decoder_handle: None,
-            start_time: None,
-            elapsed: Duration::from_secs(0),
             now_playing: None,
+            position_micros: Arc::new(AtomicU64::new(0)),
         }
     }
 
@@ -93,6 +92,9 @@ impl Player {
         }));
         self.state = state.clone();
 
+        let position_micros = Arc::new(AtomicU64::new(0));
+        self.position_micros = position_micros.clone();
+
         let channels = self.stream_config.channels as usize;
         let device_sample_rate = self.stream_config.sample_rate;
 
@@ -104,6 +106,7 @@ impl Player {
 
         let stream_state = state.clone();
         let stream_consumer = consumer.clone();
+        let stream_position = position_micros.clone();
 
         let host = cpal::default_host();
         let device = host
@@ -129,6 +132,11 @@ impl Player {
                     let cons = stream_consumer.lock().unwrap();
                     let read = cons.read(data).unwrap_or(0);
                     drop(cons);
+
+                    stream_position.fetch_add(
+                        (read as u64 * 1_000_000) / (channels as u64 * device_sample_rate as u64),
+                        Ordering::Relaxed,
+                    );
 
                     for sample in data[..read].iter_mut() {
                         *sample *= volume;
@@ -163,8 +171,6 @@ impl Player {
         });
         self.decoder_handle = Some(handle);
 
-        self.start_time = Some(Instant::now());
-        self.elapsed = Duration::from_secs(0);
         self.now_playing = Some(meta);
 
         self.update_now_playing_system();
@@ -529,11 +535,6 @@ impl Player {
             st.paused = true;
             drop(st);
 
-            if let Some(start) = self.start_time {
-                self.elapsed += start.elapsed();
-                self.start_time = None;
-            }
-
             self.update_now_playing_system();
         }
     }
@@ -544,7 +545,6 @@ impl Player {
             st.paused = false;
             drop(st);
 
-            self.start_time = Some(Instant::now());
             self.update_now_playing_system();
         }
     }
@@ -553,11 +553,15 @@ impl Player {
         {
             let mut st = self.state.lock().unwrap();
             st.seek_to = Some(time);
-        }
+            self.position_micros
+                .store(time.as_micros() as u64, Ordering::Relaxed);
 
-        self.elapsed = time;
-        if !self.is_paused() {
-            self.start_time = Some(Instant::now());
+            if let Some(cons) = &self.ring_buf_consumer {
+                if let Ok(cons) = cons.lock() {
+                    let mut dummy = [0.0f32; 2048];
+                    while cons.read(&mut dummy).unwrap_or(0) > 0 {}
+                }
+            }
         }
 
         self.update_now_playing_system();
@@ -575,8 +579,6 @@ impl Player {
 
     pub fn stop(&mut self) {
         self.stop_internal();
-        self.start_time = None;
-        self.elapsed = Duration::from_secs(0);
         self.now_playing = None;
     }
 
@@ -647,11 +649,7 @@ impl Player {
     }
 
     pub fn get_position(&self) -> Duration {
-        let raw = if let Some(start) = self.start_time {
-            self.elapsed + start.elapsed()
-        } else {
-            self.elapsed
-        };
+        let raw = Duration::from_micros(self.position_micros.load(Ordering::Relaxed));
 
         if let Some(meta) = &self.now_playing {
             if meta.duration > Duration::ZERO && raw > meta.duration {

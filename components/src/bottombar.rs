@@ -249,7 +249,7 @@ pub fn Bottombar(
                             value: "{display_progress}",
                             class: "absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10",
                             onchange: move |evt| {
-                                if let Ok(val) = evt.value().parse::<u64>() {
+                                if let Ok(val) = evt.value().parse::<f64>().map(|v| v as u64) {
                                     player.write().seek(std::time::Duration::from_secs(val));
                                     current_song_progress.set(val);
                                     drag_progress.set(val);
@@ -257,7 +257,7 @@ pub fn Bottombar(
                                 }
                             },
                             oninput: move |evt| {
-                                if let Ok(val) = evt.value().parse::<u64>() {
+                                if let Ok(val) = evt.value().parse::<f64>().map(|v| v as u64) {
                                     is_dragging.set(true);
                                     drag_progress.set(val);
                                 }
