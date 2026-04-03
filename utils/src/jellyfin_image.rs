@@ -6,15 +6,21 @@ pub fn jellyfin_image_url(
     max_width: u32,
     quality: u32,
 ) -> String {
-    let mut url = format!(
-        "{}/Items/{}/Images/Primary?maxWidth={}&quality={}",
-        server_url, item_id, max_width, quality
-    );
+    let mut params = Vec::new();
+    params.push(format!("maxWidth={}", max_width));
+    params.push(format!("quality={}", quality));
+
     if let Some(tag) = image_tag {
-        url.push_str(&format!("&tag={}", tag));
+        params.push(format!("tag={}", tag));
     }
     if let Some(token) = access_token {
-        url.push_str(&format!("&api_key={}", token));
+        params.push(format!("api_key={}", token));
+    }
+
+    let mut url = format!("{}/Items/{}/Images/Primary", server_url, item_id);
+    if !params.is_empty() {
+        url.push('?');
+        url.push_str(&params.join("&"));
     }
     url
 }
@@ -50,4 +56,50 @@ pub fn jellyfin_image_url_from_path(
         max_width,
         quality,
     ))
+}
+
+pub fn track_cover_url_with_album_fallback(
+    track_path_str: &str,
+    album_id_str: &str,
+    server_url: &str,
+    access_token: Option<&str>,
+    max_width: u32,
+    quality: u32,
+) -> Option<String> {
+    if let Some((id, Some(tag))) = parse_jellyfin_path(track_path_str) {
+        return Some(jellyfin_image_url(
+            server_url,
+            id,
+            Some(tag),
+            access_token,
+            max_width,
+            quality,
+        ));
+    }
+
+    if !album_id_str.is_empty() {
+        if let Some((album_item_id, album_tag)) = parse_jellyfin_path(album_id_str) {
+            return Some(jellyfin_image_url(
+                server_url,
+                album_item_id,
+                album_tag,
+                access_token,
+                max_width,
+                quality,
+            ));
+        }
+    }
+
+    if let Some((id, _)) = parse_jellyfin_path(track_path_str) {
+        return Some(jellyfin_image_url(
+            server_url,
+            id,
+            None,
+            access_token,
+            max_width,
+            quality,
+        ));
+    }
+
+    None
 }

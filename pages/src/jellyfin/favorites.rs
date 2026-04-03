@@ -85,8 +85,9 @@ pub fn JellyfinFavorites(
             .map(|t| {
                 let cover_url = if let Some(ref srv) = server_ref {
                     let path_str = t.path.to_string_lossy();
-                    utils::jellyfin_image::jellyfin_image_url_from_path(
+                    utils::jellyfin_image::track_cover_url_with_album_fallback(
                         &path_str,
+                        &t.album_id,
                         &srv.url,
                         srv.access_token.as_deref(),
                         80,

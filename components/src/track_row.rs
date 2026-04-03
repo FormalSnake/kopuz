@@ -104,6 +104,7 @@ pub fn TrackRow(
                     img {
                         src: "{url}",
                         class: "w-full h-full object-cover",
+                        loading: "lazy",
                         decoding: "async",
                     }
                 } else {

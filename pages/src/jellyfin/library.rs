@@ -62,7 +62,7 @@ pub fn JellyfinLibrary(
                     if let Ok(libs) = remote.get_music_libraries().await {
                         for lib in libs {
                             let mut album_start_index = 0;
-                            let album_limit = 100;
+                            let album_limit = 500; // increased to fetch more albums
                             loop {
                                 if *fetch_generation.read() != current_gen {
                                     return;
@@ -139,7 +139,7 @@ pub fn JellyfinLibrary(
                             }
 
                             let mut start_index = 0;
-                            let limit = 200;
+                            let limit = 500; // increased to fetch more tracks
                             loop {
                                 if *fetch_generation.read() != current_gen {
                                     return;
@@ -255,8 +255,9 @@ pub fn JellyfinLibrary(
             .map(|t| {
                 let cover_url = if let Some(server) = &conf.server {
                     let path_str = t.path.to_string_lossy();
-                    utils::jellyfin_image::jellyfin_image_url_from_path(
+                    utils::jellyfin_image::track_cover_url_with_album_fallback(
                         &path_str,
+                        &t.album_id,
                         &server.url,
                         server.access_token.as_deref(),
                         80,

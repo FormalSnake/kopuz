@@ -115,7 +115,7 @@ pub fn JellyfinArtist(
                                             img {
                                                 src: "{url}",
                                                 class: "w-full h-full object-cover",
-                                                decoding: "async"
+                                                decoding: "async", loading: "lazy"
                                             }
                                         } else {
                                             div { class: "w-full h-full flex items-center justify-center text-white/20",

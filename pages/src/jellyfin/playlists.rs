@@ -85,8 +85,9 @@ pub fn JellyfinPlaylists(
                                     let conf = config.peek();
                                     if let Some(server) = &conf.server {
                                         let path_str = t.path.to_string_lossy();
-                                        utils::jellyfin_image::jellyfin_image_url_from_path(
+                                        utils::jellyfin_image::track_cover_url_with_album_fallback(
                                             &path_str,
+                                            &t.album_id,
                                             &server.url,
                                             server.access_token.as_deref(),
                                             384,
@@ -114,7 +115,7 @@ pub fn JellyfinPlaylists(
                                         img {
                                             src: "{url}",
                                             class: "w-full h-full object-cover",
-                                            decoding: "async"
+                                            decoding: "async", loading: "lazy"
                                         }
                                     } else {
                                         div {

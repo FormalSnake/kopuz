@@ -80,8 +80,9 @@ pub fn JellyfinLogs(library: Signal<Library>, config: Signal<AppConfig>) -> Elem
                             let cover_url = {
                                 if let Some(server) = &conf.server {
                                     let path_str = track.path.to_string_lossy();
-                                    utils::jellyfin_image::jellyfin_image_url_from_path(
+                                    utils::jellyfin_image::track_cover_url_with_album_fallback(
                                         &path_str,
+                                        &track.album_id,
                                         &server.url,
                                         server.access_token.as_deref(),
                                         80,

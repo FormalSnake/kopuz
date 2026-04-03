@@ -104,7 +104,7 @@ pub fn JellyfinAlbum(
                                         },
                                         div { class: "aspect-square rounded-lg bg-stone-800 mb-3 overflow-hidden relative",
                                             if let Some(url) = &cover_url {
-                                                img { src: "{url}", class: "w-full h-full object-cover", decoding: "async" }
+                                                img { src: "{url}", class: "w-full h-full object-cover", decoding: "async", loading: "lazy" }
                                             } else {
                                                 div { class: "w-full h-full flex items-center justify-center",
                                                     i { class: "fa-solid fa-compact-disc text-4xl text-white/20" }
@@ -204,8 +204,9 @@ pub fn JellyfinAlbumDetails(
             .map(|t| {
                 let cover_url = if let Some(server) = &conf.server {
                     let path_str = t.path.to_string_lossy();
-                    utils::jellyfin_image::jellyfin_image_url_from_path(
+                    utils::jellyfin_image::track_cover_url_with_album_fallback(
                         &path_str,
+                        &t.album_id,
                         &server.url,
                         server.access_token.as_deref(),
                         80,
