@@ -395,12 +395,13 @@ fn App() -> Element {
 
     use_effect(move || {
         let css = custom_themes_css.read().clone();
-        let escaped = css.replace('`', "\\`");
+        // Serialize as a JSON string literal so no CSS content can escape the JS context
+        let css_json = serde_json::to_string(&css).unwrap_or_else(|_| "\"\"".to_string());
         let _ = dioxus::document::eval(&format!(
             r#"(function(){{
                 let el = document.getElementById('custom-themes-style');
                 if (!el) {{ el = document.createElement('style'); el.id = 'custom-themes-style'; document.head.appendChild(el); }}
-                el.textContent = `{escaped}`;
+                el.textContent = {css_json};
             }})()"#
         ));
     });

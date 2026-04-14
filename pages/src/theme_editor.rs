@@ -234,12 +234,23 @@ pub fn ThemeEditorPage(config: Signal<AppConfig>) -> Element {
                                 let name = editing_name.read().trim().to_string();
                                 if name.is_empty() { return; }
                                 let vars = editing_vars.read().clone();
-                                let id = selected_id
-                                    .read()
-                                    .clone()
-                                    .unwrap_or_else(|| {
-                                        format!("custom-{}", name.to_lowercase().replace(' ', "-"))
-                                    });
+                                let id = selected_id.read().clone().unwrap_or_else(|| {
+                                    // Generate a unique id — avoid silently overwriting another theme
+                                    let slug = format!("custom-{}", name.to_lowercase().replace(' ', "-"));
+                                    let existing = &config.read().custom_themes;
+                                    if !existing.contains_key(&slug) {
+                                        slug
+                                    } else {
+                                        let mut n = 1u32;
+                                        loop {
+                                            let candidate = format!("{slug}-{n}");
+                                            if !existing.contains_key(&candidate) {
+                                                break candidate;
+                                            }
+                                            n += 1;
+                                        }
+                                    }
+                                });
                                 config.write().custom_themes.insert(id.clone(), CustomTheme { name, vars });
                                 selected_id.set(Some(id));
                             },
@@ -250,7 +261,12 @@ pub fn ThemeEditorPage(config: Signal<AppConfig>) -> Element {
                                 class: "px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded text-sm text-red-400 transition-colors",
                                 onclick: move |_| {
                                     if let Some(id) = selected_id.write().take() {
-                                        config.write().custom_themes.remove(&id);
+                                        let mut cfg = config.write();
+                                        cfg.custom_themes.remove(&id);
+                                        // If the deleted theme was active, fall back to default
+                                        if cfg.theme == id {
+                                            cfg.theme = "default".to_string();
+                                        }
                                     }
                                 },
                                 "Delete"

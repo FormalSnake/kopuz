@@ -29,6 +29,7 @@ discord-presence = { workspace = true }
 discord-rich-presence = { workspace = true }
 utils = { workspace = true }
 rand = { workspace = true }
+serde_json = { workspace = true }
 urlencoding = "2.1.3"
 
 [target.'cfg(target_os = "windows")'.dependencies]
