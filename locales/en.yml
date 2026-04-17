@@ -12,7 +12,7 @@ favorites: "Favorites"
 logs: "Logs"
 general: "General"
 music_directory: "Music Directory"
-current_path: "Current path: {path}"
+current_path: "Current path"
 media_server: "Media Server"
 configured: "{name} configured"
 no_server_configured: "No server configured"
@@ -72,6 +72,7 @@ back_to_artists: "Back to Artists"
 back_to_playlists: "Back to Playlists"
 back_to_browse: "Back to Browse"
 back: "Back"
+back_to_previous: "Back To"
 up_next: "UP NEXT"
 lyrics: "LYRICS"
 
@@ -79,7 +80,6 @@ lyrics: "LYRICS"
 loading_lyrics: "Loading lyrics..."
 lyrics_not_found: "Lyrics not found"
 no_previous_songs: "No previous songs"
-no_more_songs: "No more songs in queue"
 
 # Modal Titles
 add_playlist: "Add playlist"
@@ -94,7 +94,7 @@ heart_track_to_add: "Heart a track while it's playing to add it here."
 # Search & Placeholders
 search_placeholder: "Search for artists, albums or tracks..."
 no_results_found: "No results found for \"{query}\""
-listenbrinz_token_placeholder: "Enter your ListenBrainz token"
+listenbrainz_token_placeholder: "Enter your ListenBrainz token"
 
 # Empty States
 album_not_found: "Album not found"
@@ -108,6 +108,8 @@ title: "Title"
 time: "Time"
 genre: "Genre"
 plays: "Plays"
+track_count: "{count} tracks"
+track_count_singular: "1 track"
 
 # Error Messages
 invalid_server_url: "Invalid server URL"
@@ -172,16 +174,18 @@ everforest_light: "Everforest Light"
 ayu_light: "Ayu Light"
 one_light: "One Light"
 gruvbox_light_soft: "Gruvbox Light Soft"
-tracks: "tracks"
 
 # Theme Editor
 new_theme: "New Theme"
 theme_name: "Theme Name"
 my_custom_theme: "My Custom Theme"
+theme_group_dynamic: "Dynamic"
+theme_group_dark: "Dark"
+theme_group_light: "Light"
+theme_group_custom: "Custom"
 colors: "Colors"
 preview: "Preview"
 save_theme: "Save Theme"
-delete: "Delete"
 track_title: "Track Title"
 
 # Color Labels

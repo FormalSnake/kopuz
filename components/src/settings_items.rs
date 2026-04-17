@@ -44,10 +44,10 @@ pub fn ThemeSelector(current_theme: String, on_change: EventHandler<String>) -> 
             class: "bg-white/5 border border-white/10 rounded px-3 py-1 text-sm text-white focus:outline-none focus:border-white/20",
             value: "{current_theme}",
             onchange: move |evt| on_change.call(evt.value()),
-            optgroup { label: "── Dynamic ──",
+            optgroup { label: "{rust_i18n::t!(\"theme_group_dynamic\")}",
                 option { value: "album-art", "{rust_i18n::t!(\"album_art_gradient\")}" }
             }
-            optgroup { label: "── Dark ──",
+            optgroup { label: "{rust_i18n::t!(\"theme_group_dark\")}",
                 option { value: "default", "{rust_i18n::t!(\"default_theme\")}" }
                 option { value: "gruvbox", "{rust_i18n::t!(\"gruvbox_material\")}" }
                 option { value: "gruvbox-classic", "{rust_i18n::t!(\"gruvbox_classic\")}" }
@@ -66,7 +66,7 @@ pub fn ThemeSelector(current_theme: String, on_change: EventHandler<String>) -> 
                 option { value: "rosepine", "{rust_i18n::t!(\"rosepine\")}" }
                 option { value: "kettek16", "kettek16" }
             }
-            optgroup { label: "── Light ──",
+            optgroup { label: "{rust_i18n::t!(\"theme_group_light\")}",
                 option { value: "default-light", "{rust_i18n::t!(\"default_light\")}" }
                 option { value: "catppuccin-latte", "{rust_i18n::t!(\"catppuccin_latte\")}" }
                 option { value: "rosepine-dawn", "{rust_i18n::t!(\"rosepine_dawn\")}" }
@@ -76,7 +76,7 @@ pub fn ThemeSelector(current_theme: String, on_change: EventHandler<String>) -> 
                 option { value: "gruvbox-light", "{rust_i18n::t!(\"gruvbox_light_soft\")}" }
             }
             if !custom.is_empty() {
-                optgroup { label: "── Custom ──",
+                optgroup { label: "{rust_i18n::t!(\"theme_group_custom\")}",
                     for (id, name) in &custom {
                         option { value: "{id}", "{name}" }
                     }
@@ -242,7 +242,7 @@ pub fn MusicBrainzSettings(current: String, on_save: EventHandler<String>) -> El
                 class: "flex-1 bg-white/5 p-1 rounded-xl border border-white/5",
                 input {
                     class: "bg-transparent w-full px-3 py-2 text-sm text-white placeholder:text-white/50 outline-none",
-                    placeholder: "{rust_i18n::t!(\"listenbrinz_token_placeholder\")}",
+                    placeholder: "{rust_i18n::t!(\"listenbrainz_token_placeholder\")}",
                     value: "{input()}",
                     oninput: move |evt| {
                         input.set(evt.value());

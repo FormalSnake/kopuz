@@ -23,7 +23,9 @@ const REDUCED_ANIMATIONS_CSS: Asset = asset!("../assets/reduced-animations.css")
 static PRESENCE: std::sync::OnceLock<Option<Arc<Presence>>> = std::sync::OnceLock::new();
 
 fn main() {
-    let mut config = config::AppConfig::load(&directories::ProjectDirs::from("com", "temidaradev", "rusic").unwrap().config_dir().join("config.json"));
+    let proj_dirs = directories::ProjectDirs::from("com", "temidaradev", "rusic")
+        .expect("Failed to determine config directory");
+    let mut config = config::AppConfig::load(&proj_dirs.config_dir().join("config.json"));
     rust_i18n::set_locale(&config.language);
 
     let presence: Option<Arc<Presence>> = match Presence::new("1470087339639443658") {

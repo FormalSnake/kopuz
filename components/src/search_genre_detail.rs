@@ -50,7 +50,15 @@ pub fn SearchGenreDetail(
                  div {
                      h2 { class: "text-sm font-bold text-white/60 uppercase tracking-widest mb-2", "{rust_i18n::t!(\"genre\")}" }
                      h1 { class: "text-5xl font-bold text-white mb-4", "{genre}" }
-                     p { class: "text-slate-400", "{genre_tracks.len()} tracks" }
+                     p { class: "text-slate-400", 
+                         {
+                             if genre_tracks.len() == 1 {
+                                 rust_i18n::t!("track_count_singular").to_string()
+                             } else {
+                                 rust_i18n::t!("track_count", count = genre_tracks.len()).to_string()
+                             }
+                         }
+                     }
                  }
             }
 

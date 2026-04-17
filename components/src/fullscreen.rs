@@ -303,9 +303,9 @@ pub fn Fullscreen(
                         ),
                         onclick: move |_| ctrl.toggle_loop(),
                         title: match *ctrl.loop_mode.read() {
-                            LoopMode::None => "Repeat: Off",
-                            LoopMode::Queue => "Repeat: Queue",
-                            LoopMode::Track => "Repeat: Track",
+                            LoopMode::None => rust_i18n::t!("repeat_off").to_string(),
+                            LoopMode::Queue => rust_i18n::t!("repeat_queue").to_string(),
+                            LoopMode::Track => rust_i18n::t!("repeat_track").to_string(),
                         },
                         i { class: "fa-solid fa-repeat text-lg" }
                         match *ctrl.loop_mode.read() {
@@ -379,7 +379,7 @@ pub fn Fullscreen(
                             "px-4 py-2 text-xs font-medium tracking-wider text-white/40 hover:text-white/70 transition-colors"
                         },
                         onclick: move |_| active_tab.set(0),
-                        "BACK TO"
+                        "{rust_i18n::t!(\"back_to_previous\")}"
                     }
                     button {
                         class: if *active_tab.read() == 1 {
@@ -388,7 +388,7 @@ pub fn Fullscreen(
                             "px-4 py-2 text-xs font-medium tracking-wider text-white/40 hover:text-white/70 transition-colors"
                         },
                         onclick: move |_| active_tab.set(1),
-                        "UP NEXT"
+                        "{rust_i18n::t!(\"up_next\")}"
                     }
                     button {
                         class: if *active_tab.read() == 2 {
@@ -397,7 +397,7 @@ pub fn Fullscreen(
                             "px-4 py-2 text-xs font-medium tracking-wider text-white/40 hover:text-white/70 transition-colors"
                         },
                         onclick: move |_| active_tab.set(2),
-                        "LYRICS"
+                        "{rust_i18n::t!(\"lyrics\")}"
                     }
                 }
 

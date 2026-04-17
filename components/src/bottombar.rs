@@ -112,6 +112,11 @@ pub fn Bottombar(
                 }
                 button {
                     class: "{heart_class}",
+                    title: if heart_icon.contains("fa-solid") { 
+                        rust_i18n::t!("remove_from_favorites").to_string()
+                    } else { 
+                        rust_i18n::t!("add_to_favorites").to_string()
+                    },
                     onclick: move |_| {
                         let q = queue.read();
                         let idx = *current_queue_index.read();
@@ -232,8 +237,11 @@ pub fn Bottombar(
                                 LoopMode::Queue => "text-white",
                                 LoopMode::Track => "text-white",
                             }
-                        ),
-                        onclick: move |_| ctrl.toggle_loop(),
+                        ),                        title: match *ctrl.loop_mode.read() {
+                            LoopMode::None => rust_i18n::t!("repeat_off").to_string(),
+                            LoopMode::Queue => rust_i18n::t!("repeat_queue").to_string(),
+                            LoopMode::Track => rust_i18n::t!("repeat_track").to_string(),
+                        },                        onclick: move |_| ctrl.toggle_loop(),
                         i { class: "fa-solid fa-repeat text-sm" }
                         match *ctrl.loop_mode.read() {
                              LoopMode::Track => rsx! {
@@ -327,16 +335,14 @@ pub fn Bottombar(
                             onchange: move |evt| {
                                 if let Ok(val) = evt.value().parse::<f32>() {
                                     config.write().volume = val;
-                                    is_muted.set(false);
+                                    is_muted.set(val == 0.0);
                                 }
                             },
                             oninput: move |evt| {
                                 if let Ok(val) = evt.value().parse::<f32>() {
                                     player.write().set_volume(val);
                                     volume.set(val);
-                                    if val > 0.0 && *is_muted.read() {
-                                        is_muted.set(false);
-                                    }
+                                    is_muted.set(val == 0.0);
                                 }
                             }
                         }

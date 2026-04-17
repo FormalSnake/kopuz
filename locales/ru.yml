@@ -12,7 +12,7 @@ favorites: "Избранное"
 logs: "Журналы"
 general: "Общие"
 music_directory: "Папка с музыкой"
-current_path: "Текущий путь: {path}"
+current_path: "Текущий путь"
 media_server: "Медиасервер"
 configured: "Настроено {name}"
 no_server_configured: "Сервер не настроен"
@@ -72,6 +72,7 @@ back_to_artists: "Вернуться к исполнителям"
 back_to_playlists: "Вернуться к плейлистам"
 back_to_browse: "Вернуться к просмотру"
 back: "Назад"
+back_to_previous: "Вернуться"
 up_next: "ДАЛЕЕ"
 lyrics: "ТЕКСТ"
 
@@ -79,7 +80,6 @@ lyrics: "ТЕКСТ"
 loading_lyrics: "Загрузка текста..."
 lyrics_not_found: "Текст не найден"
 no_previous_songs: "Нет предыдущих песен"
-no_more_songs: "Больше нет песен в очереди"
 
 # Modal Titles
 add_playlist: "Добавить плейлист"
@@ -94,7 +94,7 @@ heart_track_to_add: "Отметьте ❤️ трек, чтобы добавит
 # Search & Placeholders
 search_placeholder: "Поиск артистов, альбомов или треков..."
 no_results_found: "По запросу \"{query}\" ничего не найдено"
-listenbrinz_token_placeholder: "Введите ваш токен ListenBrainz"
+listenbrainz_token_placeholder: "Введите ваш токен ListenBrainz"
 
 # Empty States
 album_not_found: "Альбом не найден"
@@ -108,6 +108,8 @@ title: "Название"
 time: "Время"
 genre: "Жанр"
 plays: "Прослушивания"
+track_count: "{count} треков"
+track_count_singular: "1 трек"
 
 # Error Messages
 invalid_server_url: "Недопустимый URL сервера"
@@ -172,16 +174,18 @@ everforest_light: "Everforest Light"
 ayu_light: "Ayu Light"
 one_light: "One Light"
 gruvbox_light_soft: "Gruvbox Light Soft"
-tracks: "треки"
 
 # Theme Editor
 new_theme: "Новая тема"
 theme_name: "Имя темы"
 my_custom_theme: "Моя пользовательская тема"
+theme_group_dynamic: "Динамические"
+theme_group_dark: "Тёмные"
+theme_group_light: "Светлые"
+theme_group_custom: "Нестандартные"
 colors: "Цвета"
 preview: "Предпросмотр"
 save_theme: "Сохранить тему"
-delete: "Удалить"
 track_title: "Название трека"
 
 # Color Labels
