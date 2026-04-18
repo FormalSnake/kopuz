@@ -178,11 +178,14 @@ fn App() -> Element {
     let lib_path = use_memo(move || cache_dir().join("library.json"));
     let config_path = use_memo(move || config_dir().join("config.json"));
     let mut config = use_signal(config::AppConfig::default);
+    #[allow(unused_variables)]
     let playlist_path = use_memo(move || cache_dir().join("playlists.json"));
     let mut playlist_store = use_signal(reader::PlaylistStore::default);
+    #[allow(unused_variables)]
     let favorites_path = use_memo(move || cache_dir().join("favorites.json"));
     let mut favorites_store = use_signal(FavoritesStore::default);
     let mut initial_load_done = use_signal(|| false);
+    #[allow(unused_variables)]
     let cover_cache = use_memo(move || cache_dir().join("covers"));
     #[cfg(not(target_arch = "wasm32"))]
     let _ = std::fs::create_dir_all(cover_cache());
