@@ -71,7 +71,7 @@ fn nudge_event_loop() {
     player::systemint::wake_run_loop();
 }
 
-pub fn use_player_task(ctrl: PlayerController) {
+pub fn use_player_task(mut ctrl: PlayerController) {
     #[cfg(not(target_arch = "wasm32"))]
     let presence: Option<Arc<Presence>> = use_context();
     let mut config: Signal<AppConfig> = use_context();
@@ -89,6 +89,7 @@ pub fn use_player_task(ctrl: PlayerController) {
 
     #[cfg(target_os = "macos")]
     use_hook(move || {
+        let mut ctrl = ctrl;
         init_bg_channel();
 
         // let the CFRunLoopTimer heartbeat poke our tokio task so it

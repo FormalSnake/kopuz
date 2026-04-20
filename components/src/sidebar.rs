@@ -1,5 +1,7 @@
 use config::MusicSource;
 use dioxus::prelude::*;
+#[cfg(all(not(target_arch = "wasm32"), target_os = "macos"))]
+use dioxus::desktop::use_window;
 use rusic_route::Route;
 
 #[derive(PartialEq, Clone)]
