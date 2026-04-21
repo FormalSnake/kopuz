@@ -1,4 +1,4 @@
-# Kopuz
+# Kopuz (formerly known as Rusic)
 
 Kopuz is a modern, lightweight, music player application built with Rust and the Dioxus framework. It provides a clean and responsive interface for managing and enjoying your local music collection.
 
