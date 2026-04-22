@@ -158,8 +158,8 @@ div {
         });
 
     rsx! {
-        div {
-            class: "p-8 relative min-h-full",
+             div {
+                 class: "p-8 relative min-h-full flex flex-col",
 
             if *show_playlist_modal.read() {
                 PlaylistModal {
