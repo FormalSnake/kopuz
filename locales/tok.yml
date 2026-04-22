@@ -105,7 +105,6 @@ heart_track_to_add: "o luka e nena olin lon kute kalama la kalama li kama tawa n
 heart_track_to_add_server: "o luka e nena olin lon kute kalama la kalama li kama tawa ni. kin la mi pana e sona ni tawa pana"
 
 # Search & Placeholders
-search_placeholder: "Search for artists, albums or tracks..."
 search_placeholder: "o alasa e jan pali, e kulupu pi kalama sama, e kalama..."
 no_results_found: "\"{query}\" li lon ala"
 listenbrainz_token_placeholder: "o pana e \"token ListenBrainz\""
