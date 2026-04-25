@@ -54,18 +54,11 @@ const TOP_MENU: &[SidebarItem] = &[
     },
 ];
 
-const BOTTOM_MENU: &[SidebarItem] = &[
-    SidebarItem {
-        key: "theme_editor",
-        route: Route::ThemeEditor,
-        icon: "fa-solid fa-palette",
-    },
-    SidebarItem {
-        key: "settings",
-        route: Route::Settings,
-        icon: "fa-solid fa-gear",
-    },
-];
+const BOTTOM_MENU: &[SidebarItem] = &[SidebarItem {
+    key: "settings",
+    route: Route::Settings,
+    icon: "fa-solid fa-gear",
+}];
 
 #[derive(Props, Clone, PartialEq)]
 pub struct SidebarProps {
@@ -189,12 +182,20 @@ pub fn Sidebar(props: SidebarProps) -> Element {
                             }
                             button {
                                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 {local_class}",
-                                onclick: move |_| config.write().active_source = MusicSource::Local,
+                                onclick: move |_| {
+                                    let mut cfg = config.write();
+                                    cfg.active_source = MusicSource::Local;
+                                    cfg.source_explicitly_set = true;
+                                },
                                 "{rust_i18n::t!(\"local\").to_uppercase()}"
                             }
                             button {
                                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 {server_class}",
-                                onclick: move |_| config.write().active_source = MusicSource::Server,
+                                onclick: move |_| {
+                                    let mut cfg = config.write();
+                                    cfg.active_source = MusicSource::Server;
+                                    cfg.source_explicitly_set = true;
+                                },
                                 "{rust_i18n::t!(\"server\").to_uppercase()}"
                             }
                         }

@@ -55,6 +55,8 @@ pub struct AppConfig {
     pub server: Option<MusicServer>,
     #[serde(default)]
     pub active_source: MusicSource,
+    #[serde(default)]
+    pub source_explicitly_set: bool,
     pub music_directory: PathBuf,
     #[serde(default = "default_theme")]
     pub theme: String,
@@ -141,6 +143,7 @@ impl Default for AppConfig {
         Self {
             server: None,
             active_source: MusicSource::Local,
+            source_explicitly_set: false,
             music_directory,
             theme: default_theme(),
             device_id: default_device_id(),

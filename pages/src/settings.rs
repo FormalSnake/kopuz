@@ -1,4 +1,5 @@
 use ::server::provider::ProviderClient;
+use crate::theme_editor::ThemeEditorPage;
 use components::settings_items::{
     DirectoryPicker, DiscordPresenceSettings, LanguageSelector, MusicBrainzSettings,
     ServerSettings, SettingItem, ThemeSelector, ToggleSetting,
@@ -221,6 +222,14 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                         //     }
                         // }
                     }
+                }
+
+                section {
+                    h2 {
+                        class: "text-lg font-semibold text-white/80 mb-4 border-b border-white/5 pb-2",
+                        "{rust_i18n::t!(\"theme_editor\")}"
+                    }
+                    ThemeEditorPage { config, embedded: true }
                 }
 
                 if show_add_server() {

@@ -401,14 +401,16 @@ fn App() -> Element {
                 }
 
                 {
+                    let cfg = config.peek();
                     let no_local_tracks = library.peek().tracks.is_empty();
-                    let server_connected = config
-                        .peek()
+                    let server_connected = cfg
                         .server
                         .as_ref()
                         .and_then(|s| s.access_token.as_ref())
                         .is_some();
-                    if no_local_tracks && server_connected {
+                    let not_explicitly_set = !cfg.source_explicitly_set;
+                    drop(cfg);
+                    if no_local_tracks && server_connected && not_explicitly_set {
                         config.write().active_source = config::MusicSource::Server;
                     }
                 }
