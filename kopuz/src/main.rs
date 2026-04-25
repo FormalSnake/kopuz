@@ -22,7 +22,6 @@ use std::sync::Arc;
 
 mod web_storage;
 
-rust_i18n::i18n!("../locales");
 
 const FAVICON: Asset = asset!("../assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("../assets/main.css");
@@ -391,7 +390,7 @@ fn App() -> Element {
                     config.set(loaded.clone());
                     volume.set(loaded.volume);
                     player.write().set_volume(loaded.volume);
-                    rust_i18n::set_locale(&loaded.language);
+                    i18n::set_locale(&loaded.language);
                 }
                 if let Ok(Ok(loaded)) = pl_res {
                     playlist_store.set(loaded);
@@ -429,7 +428,7 @@ fn App() -> Element {
             config.set(loaded);
             volume.set(loaded_volume);
             player.write().set_volume(loaded_volume);
-            rust_i18n::set_locale(&loaded_language);
+            i18n::set_locale(&loaded_language);
 
             if let Some((
                 route,

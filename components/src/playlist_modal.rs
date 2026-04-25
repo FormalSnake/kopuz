@@ -14,12 +14,12 @@ pub struct PlaylistModalProps {
 pub fn PlaylistModal(props: PlaylistModalProps) -> Element {
     let mut new_playlist_name = use_signal(String::new);
     let store = props.playlist_store.read();
-    let add_to_playlist_text = rust_i18n::t!("add_to_playlist").to_string();
-    let no_playlists_found_text = rust_i18n::t!("no_playlists_found").to_string();
-    let create_new_playlist_text = rust_i18n::t!("create_new_playlist").to_string();
-    let create_text = rust_i18n::t!("create").to_string();
-    let cancel_text = rust_i18n::t!("cancel").to_string();
-    let playlist_name_input = rust_i18n::t!("playlist_name_input").to_string();
+    let add_to_playlist_text = i18n::t("add_to_playlist").to_string();
+    let no_playlists_found_text = i18n::t("no_playlists_found").to_string();
+    let create_new_playlist_text = i18n::t("create_new_playlist").to_string();
+    let create_text = i18n::t("create").to_string();
+    let cancel_text = i18n::t("cancel").to_string();
+    let playlist_name_input = i18n::t("playlist_name_input").to_string();
     
     let playlists: Vec<(String, String, String)> = if props.is_jellyfin {
         store
@@ -27,9 +27,9 @@ pub fn PlaylistModal(props: PlaylistModalProps) -> Element {
             .iter()
             .map(|p| {
                 let track_text = if p.tracks.len() == 1 {
-                    rust_i18n::t!("track_count_singular").to_string()
+                    i18n::t("track_count_singular").to_string()
                 } else {
-                    rust_i18n::t!("track_count", count = p.tracks.len()).to_string()
+                    i18n::t_with("track_count", &[("count", p.tracks.len().to_string())])
                 };
                 (p.id.clone(), p.name.clone(), track_text)
             })
@@ -40,9 +40,9 @@ pub fn PlaylistModal(props: PlaylistModalProps) -> Element {
             .iter()
             .map(|p| {
                 let track_text = if p.tracks.len() == 1 {
-                    rust_i18n::t!("track_count_singular").to_string()
+                    i18n::t("track_count_singular").to_string()
                 } else {
-                    rust_i18n::t!("track_count", count = p.tracks.len()).to_string()
+                    i18n::t_with("track_count", &[("count", p.tracks.len().to_string())])
                 };
                 (p.id.clone(), p.name.clone(), track_text)
             })

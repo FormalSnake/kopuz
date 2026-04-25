@@ -17,11 +17,14 @@ pub fn LanguageSelector(current_language: String, on_change: EventHandler<String
     rsx! {
         select {
             class: "bg-white/5 border border-white/10 rounded px-3 py-1 text-sm text-white focus:outline-none focus:border-white/20",
-            value: "{current_language}",
             onchange: move |evt| on_change.call(evt.value()),
-            option { value: "en", "{rust_i18n::t!(\"english\")}" }
-            option { value: "ru", "{rust_i18n::t!(\"russian\")}" }
-            option { value: "tok", "{rust_i18n::t!(\"toki pona\")}" }
+            for (code, name) in i18n::available_languages() {
+                option {
+                    value: *code,
+                    selected: *code == current_language.as_str(),
+                    "{name}"
+                }
+            }
         }
     }
 }
@@ -42,39 +45,39 @@ pub fn ThemeSelector(current_theme: String, on_change: EventHandler<String>) -> 
             class: "bg-white/5 border border-white/10 rounded px-3 py-1 text-sm text-white focus:outline-none focus:border-white/20",
             value: "{current_theme}",
             onchange: move |evt| on_change.call(evt.value()),
-            optgroup { label: "{rust_i18n::t!(\"theme_group_dynamic\")}",
-                option { value: "album-art", "{rust_i18n::t!(\"album_art_gradient\")}" }
+            optgroup { label: "{i18n::t(\"theme_group_dynamic\")}",
+                option { value: "album-art", "{i18n::t(\"album_art_gradient\")}" }
             }
-            optgroup { label: "{rust_i18n::t!(\"theme_group_dark\")}",
-                option { value: "default", "{rust_i18n::t!(\"default_theme\")}" }
-                option { value: "gruvbox", "{rust_i18n::t!(\"gruvbox_material\")}" }
-                option { value: "gruvbox-classic", "{rust_i18n::t!(\"gruvbox_classic\")}" }
-                option { value: "gruvbox-dark-soft", "{rust_i18n::t!(\"gruvbox_dark_soft\")}" }
-                option { value: "dracula", "{rust_i18n::t!(\"dracula\")}" }
-                option { value: "nord", "{rust_i18n::t!(\"nord\")}" }
-                option { value: "catppuccin", "{rust_i18n::t!(\"catppuccin_mocha\")}" }
-                option { value: "ef-night", "{rust_i18n::t!(\"ef_night\")}" }
-                option { value: "ayu-dark", "{rust_i18n::t!(\"ayu_dark\")}" }
-                option { value: "ayu-mirage", "{rust_i18n::t!(\"ayu_mirage\")}" }
-                option { value: "vague", "{rust_i18n::t!(\"vague\")}" }
-                option { value: "onedarkpro", "{rust_i18n::t!(\"one_dark_pro\")}" }
-                option { value: "osmium", "{rust_i18n::t!(\"osmium\")}" }
-                option { value: "kanagawa-dragon", "{rust_i18n::t!(\"kanagawa_dragon\")}" }
-                option { value: "everforest", "{rust_i18n::t!(\"everforest\")}" }
-                option { value: "rosepine", "{rust_i18n::t!(\"rosepine\")}" }
+            optgroup { label: "{i18n::t(\"theme_group_dark\")}",
+                option { value: "default", "{i18n::t(\"default_theme\")}" }
+                option { value: "gruvbox", "{i18n::t(\"gruvbox_material\")}" }
+                option { value: "gruvbox-classic", "{i18n::t(\"gruvbox_classic\")}" }
+                option { value: "gruvbox-dark-soft", "{i18n::t(\"gruvbox_dark_soft\")}" }
+                option { value: "dracula", "{i18n::t(\"dracula\")}" }
+                option { value: "nord", "{i18n::t(\"nord\")}" }
+                option { value: "catppuccin", "{i18n::t(\"catppuccin_mocha\")}" }
+                option { value: "ef-night", "{i18n::t(\"ef_night\")}" }
+                option { value: "ayu-dark", "{i18n::t(\"ayu_dark\")}" }
+                option { value: "ayu-mirage", "{i18n::t(\"ayu_mirage\")}" }
+                option { value: "vague", "{i18n::t(\"vague\")}" }
+                option { value: "onedarkpro", "{i18n::t(\"one_dark_pro\")}" }
+                option { value: "osmium", "{i18n::t(\"osmium\")}" }
+                option { value: "kanagawa-dragon", "{i18n::t(\"kanagawa_dragon\")}" }
+                option { value: "everforest", "{i18n::t(\"everforest\")}" }
+                option { value: "rosepine", "{i18n::t(\"rosepine\")}" }
                 option { value: "kettek16", "kettek16" }
             }
-            optgroup { label: "{rust_i18n::t!(\"theme_group_light\")}",
-                option { value: "default-light", "{rust_i18n::t!(\"default_light\")}" }
-                option { value: "catppuccin-latte", "{rust_i18n::t!(\"catppuccin_latte\")}" }
-                option { value: "rosepine-dawn", "{rust_i18n::t!(\"rosepine_dawn\")}" }
-                option { value: "everforest-light", "{rust_i18n::t!(\"everforest_light\")}" }
-                option { value: "ayu-light", "{rust_i18n::t!(\"ayu_light\")}" }
-                option { value: "one-light", "{rust_i18n::t!(\"one_light\")}" }
-                option { value: "gruvbox-light", "{rust_i18n::t!(\"gruvbox_light_soft\")}" }
+            optgroup { label: "{i18n::t(\"theme_group_light\")}",
+                option { value: "default-light", "{i18n::t(\"default_light\")}" }
+                option { value: "catppuccin-latte", "{i18n::t(\"catppuccin_latte\")}" }
+                option { value: "rosepine-dawn", "{i18n::t(\"rosepine_dawn\")}" }
+                option { value: "everforest-light", "{i18n::t(\"everforest_light\")}" }
+                option { value: "ayu-light", "{i18n::t(\"ayu_light\")}" }
+                option { value: "one-light", "{i18n::t(\"one_light\")}" }
+                option { value: "gruvbox-light", "{i18n::t(\"gruvbox_light_soft\")}" }
             }
             if !custom.is_empty() {
-                optgroup { label: "{rust_i18n::t!(\"theme_group_custom\")}",
+                optgroup { label: "{i18n::t(\"theme_group_custom\")}",
                     for (id, name) in &custom {
                         option { value: "{id}", "{name}" }
                     }
@@ -85,7 +88,10 @@ pub fn ThemeSelector(current_theme: String, on_change: EventHandler<String>) -> 
 }
 
 #[component]
-pub fn DirectoryPicker(current_path: String, on_change: EventHandler<std::path::PathBuf>) -> Element {
+pub fn DirectoryPicker(
+    current_path: String,
+    on_change: EventHandler<std::path::PathBuf>,
+) -> Element {
     rsx! {
         div { class: "flex items-center gap-3",
             span { class: "text-xs text-slate-500 font-mono truncate max-w-xs", "{current_path}" }
@@ -100,7 +106,7 @@ pub fn DirectoryPicker(current_path: String, on_change: EventHandler<std::path::
                     });
                 },
                 class: "bg-white/10 hover:bg-white/20 px-3 py-1 rounded text-sm text-white transition-colors shrink-0",
-                "{rust_i18n::t!(\"change\")}"
+                "{i18n::t(\"change\")}"
             }
         }
     }
@@ -113,8 +119,8 @@ pub fn ServerSettings(
     on_delete: EventHandler<()>,
     on_login: EventHandler<()>,
 ) -> Element {
-    let login_text = rust_i18n::t!("login").to_string();
-    let delete_text = rust_i18n::t!("delete").to_string();
+    let login_text = i18n::t("login");
+    let delete_text = i18n::t("delete");
 
     rsx! {
         div { class: "flex flex-col gap-2",
@@ -122,13 +128,13 @@ pub fn ServerSettings(
                 div { class: "flex items-center justify-between gap-4 bg-white/5 p-2 rounded w-full",
                     div {
                         p { class: "text-sm font-medium text-white", "{server.name}" }
-                        p { class: "text-xs text-white/60", "Service: {server.service.display_name()}" }
+                        p { class: "text-xs text-white/60", "{i18n::t_with(\"service\", &[(\"name\", server.service.display_name().to_string())])}" }
                         p { class: "text-xs text-white/60", "{server.url}" }
                         if server.access_token.is_some() {
-                            p { class: "text-xs text-green-400 mt-1", "● Connected" }
+                            p { class: "text-xs text-green-400 mt-1", "{i18n::t(\"connected\")}" }
                         } else {
                             div { class: "flex items-center gap-2 mt-1",
-                                p { class: "text-xs text-red-400", "● Disconnected" }
+                                p { class: "text-xs text-red-400", "{i18n::t(\"disconnected\")}" }
                                 button {
                                     onclick: move |_| on_login.call(()),
                                     class: "text-xs bg-white/10 hover:bg-white/20 px-2 py-0.5 rounded text-white transition-colors",
@@ -147,7 +153,7 @@ pub fn ServerSettings(
                 button {
                     onclick: move |_| on_add.call(()),
                     class: "bg-white/10 hover:bg-white/20 px-3 py-1 rounded text-sm text-white transition-colors self-start",
-                    "{rust_i18n::t!(\"add_server\")}"
+                    "{i18n::t(\"add_server\")}"
                 }
             }
         }
@@ -184,12 +190,12 @@ pub fn DiscordPresenceSettings(enabled: bool, on_change: EventHandler<bool>) -> 
             button {
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {enable_class}",
                 onclick: move |_| on_change.call(true),
-                "{rust_i18n::t!(\"enabled\")}"
+                "{i18n::t(\"enabled\")}"
             }
             button {
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {disable_class}",
                 onclick: move |_| on_change.call(false),
-                "{rust_i18n::t!(\"disabled\")}"
+                "{i18n::t(\"disabled\")}"
             }
         }
     }
@@ -225,12 +231,12 @@ pub fn ToggleSetting(enabled: bool, on_change: EventHandler<bool>) -> Element {
             button {
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {enable_class}",
                 onclick: move |_| on_change.call(true),
-                "{rust_i18n::t!(\"enabled\")}"
+                "{i18n::t(\"enabled\")}"
             }
             button {
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {disable_class}",
                 onclick: move |_| on_change.call(false),
-                "{rust_i18n::t!(\"disabled\")}"
+                "{i18n::t(\"disabled\")}"
             }
         }
     }
@@ -247,7 +253,7 @@ pub fn MusicBrainzSettings(current: String, on_save: EventHandler<String>) -> El
                 class: "flex-1 bg-white/5 p-1 rounded-xl border border-white/5",
                 input {
                     class: "bg-transparent w-full px-3 py-2 text-sm text-white placeholder:text-white/50 outline-none",
-                    placeholder: "{rust_i18n::t!(\"listenbrainz_token_placeholder\")}",
+                    placeholder: "{i18n::t(\"listenbrainz_token_placeholder\")}",
                     value: "{input()}",
                     oninput: move |evt| {
                         input.set(evt.value());

@@ -6,7 +6,7 @@ members = [
    "pages",
    "player",
    "reader",
-   "server", "utils", "config", "kopuz_route", "discord-presence", "scrobble",
+   "server", "utils", "config", "kopuz_route", "discord-presence", "scrobble", "i18n",
 ]
 resolver = "3"
 
@@ -35,7 +35,7 @@ rand = "0.8"
 web-time = "1.1"
 gloo-timers = { version = "0.3", features = ["futures"] }
 directories = "6.0"
-rust-i18n = "4.0"
+i18n = { path = "./i18n" }
 player = { path = "./player" }
 reader = { path = "./reader" }
 components = { path = "./components" }

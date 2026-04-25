@@ -11,9 +11,9 @@ pub fn Titlebar() -> Element {
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let minimize_text = rust_i18n::t!("minimize").to_string();
-        let maximize_text = rust_i18n::t!("maximize").to_string();
-        let close_text = rust_i18n::t!("close").to_string();
+        let minimize_text = i18n::t("minimize").to_string();
+        let maximize_text = i18n::t("maximize").to_string();
+        let close_text = i18n::t("close").to_string();
 
         rsx! {
         div {

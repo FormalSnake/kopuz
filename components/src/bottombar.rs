@@ -121,9 +121,9 @@ pub fn Bottombar(
                 button {
                     class: "{heart_class}",
                     title: if is_favorite { 
-                        rust_i18n::t!("remove_from_favorites").to_string()
+                        i18n::t("remove_from_favorites").to_string()
                     } else { 
-                        rust_i18n::t!("add_to_favorites").to_string()
+                        i18n::t("add_to_favorites").to_string()
                     },
                     onclick: move |_| {
                         let q = queue.read();
@@ -215,9 +215,9 @@ pub fn Bottombar(
                     button {
                         class: format!("{} transition-all active:scale-95 relative", if *ctrl.shuffle.read() { "text-white" } else { "text-slate-400 hover:text-white" }),
                         title: if *ctrl.shuffle.read() { 
-                            rust_i18n::t!("shuffle_on").to_string()
+                            i18n::t("shuffle_on").to_string()
                         } else { 
-                            rust_i18n::t!("shuffle_off").to_string()
+                            i18n::t("shuffle_off").to_string()
                         },
                         onclick: move |_| ctrl.toggle_shuffle(),
                         i { class: "fa-solid fa-shuffle text-sm" }
@@ -251,9 +251,9 @@ pub fn Bottombar(
                                 LoopMode::Track => "text-white",
                             }
                         ),                        title: match *ctrl.loop_mode.read() {
-                            LoopMode::None => rust_i18n::t!("repeat_off").to_string(),
-                            LoopMode::Queue => rust_i18n::t!("repeat_queue").to_string(),
-                            LoopMode::Track => rust_i18n::t!("repeat_track").to_string(),
+                            LoopMode::None => i18n::t("repeat_off").to_string(),
+                            LoopMode::Queue => i18n::t("repeat_queue").to_string(),
+                            LoopMode::Track => i18n::t("repeat_track").to_string(),
                         },                        onclick: move |_| ctrl.toggle_loop(),
                         i { class: "fa-solid fa-repeat text-sm" }
                         match *ctrl.loop_mode.read() {

@@ -31,7 +31,7 @@ pub fn Artist(
 
             if artist_name.read().is_empty() {
                 div {
-                    h1 { class: "text-3xl font-bold text-white mb-6", "{rust_i18n::t!(\"artists\")}" }
+                    h1 { class: "text-3xl font-bold text-white mb-6", "{i18n::t(\"artists\")}" }
 
                     if is_server {
                         ServerArtist {

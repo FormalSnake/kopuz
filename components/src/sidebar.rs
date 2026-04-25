@@ -19,7 +19,7 @@ const TOP_MENU: &[SidebarItem] = &[
     SidebarItem { key: "artists",   route: Route::Artist,    icon: "fa-solid fa-user" },
     SidebarItem { key: "playlists", route: Route::Playlists, icon: "fa-solid fa-list" },
     SidebarItem { key: "favorites", route: Route::Favorites, icon: "fa-solid fa-heart" },
-    SidebarItem { key: "Activity",  route: Route::Activity,  icon: "fa-solid fa-chart-simple" },
+    SidebarItem { key: "activity",  route: Route::Activity,  icon: "fa-solid fa-chart-simple" },
 ];
 
 const BOTTOM_MENU: &[SidebarItem] = &[SidebarItem {
@@ -132,7 +132,7 @@ pub fn Sidebar(props: SidebarProps) -> Element {
                                     cfg.active_source = MusicSource::Local;
                                     cfg.source_explicitly_set = true;
                                 },
-                                "{rust_i18n::t!(\"local\").to_uppercase()}"
+                                "{i18n::t(\"local\").to_uppercase()}"
                             }
                             button {
                                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 {server_class}",
@@ -141,7 +141,7 @@ pub fn Sidebar(props: SidebarProps) -> Element {
                                     cfg.active_source = MusicSource::Server;
                                     cfg.source_explicitly_set = true;
                                 },
-                                "{rust_i18n::t!(\"server\").to_uppercase()}"
+                                "{i18n::t(\"server\").to_uppercase()}"
                             }
                         }
                     }
@@ -225,7 +225,7 @@ fn SidebarLink(
         div { class: "flex items-center group",
             a {
                 class: "flex flex-1 items-center {alignment_class} relative p-3 rounded-lg transition-all duration-200 cursor-pointer {active_class}",
-                title: if is_collapsed { rust_i18n::t!(item.key).to_string() } else { String::new() },
+                title: if is_collapsed { i18n::t(item.key) } else { String::new() },
                 onclick: move |evt| onclick.call(evt),
 
                 div {
@@ -236,7 +236,7 @@ fn SidebarLink(
                 if !is_collapsed {
                     span {
                         class: "ml-4 text-sm font-medium tracking-tight {opacity_class} transition-opacity",
-                        "{rust_i18n::t!(item.key)}"
+                        "{i18n::t(item.key)}"
                     }
                 }
 

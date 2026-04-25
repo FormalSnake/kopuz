@@ -383,10 +383,10 @@ pub fn JellyfinLibrary(
 
             div {
                 class: "flex items-center justify-between mb-6",
-                h1 { class: "text-3xl font-bold text-white", "{rust_i18n::t!(\"your_library\")}" }
+                h1 { class: "text-3xl font-bold text-white", "{i18n::t(\"your_library\")}" }
                 button {
                     class: "text-white/60 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10",
-                    title: rust_i18n::t!("refresh_music_library").to_string(),
+                    title: i18n::t("refresh_music_library").to_string(),
                     onclick: move |_| fetch_jellyfin(),
                     i { class: "fa-solid fa-rotate" }
                 }
@@ -407,17 +407,17 @@ pub fn JellyfinLibrary(
                         (artists.len(), album_titles.len())
                     };
                     rsx! {
-                        StatCard { label: rust_i18n::t!("tracks").to_string(),    value: "{lib.jellyfin_tracks.len()}",  icon: "fa-music" }
-                        StatCard { label: rust_i18n::t!("albums").to_string(),    value: "{album_count}",                icon: "fa-compact-disc" }
-                        StatCard { label: rust_i18n::t!("artists").to_string(),   value: "{artist_count}",               icon: "fa-user" }
-                        StatCard { label: rust_i18n::t!("playlists").to_string(), value: "{playlist_store.read().jellyfin_playlists.len()}", icon: "fa-list" }
+                        StatCard { label: i18n::t("tracks").to_string(),    value: "{lib.jellyfin_tracks.len()}",  icon: "fa-music" }
+                        StatCard { label: i18n::t("albums").to_string(),    value: "{album_count}",                icon: "fa-compact-disc" }
+                        StatCard { label: i18n::t("artists").to_string(),   value: "{artist_count}",               icon: "fa-user" }
+                        StatCard { label: i18n::t("playlists").to_string(), value: "{playlist_store.read().jellyfin_playlists.len()}", icon: "fa-list" }
                     }
                 }
             }
 
             div {
                 class: "flex items-center justify-between mb-4",
-                h2 { class: "text-xl font-semibold text-white/80", "{rust_i18n::t!(\"tracks\")}" }
+                h2 { class: "text-xl font-semibold text-white/80", "{i18n::t(\"tracks\")}" }
                 div {
                     class: "flex space-x-1 bg-white/5 border border-white/5 p-1 rounded-lg",
                     button {
@@ -471,7 +471,7 @@ pub fn JellyfinLibrary(
                             i { class: "fa-solid fa-spinner fa-spin text-3xl text-white/20" }
                         }
                     } else {
-                        p { class: "text-slate-500 italic", "{rust_i18n::t!(\"no_tracks_found\")}" }
+                        p { class: "text-slate-500 italic", "{i18n::t(\"no_tracks_found\")}" }
                     }
                 } else {
                     div { style: "height: {top_pad}px; flex-shrink: 0;" }

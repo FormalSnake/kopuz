@@ -87,7 +87,7 @@ pub fn LocalArtist(
                                         }
                                     }
                                     h3 { class: "text-white font-medium truncate text-center w-full group-hover:text-indigo-400 transition-colors", "{artist}" }
-                                    p { class: "text-xs text-slate-500 uppercase tracking-wider mt-1", "{rust_i18n::t!(\"artist\")}" }
+                                    p { class: "text-xs text-slate-500 uppercase tracking-wider mt-1", "{i18n::t(\"artist\")}" }
                                 }
                             }
                         }
@@ -175,12 +175,12 @@ pub fn LocalArtist(
                         div {
                             class: "flex flex-col items-center justify-center h-64 text-slate-500",
                             i { class: "fa-regular fa-music text-4xl mb-4 opacity-30" }
-                            p { class: "text-base", "{rust_i18n::t!(\"no_tracks_found\")}" }
+                            p { class: "text-base", "{i18n::t(\"no_tracks_found\")}" }
                         }
                     } else {
                         components::showcase::Showcase {
                             name: name.clone(),
-                            description: rust_i18n::t!("artist").to_string(),
+                            description: i18n::t("artist").to_string(),
                             cover_url: artist_cover(),
                             tracks: artist_tracks(),
                             library,

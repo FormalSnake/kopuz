@@ -32,8 +32,8 @@ pub fn LocalAlbum(
         unique_albums
     });
 
-    let add_all_to_playlist_text = rust_i18n::t!("add_all_to_playlist").to_string();
-    let delete_album_text = rust_i18n::t!("delete_album").to_string();
+    let add_all_to_playlist_text = i18n::t("add_all_to_playlist").to_string();
+    let delete_album_text = i18n::t("delete_album").to_string();
 
     let album_menu_actions = vec![
         MenuAction::new(add_all_to_playlist_text.as_str(), "fa-solid fa-list-music"),
@@ -43,7 +43,7 @@ pub fn LocalAlbum(
     rsx! {
         div {
             if local_albums().is_empty() {
-                p { class: "text-slate-500", "{rust_i18n::t!(\"no_albums_found\")}" }
+                p { class: "text-slate-500", "{i18n::t(\"no_albums_found\")}" }
             } else {
                 div { class: "grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-6",
                     for album in local_albums() {

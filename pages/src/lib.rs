@@ -1,5 +1,3 @@
-rust_i18n::i18n!("../locales");
-
 pub mod activity;
 pub mod album;
 pub mod artist;

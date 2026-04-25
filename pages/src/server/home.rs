@@ -208,7 +208,7 @@ pub fn JellyfinHome(
                                             move |_| on_play_album.call(id.clone())
                                         },
                                         i { class: "fa-solid fa-play text-[10px]" }
-                                        span { class: "text-sm", "{rust_i18n::t!(\"start_listening\")}" }
+                                        span { class: "text-sm", "{i18n::t(\"start_listening\")}" }
                                     }
                                     {
                                         let album_id_hero = album_id.clone();
@@ -320,7 +320,7 @@ pub fn JellyfinHome(
                         section { class: "mb-12",
                             div { class: "flex items-end justify-between mb-6",
                                 div {
-                                    h2 { class: "text-3xl font-extrabold text-white tracking-tight leading-none", "{rust_i18n::t!(\"listen_now\")}" }
+                                    h2 { class: "text-3xl font-extrabold text-white tracking-tight leading-none", "{i18n::t(\"listen_now\")}" }
                                 }
                             }
                             div { class: "grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-4",
@@ -371,7 +371,7 @@ pub fn JellyfinHome(
             if !jellyfin_artists().is_empty() {
                 section { class: "mt-12",
                     div { class: "flex items-center justify-between mb-6",
-                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{rust_i18n::t!(\"top_artists\")}" }
+                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{i18n::t(\"top_artists\")}" }
                         div { class: "flex gap-2",
                             button {
                                 class: "w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all hover:scale-105",
@@ -415,7 +415,7 @@ pub fn JellyfinHome(
             if !jellyfin_albums_all().is_empty() {
                 section { class: "mt-12",
                     div { class: "flex items-center justify-between mb-6",
-                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{rust_i18n::t!(\"new_releases\")}" }
+                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{i18n::t(\"new_releases\")}" }
                         div { class: "flex gap-2",
                             button {
                                 class: "w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all hover:scale-105",
@@ -472,7 +472,7 @@ pub fn JellyfinHome(
                 section { class: "mt-16",
                     div { class: "flex items-center justify-between mb-6",
                         div {
-                            h2 { class: "text-2xl font-bold text-white tracking-tight", "{rust_i18n::t!(\"playlists\")}" }
+                            h2 { class: "text-2xl font-bold text-white tracking-tight", "{i18n::t(\"playlists\")}" }
                         }
                         div { class: "flex gap-2",
                             button {
@@ -537,7 +537,7 @@ pub fn JellyfinHome(
                                             h3 { class: "text-white font-bold truncate text-sm md:text-base px-1 group-hover:text-indigo-400 transition-colors", "{name}" }
                                             p { class: "text-xs md:text-sm text-white/40 truncate px-1 font-semibold mt-1",
                                                 {
-                                                    let track_text = rust_i18n::t!("music_playlist_count", count = track_count).to_string();
+                                                    let track_text = i18n::t_with("music_playlist_count", &[("count", track_count.to_string())]);
                                                     rsx! { "{track_text}" }
                                                 }
                                             }

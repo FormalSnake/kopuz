@@ -2,6 +2,7 @@
 , stdenv
 , rustPlatform
 , pkg-config
+, cmake
 , openssl
 , tailwindcss_4
 , dioxus-cli
@@ -31,6 +32,7 @@ rustPlatform.buildRustPackage {
 
   nativeBuildInputs = [
     pkg-config
+    cmake
     tailwindcss_4
     dioxus-cli
   ] ++ lib.optionals stdenv.isLinux [

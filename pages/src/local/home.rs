@@ -110,10 +110,10 @@ pub fn LocalHome(
                             div { class: "relative h-full flex flex-col justify-center p-8 md:p-12",
                                 span { class: "text-indigo-400 font-bold tracking-widest uppercase text-[10px] mb-3 flex items-center gap-2",
                                     i { class: "fa-solid fa-clock-rotate-left text-[8px]" }
-                                    "{rust_i18n::t!(\"jump_back_in\")}"
+                                    "{i18n::t(\"jump_back_in\")}"
                                 }
                                 h1 { class: "text-3xl md:text-5xl font-black text-white mb-4 leading-tight max-w-xl break-words", "{album.title}" }
-                                p { class: "text-base md:text-lg text-white/60 mb-8 font-medium line-clamp-1 max-w-md", "{rust_i18n::t!(\"by_artist_full\", artist = album.artist)}" }
+                                p { class: "text-base md:text-lg text-white/60 mb-8 font-medium line-clamp-1 max-w-md", "{i18n::t_with(\"by_artist_full\", &[(\"artist\", album.artist.to_string())])}" }
                                 div { class: "flex items-center gap-4",
                                     button {
                                         class: "flex items-center gap-3 bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-white/90 hover:scale-105 active:scale-95 transition-all w-fit",
@@ -122,7 +122,7 @@ pub fn LocalHome(
                                             move |_| on_play_album.call(id.clone())
                                         },
                                         i { class: "fa-solid fa-play text-[10px]" }
-                                        span { class: "text-sm", "{rust_i18n::t!(\"start_listening\")}" }
+                                        span { class: "text-sm", "{i18n::t(\"start_listening\")}" }
                                     }
                                     {
                                         let local_hero_album_id = album.id.clone();
@@ -172,7 +172,7 @@ pub fn LocalHome(
                             div { class: "absolute inset-0 bg-gradient-to-br from-indigo-900/40 to-purple-900/40 flex items-center justify-center",
                                 div { class: "text-center",
                                     i { class: "fa-solid fa-music text-6xl text-white/10 mb-4" }
-                                    h2 { class: "text-2xl font-bold text-white/40", "{rust_i18n::t!(\"add_music_to_get_started\")}" }
+                                    h2 { class: "text-2xl font-bold text-white/40", "{i18n::t(\"add_music_to_get_started\")}" }
                                 }
                             }
                         }
@@ -187,7 +187,7 @@ pub fn LocalHome(
                         section { class: "mb-12",
                             div { class: "flex items-end justify-between mb-6 text-white",
                                 div {
-                                    h2 { class: "text-3xl font-extrabold tracking-tight", "{rust_i18n::t!(\"listen_now\")}" }
+                                    h2 { class: "text-3xl font-extrabold tracking-tight", "{i18n::t(\"listen_now\")}" }
                                 }
                             }
                             div { class: "grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-4",
@@ -238,7 +238,7 @@ pub fn LocalHome(
             if !artists().is_empty() {
                 section { class: "mt-12",
                     div { class: "flex items-center justify-between mb-6",
-                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{rust_i18n::t!(\"top_artists\")}" }
+                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{i18n::t(\"top_artists\")}" }
                         div { class: "flex gap-2",
                             button {
                                 class: "w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all",
@@ -284,7 +284,7 @@ pub fn LocalHome(
             if !recent_albums().is_empty() {
                 section { class: "mt-12",
                     div { class: "flex items-center justify-between mb-6",
-                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{rust_i18n::t!(\"new_releases\")}" }
+                        h2 { class: "text-2xl font-bold text-white tracking-tight", "{i18n::t(\"new_releases\")}" }
                         div { class: "flex gap-2",
                             button {
                                 class: "w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all",
@@ -341,7 +341,7 @@ pub fn LocalHome(
                 section { class: "mt-16",
                     div { class: "flex items-center justify-between mb-6",
                         div {
-                            h2 { class: "text-2xl font-bold text-white tracking-tight", "{rust_i18n::t!(\"playlists\")}" }
+                            h2 { class: "text-2xl font-bold text-white tracking-tight", "{i18n::t(\"playlists\")}" }
                         }
                         div { class: "flex gap-2",
                             button {
@@ -362,9 +362,9 @@ pub fn LocalHome(
                         for (id, name, track_count, first_track) in recent_playlists() {
                             {
                                 let track_count_text = if track_count == 1 {
-                                    rust_i18n::t!("track_count_singular").to_string()
+                                    i18n::t("track_count_singular").to_string()
                                 } else {
-                                    rust_i18n::t!("track_count", count = track_count).to_string()
+                                    i18n::t_with("track_count", &[("count", track_count.to_string())])
                                 };
                                 let cover_url = if let Some(track_path) = first_track {
                                     let lib = library.peek();

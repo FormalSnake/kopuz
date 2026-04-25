@@ -16,14 +16,14 @@ pub fn AddPlaylistPopup(
                 class: "popup",
                 onclick: |e| e.stop_propagation(),
 
-                h2 { "{rust_i18n::t!(\"add_playlist\")}" }
+                h2 { "{i18n::t(\"add_playlist\")}" }
 
                 if let Some(err) = error() {
                     p { class: "error", "{err}" }
                 }
 
                 input {
-                    placeholder: "{rust_i18n::t!(\"playlist_name_placeholder\")}",
+                    placeholder: "{i18n::t(\"playlist_name_placeholder\")}",
                     value: "{playlist_name()}",
                     oninput: move |e| playlist_name.set(e.value()),
                     onkeydown: move |e| e.stop_propagation()
@@ -32,11 +32,11 @@ pub fn AddPlaylistPopup(
                 div { class: "actions",
                     button {
                         onclick: move |_| on_close.call(()),
-                        "{rust_i18n::t!(\"cancel\")}"
+                        "{i18n::t(\"cancel\")}"
                     }
                     button {
                         onclick: move |_| on_save.call(()),
-                        "{rust_i18n::t!(\"save\")}"
+                        "{i18n::t(\"save\")}"
                     }
                 }
             }

@@ -35,6 +35,7 @@
 
         nativeBuildInputs = with pkgs; [
           pkg-config
+          cmake
           clang
           lld
           mold

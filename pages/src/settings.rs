@@ -26,7 +26,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
 
     let handle_add_server = move |_| {
         if !server_url().starts_with("http") {
-            error.set(Some(rust_i18n::t!("invalid_server_url").to_string()));
+            error.set(Some(i18n::t("invalid_server_url").to_string()));
             return;
         }
 
@@ -55,7 +55,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
 
     let handle_login = move |_| {
         if username().is_empty() || password().is_empty() {
-            login_error.set(Some(rust_i18n::t!("username_and_password_required").to_string()));
+            login_error.set(Some(i18n::t("username_and_password_required").to_string()));
             return;
         }
 
@@ -87,7 +87,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                         show_login.set(false);
                     }
                     Err(e) => {
-                        login_error.set(Some(rust_i18n::t!("login_failed", error = e.to_string()).to_string()));
+                        login_error.set(Some(i18n::t_with("login_failed", &[("error", e.to_string())])));
                     }
                 }
             });
@@ -96,31 +96,31 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
 
     rsx! {
         div { class: "p-8 max-w-4xl",
-            h1 { class: "text-3xl font-bold text-white mb-6", "{rust_i18n::t!(\"settings\")}" }
+            h1 { class: "text-3xl font-bold text-white mb-6", "{i18n::t(\"settings\")}" }
 
             div { class: "space-y-8",
                 section {
                     h2 {
                         class: "text-lg font-semibold text-white/80 mb-4 border-b border-white/5 pb-2",
-                        "{rust_i18n::t!(\"general\")}"
+                        "{i18n::t(\"general\")}"
                     }
 
                     div { class: "space-y-4",
                         SettingItem {
-                            title: rust_i18n::t!("language").to_string(),
+                            title: i18n::t("language").to_string(),
                             control: rsx! {
                                 LanguageSelector {
                                     current_language: config.read().language.clone(),
                                     on_change: move |lang: String| {
                                         config.write().language = lang.clone();
-                                        rust_i18n::set_locale(&lang);
+                                        i18n::set_locale(&lang);
                                     }
                                 }
                             }
                         }
 
                         SettingItem {
-                            title: rust_i18n::t!("appearance").to_string(),
+                            title: i18n::t("appearance").to_string(),
                             control: rsx! {
                                 ThemeSelector {
                                     current_theme: config.read().theme.clone(),
@@ -133,7 +133,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
 
                         if !cfg!(target_arch = "wasm32") {
                             SettingItem {
-                                title: rust_i18n::t!("music_directory").to_string(),
+                                title: i18n::t("music_directory").to_string(),
                                     control: rsx! {
                                     DirectoryPicker {
                                         current_path: config.read().music_directory.display().to_string(),
@@ -146,7 +146,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                         }
 
                         SettingItem {
-                            title: rust_i18n::t!("media_server").to_string(),
+                            title: i18n::t("media_server").to_string(),
                             control: rsx! {
                                 ServerSettings {
                                     server: config.read().server.clone(),
@@ -158,7 +158,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                         }
                         if !cfg!(target_arch = "wasm32") {
                             SettingItem {
-                                title: rust_i18n::t!("discord_presence").to_string(),
+                                title: i18n::t("discord_presence").to_string(),
                                     control: rsx! {
                                     DiscordPresenceSettings {
                                         enabled: config.read().discord_presence.unwrap_or(true),
@@ -168,7 +168,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                             }
                         }
                         SettingItem {
-                            title: rust_i18n::t!("reduce_animations").to_string(),
+                            title: i18n::t("reduce_animations").to_string(),
                             control: rsx! {
                                 ToggleSetting {
                                     enabled: config.read().reduce_animations,
@@ -178,7 +178,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                         }
                         if !cfg!(target_arch = "wasm32") {
                             SettingItem {
-                                title: rust_i18n::t!("show_source_toggle").to_string(),
+                                title: i18n::t("show_source_toggle").to_string(),
                                     control: rsx! {
                                     ToggleSetting {
                                         enabled: config.read().show_source_toggle,
@@ -188,7 +188,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                             }
                         }
                         SettingItem {
-                            title: rust_i18n::t!("listenbrainz").to_string(),
+                            title: i18n::t("listenbrainz").to_string(),
                             control: rsx! {
                                 MusicBrainzSettings {
                                     current: config.read().musicbrainz_token.clone(),
@@ -216,7 +216,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                 section {
                     h2 {
                         class: "text-lg font-semibold text-white/80 mb-4 border-b border-white/5 pb-2",
-                        "{rust_i18n::t!(\"theme_editor\")}"
+                        "{i18n::t(\"theme_editor\")}"
                     }
                     ThemeEditorPage { config, embedded: true }
                 }
@@ -241,7 +241,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                             .server
                             .as_ref()
                             .map(|server| server.service.display_name().to_string())
-                            .unwrap_or_else(|| rust_i18n::t!("server").to_string()),
+                            .unwrap_or_else(|| i18n::t("server").to_string()),
                         error: login_error,
                         loading: is_loading,
                         on_close: move |_| {

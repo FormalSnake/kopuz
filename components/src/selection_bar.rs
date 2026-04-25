@@ -12,8 +12,8 @@ pub fn SelectionBar(
         return rsx! { "" };
     }
 
-    let delete_text = rust_i18n::t!("delete").to_string();
-    let add_to_playlist_text = rust_i18n::t!("add_to_playlist").to_string();
+    let delete_text = i18n::t("delete").to_string();
+    let add_to_playlist_text = i18n::t("add_to_playlist").to_string();
 
     rsx! {
         div {

@@ -19,9 +19,9 @@ pub fn TrackRow(
     on_select: Option<EventHandler<bool>>,
     on_long_press: Option<EventHandler<()>>,
 ) -> Element {
-    let add_to_playlist_text = rust_i18n::t!("add_to_playlist").to_string();
-    let remove_from_playlist_text = rust_i18n::t!("remove_from_playlist").to_string();
-    let delete_song_text = rust_i18n::t!("delete").to_string();
+    let add_to_playlist_text = i18n::t("add_to_playlist").to_string();
+    let remove_from_playlist_text = i18n::t("remove_from_playlist").to_string();
+    let delete_song_text = i18n::t("delete").to_string();
     
     let mut actions = vec![MenuAction::new(add_to_playlist_text.as_str(), "fa-solid fa-plus")];
 

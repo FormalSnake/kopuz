@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 #[cfg(not(target_arch = "wasm32"))]
 use symphonia::core::audio::{AudioBufferRef, Signal};
 #[cfg(not(target_arch = "wasm32"))]
-use symphonia::core::codecs::{CODEC_TYPE_NULL, DecoderOptions};
+use symphonia::core::codecs::{Decoder, CODEC_TYPE_NULL, DecoderOptions};
 #[cfg(not(target_arch = "wasm32"))]
 use symphonia::core::formats::{FormatOptions, SeekMode, SeekTo};
 #[cfg(not(target_arch = "wasm32"))]
