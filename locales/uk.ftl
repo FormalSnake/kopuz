@@ -72,7 +72,7 @@ back_to_artists = Назад до виконавців
 back_to_playlists = Назад до плейлистів
 back_to_browse = Назад до головної
 back = Назад
-back_to_previous = Назад до
+back_to_previous = Назад
 up_next = НАСТУПНЕ
 lyrics = ТЕКСТ ПІСНІ
 
