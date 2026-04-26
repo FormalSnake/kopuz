@@ -130,7 +130,7 @@ login_failed = Ошибка входа: { $error }
 error_server_not_configured = Сервер не настроен или учётные данные отсутствуют
 error_fetch_songs = Ошибка подгрузки треков альбома '{ $album_id }': { $error }
 unsupported_provider = { $service } настроен, но эта страница ещё недоступна для этого провайдера
-unsupported_provider_desc = Специфичные для { $service } провайдера возможности браузера будут добавлены вместе с новой абстракцией сервера
+unsupported_provider_desc = Специфичные для провайдера { $service } возможности просмотра будут добавлены вместе с новой абстракцией сервера
 
 # Additional Keys
 no_genres_found = Жанры не найдены в вашей библиотеке.
