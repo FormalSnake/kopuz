@@ -27,8 +27,8 @@ pub fn LocalLibrary(
 
     use_effect(move || {
         let curr = sort_order.read().clone();
-        if config.peek().sort_order != curr {
-            config.write().sort_order = curr;
+        if config.peek().library_sort_order != curr {
+            config.write().library_sort_order = curr;
         }
     });
 
@@ -276,30 +276,30 @@ div {
                 div {
                     class: "flex space-x-1 bg-white/5 border border-white/5 p-1 rounded-lg",
                     button {
-                        class: if *sort_order.read() == config::SortOrder::Title {
+                        class: if *sort_order.read() == config::LibrarySortOrder::Title {
                             "px-3 py-1 text-xs rounded-md bg-white/10 text-white font-medium transition-all"
                         } else {
                             "px-3 py-1 text-xs rounded-md text-white/40 hover:text-white/80 transition-all"
                         },
-                        onclick: move |_| sort_order.set(config::SortOrder::Title),
+                        onclick: move |_| sort_order.set(config::LibrarySortOrder::Title),
                         "{i18n::t(\"title\")}"
                     }
                     button {
-                        class: if *sort_order.read() == config::SortOrder::Artist {
+                        class: if *sort_order.read() == config::LibrarySortOrder::Artist {
                             "px-3 py-1 text-xs rounded-md bg-white/10 text-white font-medium transition-all"
                         } else {
                             "px-3 py-1 text-xs rounded-md text-white/40 hover:text-white/80 transition-all"
                         },
-                        onclick: move |_| sort_order.set(config::SortOrder::Artist),
+                        onclick: move |_| sort_order.set(config::LibrarySortOrder::Artist),
                         "{i18n::t(\"artist\")}"
                     }
                     button {
-                        class: if *sort_order.read() == config::SortOrder::Album {
+                        class: if *sort_order.read() == config::LibrarySortOrder::Album {
                             "px-3 py-1 text-xs rounded-md bg-white/10 text-white font-medium transition-all"
                         } else {
                             "px-3 py-1 text-xs rounded-md text-white/40 hover:text-white/80 transition-all"
                         },
-                        onclick: move |_| sort_order.set(config::SortOrder::Album),
+                        onclick: move |_| sort_order.set(config::LibrarySortOrder::Album),
                         "{i18n::t(\"album\")}"
                     }
                 }

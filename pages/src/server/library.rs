@@ -23,12 +23,12 @@ pub fn JellyfinLibrary(
     let mut is_loading = use_signal(|| false);
     let mut has_fetched = use_signal(|| false);
     let mut fetch_generation = use_signal(|| 0usize);
-    let mut sort_order = use_signal(|| config.peek().sort_order.clone());
+    let mut sort_order = use_signal(|| config.peek().library_sort_order.clone());
     let mut scroll_stat = use_signal(|| 0.0);
     use_effect(move || {
         let curr = sort_order.read().clone();
-        if config.peek().sort_order != curr {
-            config.write().sort_order = curr;
+        if config.peek().library_sort_order != curr {
+            config.write().library_sort_order = curr;
         }
     });
 
@@ -74,7 +74,7 @@ pub fn JellyfinLibrary(
     let displayed_tracks = use_memo(move || {
         let mut tracks = library.read().jellyfin_tracks.clone();
         match *sort_order.read() {
-            config::SortOrder::Title => tracks.sort_by_cached_key(|a| {
+            config::LibrarySortOrder::Title => tracks.sort_by_cached_key(|a| {
                 (
                     a.title.to_lowercase(),
                     a.artist.to_lowercase(),
@@ -83,7 +83,7 @@ pub fn JellyfinLibrary(
                     a.track_number,
                 )
             }),
-            config::SortOrder::Artist => tracks.sort_by_cached_key(|a| {
+            config::LibrarySortOrder::Artist => tracks.sort_by_cached_key(|a| {
                 (
                     a.artist.to_lowercase(),
                     a.album.to_lowercase(),
@@ -92,7 +92,7 @@ pub fn JellyfinLibrary(
                     a.title.to_lowercase(),
                 )
             }),
-            config::SortOrder::Album => tracks.sort_by_cached_key(|a| {
+            config::LibrarySortOrder::Album => tracks.sort_by_cached_key(|a| {
                 (
                     a.album.to_lowercase(),
                     a.disc_number,
@@ -147,82 +147,89 @@ pub fn JellyfinLibrary(
     let end_index = {
         let last_index = start_index + 2 * buffer_size + window_size;
         let last_index_inclusive = last_index.saturating_sub(1);
-        if total_tracks == 0 { 0 } else { last_index_inclusive.min(total_tracks - 1) }
+        if total_tracks == 0 {
+            0
+        } else {
+            last_index_inclusive.min(total_tracks - 1)
+        }
     };
 
-    let items_to_render = if total_tracks == 0 { 0 } else { (end_index + 1).saturating_sub(start_index) };
-    
+    let items_to_render = if total_tracks == 0 {
+        0
+    } else {
+        (end_index + 1).saturating_sub(start_index)
+    };
+
     let top_pad = (start_index as f64) * row_height;
-    
+
     let bottom_pad = {
         let total_height = (total_tracks as f64) * row_height;
         let rendered_height = (items_to_render as f64) * row_height;
         (total_height - rendered_height - top_pad).max(0.0)
     };
 
-    let tracks_nodes =
-        displayed_tracks()
-            .into_iter()
-            .enumerate()
-            .skip(start_index)
-            .take(items_to_render)
-            .map(|(idx, (track, cover_url))| {
-                let track_menu = track.clone();
-                let track_add = track.clone();
-                let track_path = track.path.clone();
-                let track_select = track.path.clone();
-                let queue_arc = std::sync::Arc::clone(&queue_source);
-                let track_key = format!("{}-{}", track.path.display(), idx);
-                let is_menu_open = active_menu_track.read().as_ref() == Some(&track.path);
-                let is_selected = selected_tracks.read().contains(&track_path);
-                rsx! {
-                    div {
-                        key: "{track_key}",
-                        class: "mb-1",
-                        style: "height: {ITEM_HEIGHT}px;",
-                    TrackRow {
-                        track: track.clone(),
-                        cover_url: cover_url.clone(),
-                        is_menu_open,
-                        is_selection_mode: is_selection_mode(),
-                        is_selected,
-                        on_long_press: move |_| {
-                            is_selection_mode.set(true);
-                            selected_tracks.write().insert(track_path.clone());
-                        },
-                        on_select: move |selected| {
-                            if selected {
-                                selected_tracks.write().insert(track_select.clone());
-                            } else {
-                                selected_tracks.write().remove(&track_select);
-                                if selected_tracks.read().is_empty() {
-                                    is_selection_mode.set(false);
-                                }
+    let tracks_nodes = displayed_tracks()
+        .into_iter()
+        .enumerate()
+        .skip(start_index)
+        .take(items_to_render)
+        .map(|(idx, (track, cover_url))| {
+            let track_menu = track.clone();
+            let track_add = track.clone();
+            let track_path = track.path.clone();
+            let track_select = track.path.clone();
+            let queue_arc = std::sync::Arc::clone(&queue_source);
+            let track_key = format!("{}-{}", track.path.display(), idx);
+            let is_menu_open = active_menu_track.read().as_ref() == Some(&track.path);
+            let is_selected = selected_tracks.read().contains(&track_path);
+            rsx! {
+                div {
+                    key: "{track_key}",
+                    class: "mb-1",
+                    style: "height: {ITEM_HEIGHT}px;",
+                TrackRow {
+                    track: track.clone(),
+                    cover_url: cover_url.clone(),
+                    is_menu_open,
+                    is_selection_mode: is_selection_mode(),
+                    is_selected,
+                    on_long_press: move |_| {
+                        is_selection_mode.set(true);
+                        selected_tracks.write().insert(track_path.clone());
+                    },
+                    on_select: move |selected| {
+                        if selected {
+                            selected_tracks.write().insert(track_select.clone());
+                        } else {
+                            selected_tracks.write().remove(&track_select);
+                            if selected_tracks.read().is_empty() {
+                                is_selection_mode.set(false);
                             }
-                        },
-                        on_click_menu: move |_| {
-                            if active_menu_track.read().as_ref() == Some(&track_menu.path) {
-                                active_menu_track.set(None);
-                            } else {
-                                active_menu_track.set(Some(track_menu.path.clone()));
-                            }
-                        },
-                        on_add_to_playlist: move |_| {
-                            selected_track_for_playlist.set(Some(track_add.path.clone()));
-                            show_playlist_modal.set(true);
+                        }
+                    },
+                    on_click_menu: move |_| {
+                        if active_menu_track.read().as_ref() == Some(&track_menu.path) {
                             active_menu_track.set(None);
-                        },
-                        on_close_menu: move |_| active_menu_track.set(None),
-                        on_delete: move |_| active_menu_track.set(None),
-                        hide_delete: true,
-                        on_play: move |_| {
-                            queue.set((*queue_arc).clone());
-                            ctrl.play_track(idx);
-                        },
-                    }
+                        } else {
+                            active_menu_track.set(Some(track_menu.path.clone()));
+                        }
+                    },
+                    on_add_to_playlist: move |_| {
+                        selected_track_for_playlist.set(Some(track_add.path.clone()));
+                        show_playlist_modal.set(true);
+                        active_menu_track.set(None);
+                    },
+                    on_close_menu: move |_| active_menu_track.set(None),
+                    on_delete: move |_| active_menu_track.set(None),
+                    hide_delete: true,
+                    on_play: move |_| {
+                        queue.set((*queue_arc).clone());
+                        ctrl.play_track(idx);
+                    },
                 }
-                }
-            });
+            }
+            }
+        });
 
     rsx! {
         div {
@@ -421,30 +428,30 @@ pub fn JellyfinLibrary(
                 div {
                     class: "flex space-x-1 bg-white/5 border border-white/5 p-1 rounded-lg",
                     button {
-                        class: if *sort_order.read() == config::SortOrder::Title {
+                        class: if *sort_order.read() == config::LibrarySortOrder::Title {
                             "px-3 py-1 text-xs rounded-md bg-white/10 text-white font-medium transition-all"
                         } else {
                             "px-3 py-1 text-xs rounded-md text-white/40 hover:text-white/80 transition-all"
                         },
-                        onclick: move |_| sort_order.set(config::SortOrder::Title),
+                        onclick: move |_| sort_order.set(config::LibrarySortOrder::Title),
                         "Title"
                     }
                     button {
-                        class: if *sort_order.read() == config::SortOrder::Artist {
+                        class: if *sort_order.read() == config::LibrarySortOrder::Artist {
                             "px-3 py-1 text-xs rounded-md bg-white/10 text-white font-medium transition-all"
                         } else {
                             "px-3 py-1 text-xs rounded-md text-white/40 hover:text-white/80 transition-all"
                         },
-                        onclick: move |_| sort_order.set(config::SortOrder::Artist),
+                        onclick: move |_| sort_order.set(config::LibrarySortOrder::Artist),
                         "Artist"
                     }
                     button {
-                        class: if *sort_order.read() == config::SortOrder::Album {
+                        class: if *sort_order.read() == config::LibrarySortOrder::Album {
                             "px-3 py-1 text-xs rounded-md bg-white/10 text-white font-medium transition-all"
                         } else {
                             "px-3 py-1 text-xs rounded-md text-white/40 hover:text-white/80 transition-all"
                         },
-                        onclick: move |_| sort_order.set(config::SortOrder::Album),
+                        onclick: move |_| sort_order.set(config::LibrarySortOrder::Album),
                         "Album"
                     }
                 }

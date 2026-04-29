@@ -1,4 +1,4 @@
-use config::{AppConfig, SortOrder};
+use config::{AppConfig, LibrarySortOrder};
 use dioxus::prelude::*;
 use reader::Library;
 use reader::models::Track;
@@ -7,13 +7,13 @@ use std::collections::HashMap;
 pub struct LibraryItems {
     pub all_tracks: Memo<Vec<(Track, Option<String>)>>,
     pub artist_count: Memo<usize>,
-    pub sort_order: Signal<SortOrder>,
+    pub sort_order: Signal<LibrarySortOrder>,
 }
 
 pub fn use_library_items(library: Signal<Library>) -> LibraryItems {
     let config = use_context::<Signal<AppConfig>>();
 
-    let initial_sort_order = config.read().sort_order.clone();
+    let initial_sort_order = config.read().library_sort_order.clone();
     let sort_order = use_signal(move || initial_sort_order);
 
     let artist_count = use_memo(move || {
@@ -54,14 +54,31 @@ pub fn use_library_items(library: Signal<Library>) -> LibraryItems {
             .collect();
 
         match *sort_order.read() {
-            SortOrder::Title => tracks.sort_by_cached_key(|(a, _)| {
-                (a.title.to_lowercase(), a.artist.to_lowercase(), a.album.to_lowercase(), a.disc_number, a.track_number)
+            LibrarySortOrder::Title => tracks.sort_by_cached_key(|(a, _)| {
+                (
+                    a.title.to_lowercase(),
+                    a.artist.to_lowercase(),
+                    a.album.to_lowercase(),
+                    a.disc_number,
+                    a.track_number,
+                )
             }),
-            SortOrder::Artist => tracks.sort_by_cached_key(|(a, _)| {
-                (a.artist.to_lowercase(), a.album.to_lowercase(), a.disc_number, a.track_number, a.title.to_lowercase())
+            LibrarySortOrder::Artist => tracks.sort_by_cached_key(|(a, _)| {
+                (
+                    a.artist.to_lowercase(),
+                    a.album.to_lowercase(),
+                    a.disc_number,
+                    a.track_number,
+                    a.title.to_lowercase(),
+                )
             }),
-            SortOrder::Album => tracks.sort_by_cached_key(|(a, _)| {
-                (a.album.to_lowercase(), a.disc_number, a.track_number, a.title.to_lowercase())
+            LibrarySortOrder::Album => tracks.sort_by_cached_key(|(a, _)| {
+                (
+                    a.album.to_lowercase(),
+                    a.disc_number,
+                    a.track_number,
+                    a.title.to_lowercase(),
+                )
             }),
         }
 
