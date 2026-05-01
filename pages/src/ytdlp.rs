@@ -75,7 +75,7 @@ fn build_command(
     cmd.arg("--newline")
         .arg("--no-warnings")
         .arg("-o")
-        .arg("%(uploader)s - %(title)s.%(ext)s");
+        .arg("%(album,playlist_title,title)s/%(uploader)s - %(title)s.%(ext)s");
 
     if !out.is_empty() {
         cmd.arg("--paths").arg(out);

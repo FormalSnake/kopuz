@@ -118,6 +118,7 @@ pub fn PlaylistDetail(
                                                 disc_number: item.parent_index_number,
                                                 musicbrainz_release_id: None,
                                                 playlist_item_id: item.playlist_item_id,
+                                                artists: item.artists.unwrap_or_default(),
                                             });
                                         }
                                         tracks.set(new_tracks);
@@ -178,7 +179,7 @@ pub fn PlaylistDetail(
                                                 path,
                                                 album_id,
                                                 title: item.title,
-                                                artist: item.artist.unwrap_or_default(),
+                                                artist: item.artist.clone().unwrap_or_default(),
                                                 album: item.album.unwrap_or_default(),
                                                 duration: item.duration.unwrap_or(0),
                                                 khz: item.sampling_rate.unwrap_or(0),
@@ -187,6 +188,7 @@ pub fn PlaylistDetail(
                                                 disc_number: item.disc_number,
                                                 musicbrainz_release_id: None,
                                                 playlist_item_id: None,
+                                                artists: vec![item.artist.unwrap_or_default()],
                                             });
                                         }
                                         tracks.set(new_tracks);

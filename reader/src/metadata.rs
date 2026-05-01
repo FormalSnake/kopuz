@@ -28,6 +28,23 @@ pub fn extract_metadata(
         .and_then(|t| t.artist().map(|a| a.to_string()))
         .unwrap_or_else(|| "Unknown Artist".to_string());
 
+    let artists: Vec<String> = tag
+        .map(|t| {
+            let from_tag: Vec<String> = t
+                .get_strings(&ItemKey::TrackArtists)
+                .flat_map(|s| s.split(';').map(|a| a.trim().to_string()))
+                .filter(|s| !s.is_empty())
+                .collect();
+            if !from_tag.is_empty() {
+                from_tag
+            } else if artist.contains(';') {
+                artist.split(';').map(|a| a.trim().to_string()).filter(|s| !s.is_empty()).collect()
+            } else {
+                vec![artist.clone()]
+            }
+        })
+        .unwrap_or_else(|| vec![artist.clone()]);
+
     let album_title = tag
         .and_then(|t| t.album().map(|a| a.to_string()))
         .unwrap_or_else(|| "Unknown Album".to_string());
@@ -60,6 +77,7 @@ pub fn extract_metadata(
         album_id: make_album_id(&album_title),
         title,
         artist,
+        artists,
         album: album_title,
         khz: properties.sample_rate().unwrap_or(0),
         bitrate: properties.bit_depth().unwrap_or(0),

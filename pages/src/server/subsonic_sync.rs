@@ -127,7 +127,8 @@ pub async fn sync_server_library(
                             title: item.name,
                             artist: item
                                 .album_artist
-                                .or_else(|| item.artists.map(|a| a.join(", ")))
+                                .clone()
+                                .or_else(|| item.artists.as_ref().map(|a| a.join(", ")))
                                 .unwrap_or_default(),
                             album: item.album.unwrap_or_default(),
                             duration: item.run_time_ticks.unwrap_or(0) / 10_000_000,
@@ -137,6 +138,9 @@ pub async fn sync_server_library(
                             disc_number: item.parent_index_number,
                             musicbrainz_release_id: None,
                             playlist_item_id: None,
+                            artists: item.artists.unwrap_or_else(|| {
+                                item.album_artist.into_iter().collect()
+                            }),
                         });
                     }
 
@@ -277,7 +281,7 @@ pub async fn fetch_subsonic_library(
                     path: PathBuf::from(song_path),
                     album_id: album_id_prefixed.clone(),
                     title: song.title,
-                    artist: song.artist.unwrap_or_else(|| album_artist.clone()),
+                    artist: song.artist.clone().unwrap_or_else(|| album_artist.clone()),
                     album: song.album.unwrap_or_else(|| album_name.clone()),
                     duration: song.duration.unwrap_or(0),
                     khz: song.sampling_rate.unwrap_or(0),
@@ -286,6 +290,7 @@ pub async fn fetch_subsonic_library(
                     disc_number: song.disc_number,
                     musicbrainz_release_id: None,
                     playlist_item_id: None,
+                    artists: vec![song.artist.unwrap_or_else(|| album_artist.clone())],
                 });
             }
         }

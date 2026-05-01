@@ -28,6 +28,8 @@ pub struct Track {
     pub musicbrainz_release_id: Option<String>,
     #[serde(default)]
     pub playlist_item_id: Option<String>,
+    #[serde(default)]
+    pub artists: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]

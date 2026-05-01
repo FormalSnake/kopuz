@@ -41,11 +41,21 @@ pub fn LocalArtist(
 
     let local_artists = use_memo(move || {
         let lib = library.read();
-        let mut artist_map: HashMap<String, _> = HashMap::new();
+        let mut artist_map: HashMap<String, Option<std::path::PathBuf>> = HashMap::new();
         for album in &lib.albums {
             artist_map
                 .entry(album.artist.clone())
                 .or_insert_with(|| album.cover_path.clone());
+        }
+        for track in &lib.tracks {
+            let cover = lib
+                .albums
+                .iter()
+                .find(|a| a.id == track.album_id)
+                .and_then(|a| a.cover_path.clone());
+            for artist in &track.artists {
+                artist_map.entry(artist.clone()).or_insert_with(|| cover.clone());
+            }
         }
         let mut artists: Vec<_> = artist_map.into_iter().collect();
         artists.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
@@ -59,9 +69,18 @@ pub fn LocalArtist(
             return Vec::new();
         }
         let artist_lc = artist.to_lowercase();
+        let artist_album_ids: HashSet<String> = lib
+            .albums
+            .iter()
+            .filter(|a| a.artist.to_lowercase() == artist_lc)
+            .map(|a| a.id.clone())
+            .collect();
         lib.tracks
             .iter()
-            .filter(|t| t.artist.to_lowercase() == artist_lc)
+            .filter(|t| {
+                t.artists.iter().any(|a| a.to_lowercase() == artist_lc)
+                    || artist_album_ids.contains(&t.album_id)
+            })
             .cloned()
             .collect()
     });
