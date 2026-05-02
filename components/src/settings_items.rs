@@ -1,4 +1,6 @@
-use config::{AppConfig, BackBehavior, MusicServer};
+use config::{
+    AppConfig, BackBehavior, EqPreset, EqualizerSettings as EqualizerConfig, MusicServer,
+};
 use dioxus::prelude::*;
 use rfd::AsyncFileDialog;
 
@@ -295,6 +297,314 @@ pub fn MusicBrainzSettings(current: String, on_save: EventHandler<String>) -> El
     }
 }
 
+const EQ_MIN_DB: f64 = -12.0;
+const EQ_MAX_DB: f64 = 12.0;
+const EQ_GRAPH_WIDTH: f64 = 760.0;
+const EQ_GRAPH_HEIGHT: f64 = 280.0;
+const EQ_GRAPH_PAD_X: f64 = 36.0;
+const EQ_GRAPH_PAD_TOP: f64 = 22.0;
+const EQ_GRAPH_PAD_BOTTOM: f64 = 42.0;
+
+fn eq_plot_width() -> f64 {
+    EQ_GRAPH_WIDTH - EQ_GRAPH_PAD_X * 2.0
+}
+
+fn eq_plot_height() -> f64 {
+    EQ_GRAPH_HEIGHT - EQ_GRAPH_PAD_TOP - EQ_GRAPH_PAD_BOTTOM
+}
+
+fn eq_band_x(index: usize, total: usize) -> f64 {
+    let span = eq_plot_width();
+    if total <= 1 {
+        return EQ_GRAPH_PAD_X + span / 2.0;
+    }
+    EQ_GRAPH_PAD_X + (span * index as f64 / (total.saturating_sub(1)) as f64)
+}
+
+fn eq_gain_to_y(gain: f32) -> f64 {
+    let ratio = (EQ_MAX_DB - gain as f64) / (EQ_MAX_DB - EQ_MIN_DB);
+    EQ_GRAPH_PAD_TOP + ratio.clamp(0.0, 1.0) * eq_plot_height()
+}
+
+fn eq_y_to_gain(y: f64) -> f32 {
+    let clamped = y.clamp(EQ_GRAPH_PAD_TOP, EQ_GRAPH_PAD_TOP + eq_plot_height());
+    let ratio = 1.0 - ((clamped - EQ_GRAPH_PAD_TOP) / eq_plot_height().max(1.0));
+    let gain = EQ_MIN_DB + ratio * (EQ_MAX_DB - EQ_MIN_DB);
+    ((gain * 2.0).round() / 2.0) as f32
+}
+
+fn eq_nearest_band(x: f64, total: usize) -> usize {
+    let mut nearest = 0usize;
+    let mut distance = f64::MAX;
+    for index in 0..total {
+        let band_x = eq_band_x(index, total);
+        let delta = (band_x - x).abs();
+        if delta < distance {
+            distance = delta;
+            nearest = index;
+        }
+    }
+    nearest
+}
+
+fn eq_apply_drag(
+    base: &EqualizerConfig,
+    index: usize,
+    y: f64,
+) -> EqualizerConfig {
+    let mut next = base.clone();
+    let mut bands = base.resolved_bands();
+    bands[index] = eq_y_to_gain(y);
+    next.bands = bands;
+    next.preset = EqPreset::Custom;
+    next
+}
+
+fn eq_preset_label(preset: EqPreset) -> String {
+    match preset {
+        EqPreset::Flat => i18n::t("eq_preset_flat"),
+        EqPreset::BassBoost => i18n::t("eq_preset_bass_boost"),
+        EqPreset::TrebleBoost => i18n::t("eq_preset_treble_boost"),
+        EqPreset::VocalBoost => i18n::t("eq_preset_vocal_boost"),
+        EqPreset::Loudness => i18n::t("eq_preset_loudness"),
+        EqPreset::Custom => i18n::t("eq_preset_custom"),
+    }
+}
+
+#[component]
+pub fn EqualizerPanel(
+    current: EqualizerConfig,
+    on_change: EventHandler<EqualizerConfig>,
+) -> Element {
+    const BAND_LABELS: [&str; 5] = ["60 Hz", "250 Hz", "1 kHz", "4 kHz", "12 kHz"];
+
+    let enabled = current.enabled;
+    let resolved_bands = current.resolved_bands();
+    let mut dragging_band = use_signal(|| None::<usize>);
+    let slider_style = if enabled {
+        "inset-inline-start: 4px; width: calc(50% - 4px);"
+    } else {
+        "inset-inline-start: calc(50% + 2px); width: calc(50% - 4px);"
+    };
+
+    let enable_class = if enabled {
+        "text-white"
+    } else {
+        "text-slate-500 hover:text-slate-300"
+    };
+
+    let disable_class = if !enabled {
+        "text-white"
+    } else {
+        "text-slate-500 hover:text-slate-300"
+    };
+
+    let current_for_enable = current.clone();
+    let current_for_disable = current.clone();
+    let current_for_preset = current.clone();
+    let current_for_preamp = current.clone();
+
+    let on_change_enable = on_change.clone();
+    let on_change_disable = on_change.clone();
+    let on_change_preset = on_change.clone();
+    let on_change_preamp = on_change.clone();
+    let current_for_graph_down = current.clone();
+    let current_for_graph_move = current.clone();
+    let on_change_graph_down = on_change.clone();
+    let on_change_graph_move = on_change.clone();
+
+    let graph_path = resolved_bands
+        .iter()
+        .enumerate()
+        .map(|(index, gain)| {
+            let command = if index == 0 { "M" } else { "L" };
+            format!(
+                "{command} {:.2} {:.2}",
+                eq_band_x(index, BAND_LABELS.len()),
+                eq_gain_to_y(*gain)
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    rsx! {
+        div { class: "flex flex-col gap-4 w-full",
+            div { class: "flex flex-wrap items-center gap-3",
+                div {
+                    class: "bg-white/5 p-1 rounded-xl flex relative h-10 items-center border border-white/5 w-48",
+                    div {
+                        class: "absolute h-8 bg-white/10 rounded-lg transition-all duration-300 ease-out",
+                        style: "{slider_style}"
+                    }
+                    button {
+                        class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {enable_class}",
+                        onclick: move |_| {
+                            let mut next = current_for_enable.clone();
+                            next.enabled = true;
+                            on_change_enable.call(next);
+                        },
+                        "{i18n::t(\"enabled\")}"
+                    }
+                    button {
+                        class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {disable_class}",
+                        onclick: move |_| {
+                            let mut next = current_for_disable.clone();
+                            next.enabled = false;
+                            on_change_disable.call(next);
+                        },
+                        "{i18n::t(\"disabled\")}"
+                    }
+                }
+
+                div { class: "flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2",
+                    span { class: "text-xs uppercase tracking-[0.18em] text-slate-400", "{i18n::t(\"eq_preset\")}" }
+                    select {
+                        class: "bg-transparent text-sm text-white focus:outline-none",
+                        value: "{current.preset.as_storage()}",
+                        onchange: move |evt| {
+                            let mut next = current_for_preset.clone();
+                            next.preset = EqPreset::from_storage(&evt.value());
+                            on_change_preset.call(next);
+                        },
+                        for preset in EqPreset::all() {
+                            option {
+                                value: "{preset.as_storage()}",
+                                selected: preset == current.preset,
+                                "{eq_preset_label(preset)}"
+                            }
+                        }
+                    }
+                }
+
+                div { class: "flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-3 py-2 min-w-[220px] flex-1",
+                    div { class: "min-w-0",
+                        p { class: "text-xs uppercase tracking-[0.18em] text-slate-400", "{i18n::t(\"eq_preamp\")}" }
+                        p { class: "text-[11px] text-slate-500", "{i18n::t(\"eq_preamp_desc\")}" }
+                    }
+                    input {
+                        r#type: "range",
+                        min: "-12",
+                        max: "6",
+                        step: "0.5",
+                        value: format!("{:.1}", current.preamp_db),
+                        class: "flex-1",
+                        style: "accent-color: var(--color-indigo-500);",
+                        oninput: move |evt| {
+                            if let Ok(value) = evt.value().parse::<f32>() {
+                                let mut next = current_for_preamp.clone();
+                                next.preamp_db = value;
+                                on_change_preamp.call(next);
+                            }
+                        }
+                    }
+                    span { class: "text-xs font-mono text-white/80 w-14 text-right", {format!("{:+.1} dB", current.preamp_db)} }
+                }
+            }
+
+            p { class: "text-xs text-slate-500", "{i18n::t(\"eq_graph_hint\")}" }
+
+            div {
+                class: "rounded-2xl border border-white/8 bg-white/5 p-4 select-none overflow-x-auto",
+                style: "background: color-mix(in oklab, var(--color-neutral-900) 78%, transparent); border-color: color-mix(in oklab, var(--color-white) 8%, transparent);",
+                svg {
+                    class: "block mx-auto cursor-row-resize",
+                    style: "width: 760px; height: 280px; min-width: 760px;",
+                    view_box: "0 0 760 280",
+                    onmousedown: move |evt: MouseEvent| {
+                        let point = evt.element_coordinates();
+                        let index = eq_nearest_band(point.x, BAND_LABELS.len());
+                        dragging_band.set(Some(index));
+                        on_change_graph_down.call(eq_apply_drag(&current_for_graph_down, index, point.y));
+                    },
+                    onmousemove: move |evt: MouseEvent| {
+                        if let Some(index) = *dragging_band.read() {
+                            let point = evt.element_coordinates();
+                            on_change_graph_move.call(eq_apply_drag(&current_for_graph_move, index, point.y));
+                        }
+                    },
+                    onmouseup: move |_| dragging_band.set(None),
+                    onmouseleave: move |_| dragging_band.set(None),
+                    for db in [-12.0_f64, -6.0, 0.0, 6.0, 12.0] {
+                        line {
+                            x1: "{EQ_GRAPH_PAD_X}",
+                            x2: "{EQ_GRAPH_WIDTH - EQ_GRAPH_PAD_X}",
+                            y1: "{eq_gain_to_y(db as f32)}",
+                            y2: "{eq_gain_to_y(db as f32)}",
+                            stroke_width: if db == 0.0 { "1.5" } else { "1" },
+                            stroke_dasharray: if db == 0.0 { "0" } else { "4 6" },
+                            style: if db == 0.0 {
+                                "stroke: color-mix(in oklab, var(--color-white) 22%, transparent);"
+                            } else {
+                                "stroke: color-mix(in oklab, var(--color-slate-400) 16%, transparent);"
+                            },
+                        }
+                        text {
+                            x: "10",
+                            y: "{eq_gain_to_y(db as f32) + 4.0}",
+                            font_size: "10",
+                            font_family: "JetBrains Mono, monospace",
+                            style: "fill: color-mix(in oklab, var(--color-slate-400) 72%, transparent);",
+                            {format!("{:+.0}", db)}
+                        }
+                    }
+                    for (index, label) in BAND_LABELS.iter().enumerate() {
+                        line {
+                            x1: "{eq_band_x(index, BAND_LABELS.len())}",
+                            x2: "{eq_band_x(index, BAND_LABELS.len())}",
+                            y1: "{EQ_GRAPH_PAD_TOP}",
+                            y2: "{EQ_GRAPH_HEIGHT - EQ_GRAPH_PAD_BOTTOM}",
+                            stroke_width: "1",
+                            style: "stroke: color-mix(in oklab, var(--color-slate-500) 34%, transparent);",
+                        }
+                        text {
+                            x: "{eq_band_x(index, BAND_LABELS.len())}",
+                            y: "{EQ_GRAPH_HEIGHT - 14.0}",
+                            text_anchor: "middle",
+                            font_size: "11",
+                            font_family: "JetBrains Mono, monospace",
+                            style: "fill: color-mix(in oklab, var(--color-white) 58%, transparent);",
+                            "{label}"
+                        }
+                    }
+                    path {
+                        d: "{graph_path}",
+                        fill: "none",
+                        stroke_width: "2.5",
+                        stroke_linecap: "round",
+                        stroke_linejoin: "round",
+                        style: "stroke: var(--color-indigo-500);",
+                    }
+                    for (index, gain) in resolved_bands.iter().enumerate() {
+                        circle {
+                            cx: "{eq_band_x(index, BAND_LABELS.len())}",
+                            cy: "{eq_gain_to_y(*gain)}",
+                            r: if *dragging_band.read() == Some(index) { "8" } else { "6" },
+                            style: if *dragging_band.read() == Some(index) {
+                                "fill: var(--color-indigo-400);"
+                            } else {
+                                "fill: var(--color-white);"
+                            },
+                        }
+                        circle {
+                            cx: "{eq_band_x(index, BAND_LABELS.len())}",
+                            cy: "{eq_gain_to_y(*gain)}",
+                            r: "14",
+                            fill: "transparent",
+                            stroke_width: "1",
+                            style: if *dragging_band.read() == Some(index) {
+                                "stroke: color-mix(in oklab, var(--color-indigo-400) 40%, transparent);"
+                            } else {
+                                "stroke: color-mix(in oklab, var(--color-white) 10%, transparent);"
+                            },
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+}
+
 // #[component]
 // pub fn LastFmSettings(current: String, on_save: EventHandler<String>) -> Element {
 //     let mut input = use_signal(move || current.clone());
@@ -364,4 +674,3 @@ pub fn BackBehaviorSelector(
         }
     }
 }
-

@@ -10,7 +10,10 @@ pub struct NowPlayingMeta {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
+use crate::eq::Equalizer;
+#[cfg(not(target_arch = "wasm32"))]
 use crate::systemint;
+use config::EqualizerSettings;
 #[cfg(not(target_arch = "wasm32"))]
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 #[cfg(not(target_arch = "wasm32"))]
@@ -60,6 +63,7 @@ pub struct Player {
 
     position_thread_handle: Option<std::thread::JoinHandle<()>>,
     position_thread_stop: Arc<AtomicBool>,
+    equalizer: Arc<Mutex<Equalizer>>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -75,6 +79,10 @@ impl Player {
             .expect("no default output config");
 
         let stream_config: cpal::StreamConfig = supported_config.into();
+        let equalizer = Arc::new(Mutex::new(Equalizer::new(
+            stream_config.sample_rate,
+            stream_config.channels as usize,
+        )));
 
         Self {
             state: Arc::new(Mutex::new(PlaybackState {
@@ -95,6 +103,7 @@ impl Player {
             finish_callback: None,
             position_thread_handle: None,
             position_thread_stop: Arc::default(),
+            equalizer,
         }
     }
 
@@ -224,6 +233,11 @@ impl Player {
         let decoder_channels = channels;
         let decoder_sample_rate = device_sample_rate;
         let finish_cb = self.finish_callback.clone();
+        let equalizer = self.equalizer.clone();
+
+        if let Ok(mut eq) = self.equalizer.lock() {
+            eq.update_output_format(device_sample_rate, channels);
+        }
 
         let handle = std::thread::spawn(move || {
             Self::decoder_thread(
@@ -234,6 +248,7 @@ impl Player {
                 decoder_channels,
                 decoder_sample_rate,
                 finish_cb,
+                equalizer,
             );
         });
         self.decoder_handle = Some(handle);
@@ -253,6 +268,7 @@ impl Player {
         target_channels: usize,
         target_sample_rate: u32,
         finish_cb: Option<Arc<dyn Fn() + Send + Sync + 'static>>,
+        equalizer: Arc<Mutex<Equalizer>>,
     ) {
         let mss = MediaSourceStream::new(source, Default::default());
 
@@ -387,13 +403,17 @@ impl Player {
                 }
             };
 
-            let samples = Self::audio_buf_to_f32_interleaved(
+            let mut samples = Self::audio_buf_to_f32_interleaved(
                 &decoded,
                 source_channels,
                 target_channels,
                 source_sample_rate,
                 target_sample_rate,
             );
+
+            if let Ok(mut eq) = equalizer.lock() {
+                eq.process_in_place(&mut samples);
+            }
 
             let mut offset = 0;
             while offset < samples.len() {
@@ -698,6 +718,12 @@ impl Player {
         st.volume = volume;
     }
 
+    pub fn set_equalizer(&mut self, settings: EqualizerSettings) {
+        if let Ok(mut eq) = self.equalizer.lock() {
+            eq.set_settings(settings);
+        }
+    }
+
     pub fn update_metadata(&mut self, meta: NowPlayingMeta) {
         self.now_playing = Some(meta);
         self.update_now_playing_system();
@@ -823,6 +849,8 @@ impl Player {
         self.volume = volume;
         self.audio.set_volume(volume as f64);
     }
+
+    pub fn set_equalizer(&mut self, _settings: EqualizerSettings) {}
 
     pub fn is_empty(&self) -> bool {
         !self.has_source || self.audio.ended() || self.audio.error().is_some()

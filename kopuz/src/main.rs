@@ -391,6 +391,7 @@ fn App() -> Element {
                     config.set(loaded.clone());
                     volume.set(loaded.volume);
                     player.write().set_volume(loaded.volume);
+                    player.write().set_equalizer(loaded.equalizer.clone());
                     i18n::set_locale(&loaded.language);
                 }
                 if let Ok(Ok(loaded)) = pl_res {
