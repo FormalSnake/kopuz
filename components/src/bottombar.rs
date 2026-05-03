@@ -20,6 +20,7 @@ pub fn Bottombar(
     mut current_song_artist: Signal<String>,
     mut current_song_cover_url: Signal<String>,
     mut volume: Signal<f32>,
+    mut persisted_volume: Signal<f32>,
     mut is_rightbar_open: Signal<bool>,
 ) -> Element {
     let mut is_dragging = use_signal(|| false);
@@ -316,14 +317,14 @@ pub fn Bottombar(
                                 let vol = *volume_before_mute.read();
                                 player.write().set_volume(vol);
                                 volume.set(vol);
-                                config.write().volume = vol;
+                                persisted_volume.set(vol);
                                 is_muted.set(false);
                             } else {
                                 // Mute: save current volume and set to 0
                                 volume_before_mute.set(*volume.read());
                                 player.write().set_volume(0.0);
                                 volume.set(0.0);
-                                config.write().volume = 0.0;
+                                persisted_volume.set(0.0);
                                 is_muted.set(true);
                             }
                         },
@@ -347,7 +348,7 @@ pub fn Bottombar(
                             class: "absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10",
                             onchange: move |evt| {
                                 if let Ok(val) = evt.value().parse::<f32>() {
-                                    config.write().volume = val;
+                                    persisted_volume.set(val);
                                     is_muted.set(val == 0.0);
                                 }
                             },

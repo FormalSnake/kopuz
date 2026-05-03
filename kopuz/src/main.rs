@@ -33,6 +33,23 @@ const REDUCED_ANIMATIONS_CSS: Asset = asset!("../assets/reduced-animations.css")
 #[cfg(not(target_arch = "wasm32"))]
 static PRESENCE: std::sync::OnceLock<Option<Arc<Presence>>> = std::sync::OnceLock::new();
 
+#[cfg(not(target_arch = "wasm32"))]
+fn persist_config_snapshot(config_snapshot: config::AppConfig, path: std::path::PathBuf) {
+    spawn(async move {
+        let result = tokio::task::spawn_blocking(move || config_snapshot.save(&path)).await;
+        match result {
+            Ok(Ok(())) => {}
+            Ok(Err(e)) => eprintln!("Failed to save config: {}", e),
+            Err(e) => eprintln!("Failed to join config save task: {}", e),
+        }
+    });
+}
+
+#[cfg(target_arch = "wasm32")]
+fn persist_config_snapshot(config_snapshot: config::AppConfig, _path: std::path::PathBuf) {
+    save_web_config(&config_snapshot);
+}
+
 fn main() {
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -211,6 +228,7 @@ fn App() -> Element {
     let current_song_bitrate = use_signal(|| 0u8);
     let current_song_progress = use_signal(|| 0u64);
     let mut volume = use_signal(|| 1.0f32);
+    let mut persisted_volume = use_signal(|| 1.0f32);
 
     let is_playing = use_signal(|| false);
     let is_fullscreen = use_signal(|| false);
@@ -296,22 +314,20 @@ fn App() -> Element {
         if !*initial_load_done.read() {
             return;
         }
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            let config_snapshot = config.read().clone();
-            let path = config_path();
-            spawn(async move {
-                let result = tokio::task::spawn_blocking(move || config_snapshot.save(&path)).await;
-                if let Ok(Err(e)) = result {
-                    eprintln!("Failed to save config: {}", e);
-                }
-            });
+        let mut config_snapshot = config.read().clone();
+        config_snapshot.volume = *volume.peek();
+        persist_config_snapshot(config_snapshot, config_path());
+    });
+
+    use_effect(move || {
+        if !*initial_load_done.read() {
+            return;
         }
-        #[cfg(target_arch = "wasm32")]
-        {
-            let cfg_snapshot = config.read().clone();
-            save_web_config(&cfg_snapshot);
-        }
+
+        let committed_volume = *persisted_volume.read();
+        let mut config_snapshot = config.peek().clone();
+        config_snapshot.volume = committed_volume;
+        persist_config_snapshot(config_snapshot, config_path());
     });
 
     use_effect(move || {
@@ -409,6 +425,7 @@ fn App() -> Element {
                 if let Ok(loaded) = cfg_res {
                     config.set(loaded.clone());
                     volume.set(loaded.volume);
+                    persisted_volume.set(loaded.volume);
                     player.write().set_volume(loaded.volume);
                     player.write().set_equalizer(loaded.equalizer.clone());
                     i18n::set_locale(&loaded.language);
@@ -448,6 +465,7 @@ fn App() -> Element {
             let loaded_language = loaded.language.clone();
             config.set(loaded);
             volume.set(loaded_volume);
+            persisted_volume.set(loaded_volume);
             player.write().set_volume(loaded_volume);
             i18n::set_locale(&loaded_language);
 
@@ -920,6 +938,7 @@ fn App() -> Element {
                 current_song_artist: current_song_artist,
                 current_song_cover_url: current_song_cover_url,
                 volume: volume,
+                persisted_volume: persisted_volume,
                 palette: palette,
             }
             Bottombar {
@@ -937,6 +956,7 @@ fn App() -> Element {
                 queue: queue,
                 current_queue_index: current_queue_index,
                 volume: volume,
+                persisted_volume: persisted_volume,
                 is_rightbar_open: is_rightbar_open,
             }
         }

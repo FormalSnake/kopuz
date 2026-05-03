@@ -7,6 +7,7 @@ pub mod fullscreen;
 pub mod playlist_detail;
 pub mod playlist_modal;
 pub mod playlist_popups;
+pub mod reorder_buttons;
 pub mod rightbar;
 pub mod search_bar;
 pub mod search_genre_detail;
@@ -20,4 +21,3 @@ pub mod sidebar;
 pub mod titlebar;
 pub mod stat_card;
 pub mod track_row;
-

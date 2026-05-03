@@ -1,3 +1,4 @@
+use crate::reorder_buttons::ReorderButtons;
 use crate::track_row::TrackRow;
 use config::{AppConfig, MusicService, MusicSource};
 use dioxus::prelude::*;
@@ -189,17 +190,11 @@ pub fn Showcase(props: ShowcaseProps) -> Element {
                                          }
                                      }
                                      if props.is_reorderable && !props.is_selection_mode {
-                                         div { class: "flex flex-col pr-2 shrink-0",
-                                             button {
-                                                 class: if can_move_up { "p-0.5 text-slate-500 hover:text-white transition-colors" } else { "p-0.5 text-slate-700 cursor-default" },
-                                                 onclick: move |evt| { evt.stop_propagation(); if can_move_up { props.on_move_up.call(idx); } },
-                                                 i { class: "fa-solid fa-chevron-up text-[9px]" }
-                                             }
-                                             button {
-                                                 class: if can_move_down { "p-0.5 text-slate-500 hover:text-white transition-colors" } else { "p-0.5 text-slate-700 cursor-default" },
-                                                 onclick: move |evt| { evt.stop_propagation(); if can_move_down { props.on_move_down.call(idx); } },
-                                                 i { class: "fa-solid fa-chevron-down text-[9px]" }
-                                             }
+                                         ReorderButtons {
+                                             can_move_up,
+                                             can_move_down,
+                                             on_move_up: move |_| props.on_move_up.call(idx),
+                                             on_move_down: move |_| props.on_move_down.call(idx),
                                          }
                                      }
                                  }

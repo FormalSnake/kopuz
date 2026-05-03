@@ -53,6 +53,30 @@ pub struct PlayerController {
 }
 
 impl PlayerController {
+    /// Remap a queue index after moving one item within the queue.
+    ///
+    /// `index` is the position to remap, `from` is the original position of the moved item,
+    /// and `to` is its destination after the move.
+    ///
+    /// Returns the new position for `index` after applying the move:
+    /// - if `index == from`, this is the moved item itself, so it now lives at `to`
+    /// - if the item moved forward (`from < to`), every item that was between `from + 1`
+    ///   and `to` shifts left by one slot
+    /// - if the item moved backward (`to < from`), every item that was between `to`
+    ///   and `from - 1` shifts right by one slot
+    /// - all other indices are unaffected
+    fn remap_queue_index(index: usize, from: usize, to: usize) -> usize {
+        if index == from {
+            to
+        } else if from < to && index > from && index <= to {
+            index - 1
+        } else if to < from && index >= to && index < from {
+            index + 1
+        } else {
+            index
+        }
+    }
+
     pub fn play_track(&mut self, idx: usize) {
         let current_idx = *self.current_queue_index.peek();
         self.history.with_mut(|h| {
@@ -633,6 +657,28 @@ impl PlayerController {
         } else {
             self.resume();
         }
+    }
+
+    pub fn move_queue_item(&mut self, from: usize, to: usize) {
+        let len = self.queue.peek().len();
+        if from >= len || to >= len || from == to {
+            return;
+        }
+
+        self.queue.with_mut(|queue| {
+            let track = queue.remove(from);
+            queue.insert(to, track);
+        });
+
+        let current_idx = *self.current_queue_index.peek();
+        self.current_queue_index
+            .set(Self::remap_queue_index(current_idx, from, to));
+
+        self.history.with_mut(|history| {
+            for idx in history.iter_mut() {
+                *idx = Self::remap_queue_index(*idx, from, to);
+            }
+        });
     }
 }
 

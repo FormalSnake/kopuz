@@ -1,3 +1,4 @@
+use crate::reorder_buttons::ReorderButtons;
 use config::AppConfig;
 use dioxus::document::eval;
 use dioxus::prelude::*;
@@ -127,6 +128,9 @@ pub fn Rightbar(
     let mut play_song_at_index = move |index: usize| {
         ctrl.play_track_no_history(index);
     };
+    let mut move_queue_item = move |from: usize, to: usize| {
+        ctrl.move_queue_item(from, to);
+    };
 
     let mut is_resizing = use_signal(|| false);
 
@@ -164,6 +168,31 @@ pub fn Rightbar(
     let back_text = i18n::t("back").to_string().to_uppercase();
     let up_next_text = i18n::t("up_next").to_string();
     let lyrics_text = i18n::t("lyrics").to_string();
+    let format_queue_duration = |seconds: u64| {
+        let hours = seconds / 3600;
+        let minutes = (seconds % 3600) / 60;
+        let secs = seconds % 60;
+        if hours > 0 {
+            format!("{hours}:{minutes:02}:{secs:02}")
+        } else {
+            format!("{minutes}:{secs:02}")
+        }
+    };
+    let up_next_count = queue
+        .read()
+        .len()
+        .saturating_sub(*current_queue_index.read() + 1);
+    let up_next_duration: u64 = queue
+        .read()
+        .iter()
+        .skip(*current_queue_index.read() + 1)
+        .map(|track| track.duration)
+        .sum();
+    let up_next_summary = format!(
+        "{} • {}",
+        i18n::t_with("showcase_song_count", &[("count", up_next_count.to_string())]),
+        format_queue_duration(up_next_duration)
+    );
 
     rsx! {
         div {
@@ -293,11 +322,18 @@ pub fn Rightbar(
                 } else if *active_tab.read() == 1 {
                     if queue.read().len() <= *current_queue_index.read() + 1 {
                         div { class: "text-white/30 text-center py-10 text-sm", "{i18n::t(\"no_more_songs\")}" }
+                    } else {
+                        div {
+                            class: "px-2 pt-1 pb-2 text-[11px] uppercase tracking-[0.18em] text-slate-500",
+                            "{up_next_summary}"
+                        }
                     }
                     for i in (*current_queue_index.read() + 1)..queue.read().len() {
                         {
                             let track = queue.read()[i].clone();
                             let cover_url = get_track_cover(&track);
+                            let can_move_up = i > *current_queue_index.read() + 1;
+                            let can_move_down = i + 1 < queue.read().len();
                             rsx! {
                                 div {
                                     key: "{i}",
@@ -319,6 +355,13 @@ pub fn Rightbar(
                                         class: "flex-1 min-w-0 flex flex-col justify-center gap-0.5",
                                         div { class: "text-sm text-white truncate font-medium", "{track.title}" }
                                         div { class: "text-xs text-white/50 truncate group-hover:text-white/70", "{track.artist}" }
+                                    }
+                                    ReorderButtons {
+                                        can_move_up,
+                                        can_move_down,
+                                        class: "flex flex-col pr-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity".to_string(),
+                                        on_move_up: move |_| move_queue_item(i, i - 1),
+                                        on_move_down: move |_| move_queue_item(i, i + 1),
                                     }
                                 }
                             }

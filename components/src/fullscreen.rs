@@ -1,3 +1,4 @@
+use crate::reorder_buttons::ReorderButtons;
 use config::AppConfig;
 use dioxus::document::eval;
 use dioxus::prelude::*;
@@ -22,6 +23,7 @@ pub fn Fullscreen(
     mut current_song_cover_url: Signal<String>,
     mut current_song_album: Signal<String>,
     mut volume: Signal<f32>,
+    mut persisted_volume: Signal<f32>,
     palette: Signal<Option<Vec<utils::color::Color>>>,
 ) -> Element {
     let mut is_dragging = use_signal(|| false);
@@ -52,6 +54,16 @@ pub fn Fullscreen(
         let seconds = seconds % 60;
         format!("{}:{:02}", minutes, seconds)
     };
+    let format_queue_duration = |seconds: u64| {
+        let hours = seconds / 3600;
+        let minutes = (seconds % 3600) / 60;
+        let secs = seconds % 60;
+        if hours > 0 {
+            format!("{hours}:{minutes:02}:{secs:02}")
+        } else {
+            format!("{minutes}:{secs:02}")
+        }
+    };
 
     let progress_percent = if *current_song_duration.read() > 0 {
         (display_progress as f64 / *current_song_duration.read() as f64) * 100.0
@@ -63,6 +75,9 @@ pub fn Fullscreen(
 
     let mut play_song_at_index = move |index: usize| {
         ctrl.play_track(index);
+    };
+    let mut move_queue_item = move |from: usize, to: usize| {
+        ctrl.move_queue_item(from, to);
     };
 
     let mut config = use_context::<Signal<AppConfig>>();
@@ -169,6 +184,21 @@ pub fn Fullscreen(
     } else {
         "background-color: var(--color-black); background-image: none;".to_string()
     };
+    let up_next_count = queue
+        .read()
+        .len()
+        .saturating_sub(*current_queue_index.read() + 1);
+    let up_next_duration: u64 = queue
+        .read()
+        .iter()
+        .skip(*current_queue_index.read() + 1)
+        .map(|track| track.duration)
+        .sum();
+    let up_next_summary = format!(
+        "{} • {}",
+        i18n::t_with("showcase_song_count", &[("count", up_next_count.to_string())]),
+        format_queue_duration(up_next_duration)
+    );
 
     rsx! {
         div {
@@ -347,7 +377,7 @@ pub fn Fullscreen(
                             class: "absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer",
                             onchange: move |evt| {
                                 if let Ok(val) = evt.value().parse::<f32>() {
-                                    config.write().volume = val;
+                                    persisted_volume.set(val);
                                 }
                             },
                             oninput: move |evt| {
@@ -472,11 +502,18 @@ pub fn Fullscreen(
                     } else if *active_tab.read() == 1 {
                         if queue.read().len() <= *current_queue_index.read() + 1 {
                             div { class: "text-white/30 text-center py-10 text-sm", "{i18n::t(\"no_more_songs\")}" }
+                        } else {
+                            div {
+                                class: "px-4 pt-2 pb-3 text-xs uppercase tracking-[0.18em] text-white/45",
+                                "{up_next_summary}"
+                            }
                         }
                         for i in (*current_queue_index.read() + 1)..queue.read().len() {
                             {
                                 let track = queue.read()[i].clone();
                                 let cover_url = get_track_cover(&track);
+                                let can_move_up = i > *current_queue_index.read() + 1;
+                                let can_move_down = i + 1 < queue.read().len();
                                 rsx! {
                                     div {
                                         key: "{i}",
@@ -498,6 +535,14 @@ pub fn Fullscreen(
                                             class: "flex-1 min-w-0 flex flex-col justify-center gap-0.5",
                                             div { class: "text-base text-white truncate font-medium", "{track.title}" }
                                             div { class: "text-sm text-white/50 truncate group-hover:text-white/70", "{track.artist}" }
+                                        }
+                                        ReorderButtons {
+                                            can_move_up,
+                                            can_move_down,
+                                            class: "flex flex-col pr-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity".to_string(),
+                                            icon_class: "text-[10px]".to_string(),
+                                            on_move_up: move |_| move_queue_item(i, i - 1),
+                                            on_move_down: move |_| move_queue_item(i, i + 1),
                                         }
                                     }
                                 }
