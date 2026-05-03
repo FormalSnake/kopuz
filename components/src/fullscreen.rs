@@ -1,4 +1,5 @@
 use crate::reorder_buttons::ReorderButtons;
+use crate::titlebar::Titlebar;
 use config::AppConfig;
 use dioxus::document::eval;
 use dioxus::prelude::*;
@@ -202,8 +203,15 @@ pub fn Fullscreen(
 
     rsx! {
         div {
-            class: "fixed inset-0 z-50 flex text-white select-none",
+            class: "fixed inset-0 z-50 flex flex-col text-white select-none",
             style: "{background_style}",
+
+            if cfg!(target_os = "linux") {
+                div { dir: "ltr", Titlebar {} }
+            }
+
+            div {
+                class: "flex flex-1 overflow-hidden",
 
             div {
                 class: "flex flex-col items-center justify-center p-8 lg:p-12 relative flex-shrink-0",
@@ -551,6 +559,7 @@ pub fn Fullscreen(
                     }
                 }
             }
+            } // flex-1 panels row
         }
     }
 }
