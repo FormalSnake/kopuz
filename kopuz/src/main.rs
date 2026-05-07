@@ -206,7 +206,7 @@ fn build_queue_state_snapshot(
     })
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "windows"))]
 fn read_titlebar_mode_from_disk() -> config::TitlebarMode {
     directories::ProjectDirs::from("com", "temidaradev", "kopuz")
         .map(|d| d.config_dir().join("config.json"))
@@ -270,7 +270,7 @@ fn main() {
                 .with_fullsize_content_view(true);
         }
 
-        #[cfg(target_os = "linux")]
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
         {
             let initial_titlebar_mode = read_titlebar_mode_from_disk();
             window = window.with_decorations(
@@ -549,7 +549,7 @@ fn App() -> Element {
         persist_config_snapshot(config_snapshot, config_path());
     });
 
-    #[cfg(all(not(target_arch = "wasm32"), target_os = "linux"))]
+    #[cfg(all(not(target_arch = "wasm32"), any(target_os = "linux", target_os = "windows")))]
     use_effect(move || {
         let mode = config.read().titlebar_mode;
         let win = dioxus::desktop::use_window();
@@ -977,7 +977,7 @@ fn App() -> Element {
                     ctrl.toggle();
                 }
             },
-            if cfg!(target_os = "linux") {
+            if cfg!(any(target_os = "linux", target_os = "windows")) {
                 div { dir: "ltr", Titlebar {} }
             }
             if config.read().active_source == config::MusicSource::Local {

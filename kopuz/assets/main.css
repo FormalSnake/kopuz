@@ -47,6 +47,10 @@ body {
     height: 100%;
 }
 
+.overflow-y-auto {
+    will-change: scroll-position;
+}
+
 body {
     background-color: #000000;
     color: #ffffff;
