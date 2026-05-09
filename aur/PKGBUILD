@@ -1,6 +1,6 @@
 # Maintainer: temidaradev <temidaradev@proton.me>
 pkgname=kopuz
-pkgver=0.4.5
+pkgver=0.5.0
 pkgrel=1
 pkgdesc="A modern music player"
 arch=('x86_64')

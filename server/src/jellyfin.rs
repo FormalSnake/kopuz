@@ -2,7 +2,7 @@ use jellyfin_sdk_rust::JellyfinSDK;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-const APP_VERSION: &str = "0.4.5";
+const APP_VERSION: &str = "0.5.0";
 
 #[derive(Serialize)]
 struct PlaybackProgressRequest<'a> {
