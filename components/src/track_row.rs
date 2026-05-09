@@ -18,11 +18,14 @@ pub fn TrackRow(
     #[props(default = false)] hide_delete: bool,
     on_select: Option<EventHandler<bool>>,
     on_long_press: Option<EventHandler<()>>,
+    on_download: Option<EventHandler<()>>,
+    #[props(default = false)] is_downloaded: bool,
+    #[props(default = false)] is_downloading: bool,
 ) -> Element {
     let add_to_playlist_text = i18n::t("add_to_playlist").to_string();
     let remove_from_playlist_text = i18n::t("remove_from_playlist").to_string();
     let delete_song_text = i18n::t("delete").to_string();
-    
+
     let mut actions = vec![MenuAction::new(add_to_playlist_text.as_str(), "fa-solid fa-plus")];
 
     let has_remove = on_remove_from_playlist.is_some();
@@ -30,9 +33,28 @@ pub fn TrackRow(
         actions.push(MenuAction::new(remove_from_playlist_text.as_str(), "fa-solid fa-minus"));
     }
 
+    let has_download = on_download.is_some();
+    if has_download {
+        let (dl_label, dl_icon) = if is_downloading {
+            ("Downloading...", "fa-solid fa-spinner fa-spin")
+        } else if is_downloaded {
+            ("Remove Download", "fa-solid fa-trash-can")
+        } else {
+            ("Download Offline", "fa-solid fa-download")
+        };
+        let mut action = MenuAction::new(dl_label, dl_icon);
+        if is_downloaded {
+            action = action.destructive();
+        }
+        actions.push(action);
+    }
+
     if !hide_delete {
         actions.push(MenuAction::new(delete_song_text.as_str(), "fa-solid fa-trash").destructive());
     }
+
+    let download_action_idx = if has_remove { 2 } else { 1 };
+    let delete_action_idx = if has_download { download_action_idx + 1 } else { download_action_idx };
 
     let mut long_press_task = use_signal(|| None);
     let mut long_press_occurred = use_signal(|| false);
@@ -106,7 +128,7 @@ pub fn TrackRow(
                 }
             }
 
-            div { class: "w-10 h-10 bg-white/5 rounded overflow-hidden flex items-center justify-center mr-4 shrink-0",
+            div { class: "relative w-10 h-10 bg-white/5 rounded overflow-hidden flex items-center justify-center mr-4 shrink-0",
                 if let Some(url) = cover_url {
                     img {
                         src: "{url.as_ref()}",
@@ -116,6 +138,11 @@ pub fn TrackRow(
                     }
                 } else {
                     i { class: "fa-solid fa-music text-white/20" }
+                }
+                if is_downloaded {
+                    div { class: "absolute bottom-0 right-0 w-3 h-3 bg-indigo-500 rounded-tl flex items-center justify-center",
+                        i { class: "fa-solid fa-check text-white", style: "font-size: 6px;" }
+                    }
                 }
             }
 
@@ -139,7 +166,11 @@ pub fn TrackRow(
                             if let Some(handler) = on_remove_from_playlist {
                                 handler.call(());
                             }
-                        } else {
+                        } else if has_download && idx == download_action_idx {
+                            if let Some(handler) = on_download {
+                                handler.call(());
+                            }
+                        } else if idx == delete_action_idx {
                             on_delete.call(());
                         }
                     },

@@ -1,5 +1,6 @@
 use ::server::jellyfin::JellyfinClient;
 use ::server::subsonic::SubsonicClient;
+use crate::server::download_manager::{DownloadQueue, DownloadStatus, queue_downloads};
 use components::dots_menu::{DotsMenu, MenuAction};
 use components::playlist_modal::PlaylistModal;
 use components::selection_bar::SelectionBar;
@@ -21,6 +22,7 @@ pub fn JellyfinAlbum(
     mut show_album_playlist_modal: Signal<bool>,
     mut pending_album_id_for_playlist: Signal<Option<String>>,
 ) -> Element {
+    let is_offline = use_context::<Signal<bool>>();
     let jellyfin_albums = use_memo(move || {
         let lib = library.read();
         let conf = config.read();
@@ -36,7 +38,25 @@ pub fn JellyfinAlbum(
         let mut unique_albums = Vec::new();
         let mut seen_titles = std::collections::HashSet::new();
 
+        let offline = *is_offline.read();
+        let downloaded_album_ids: std::collections::HashSet<String> = if offline {
+            lib.jellyfin_tracks.iter().filter(|t| {
+                let id = t.path.to_string_lossy();
+                let id_str = id.split(':').nth(1).unwrap_or(&id);
+                if let Some(path_str) = conf.offline_tracks.get(id_str) {
+                    std::path::Path::new(path_str).exists()
+                } else {
+                    false
+                }
+            }).map(|t| t.album_id.clone()).collect()
+        } else {
+            std::collections::HashSet::new()
+        };
+
         for album in albums {
+            if offline && !downloaded_album_ids.contains(&album.id) {
+                continue;
+            }
             if seen_titles.insert(album.title.trim().to_lowercase()) {
                 unique_albums.push(album);
             }
@@ -176,6 +196,7 @@ pub fn JellyfinAlbumDetails(
     mut queue: Signal<Vec<reader::models::Track>>,
     on_close: EventHandler<()>,
 ) -> Element {
+    let is_offline = use_context::<Signal<bool>>();
     let mut ctrl = use_context::<hooks::use_player_controller::PlayerController>();
     let mut active_menu_track = use_signal(|| None::<PathBuf>);
     let mut show_playlist_modal = use_signal(|| false);
@@ -184,6 +205,7 @@ pub fn JellyfinAlbumDetails(
     // Multi-selection state
     let mut is_selection_mode = use_signal(|| false);
     let mut selected_tracks = use_signal(|| HashSet::<PathBuf>::new());
+    let download_queue = use_context::<Signal<DownloadQueue>>();
 
     let mut album_id_sig = use_signal(|| album_jellyfin_id.clone());
     use_effect(move || {
@@ -199,6 +221,7 @@ pub fn JellyfinAlbumDetails(
     let album_tracks = use_memo(move || {
         let lib = library.read();
         let conf = config.read();
+        let offline = *is_offline.read();
         let info = album_info();
         let album_name = info.as_ref().map(|a| a.title.clone()).unwrap_or_default();
 
@@ -206,6 +229,12 @@ pub fn JellyfinAlbumDetails(
             .jellyfin_tracks
             .iter()
             .filter(|t| !album_name.is_empty() && t.album == album_name)
+            .filter(|t| {
+                if !offline { return true; }
+                let s = t.path.to_string_lossy();
+                let id = s.split(':').nth(1).unwrap_or(&s);
+                conf.offline_tracks.contains_key(id)
+            })
             .map(|t| {
                 let cover_url = if let Some(server) = &conf.server {
                     let path_str = t.path.to_string_lossy();
@@ -459,6 +488,64 @@ pub fn JellyfinAlbumDetails(
                             },
                             i { class: "fa-solid fa-play text-xl ml-1" }
                         }
+                        {
+                            let is_album_dl = {
+                                let q = download_queue.read();
+                                album_tracks().iter().any(|(t, _)| {
+                                    let s = t.path.to_string_lossy();
+                                    let id = s.split(':').nth(1).unwrap_or("");
+                                    q.items.iter().any(|i| i.id == id && matches!(i.status, DownloadStatus::Queued | DownloadStatus::Downloading))
+                                })
+                            };
+                            let all_downloaded = !album_tracks().is_empty() && album_tracks().iter().all(|(t, _)| {
+                                let s = t.path.to_string_lossy();
+                                let id = s.split(':').nth(1).unwrap_or("");
+                                if let Some(path_str) = config.read().offline_tracks.get(id) {
+                                    std::path::Path::new(path_str).exists()
+                                } else {
+                                    false
+                                }
+                            });
+                            rsx! {
+                                button {
+                                    class: "w-12 h-12 rounded-full border border-white/20 hover:border-white/40 text-white/70 hover:text-white flex items-center justify-center transition-colors",
+                                    title: if all_downloaded { "Remove downloads" } else { "Download album for offline playback" },
+                                    disabled: is_album_dl,
+                                    onclick: move |_| {
+                                        let ids_only: Vec<String> = album_tracks()
+                                            .iter()
+                                            .filter_map(|(t, _)| {
+                                                let s = t.path.to_string_lossy().to_string();
+                                                s.split(':').nth(1).map(|id| id.to_string())
+                                            })
+                                            .collect();
+                                        if all_downloaded {
+                                            crate::server::download_manager::delete_downloads(ids_only, config, download_queue);
+                                        } else {
+                                            let requests: Vec<(String, String, String)> = album_tracks()
+                                                .iter()
+                                                .filter_map(|(t, _)| {
+                                                    let s = t.path.to_string_lossy().to_string();
+                                                    s.split(':').nth(1).map(|id| (
+                                                        id.to_string(),
+                                                        t.title.clone(),
+                                                        t.artist.clone(),
+                                                    ))
+                                                })
+                                                .collect();
+                                            queue_downloads(requests, config, download_queue);
+                                        }
+                                    },
+                                    if is_album_dl {
+                                        i { class: "fa-solid fa-spinner fa-spin" }
+                                    } else if all_downloaded {
+                                        i { class: "fa-solid fa-trash" }
+                                    } else {
+                                        i { class: "fa-solid fa-download" }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -485,6 +572,19 @@ pub fn JellyfinAlbumDetails(
                             let is_menu_open = active_menu_track.read().as_ref() == Some(&track.path);
                             let album_queue: Vec<reader::models::Track> =
                                 album_tracks().iter().map(|(t, _)| t.clone()).collect();
+
+                            let path_str = track.path.to_string_lossy().to_string();
+                            let item_id: String = path_str.split(':').nth(1).unwrap_or("").to_string();
+                            let is_downloaded = if let Some(path_str) = config.read().offline_tracks.get(&item_id) {
+                                std::path::Path::new(path_str).exists()
+                            } else {
+                                false
+                            };
+                            let is_downloading = download_queue.read().items.iter().any(|i| i.id == item_id && matches!(i.status, DownloadStatus::Queued | DownloadStatus::Downloading));
+                            let item_id_dl = item_id.clone();
+                            let track_title = track.title.clone();
+                            let track_artist = track.artist.clone();
+
                             rsx! {
                                 TrackRow {
                                     key: "{track_key}",
@@ -493,6 +593,8 @@ pub fn JellyfinAlbumDetails(
                                     is_menu_open,
                                     is_selection_mode: is_selection_mode(),
                                     is_selected: selected_tracks.read().contains(&track_path),
+                                    is_downloaded,
+                                    is_downloading,
                                     on_long_press: move |_| {
                                         is_selection_mode.set(true);
                                         selected_tracks.write().insert(track_path.clone());
@@ -526,6 +628,22 @@ pub fn JellyfinAlbumDetails(
                                     },
                                     on_delete: move |_| active_menu_track.set(None),
                                     hide_delete: true,
+                                    on_download: move |_| {
+                                        active_menu_track.set(None);
+                                        if is_downloaded {
+                                            crate::server::download_manager::delete_downloads(
+                                                vec![item_id_dl.clone()],
+                                                config,
+                                                download_queue,
+                                            );
+                                        } else {
+                                            queue_downloads(
+                                                vec![(item_id_dl.clone(), track_title.clone(), track_artist.clone())],
+                                                config,
+                                                download_queue,
+                                            );
+                                        }
+                                    },
                                 }
                             }
                         }

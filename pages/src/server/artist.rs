@@ -1,5 +1,6 @@
 use ::server::jellyfin::JellyfinClient;
 use ::server::subsonic::SubsonicClient;
+use crate::server::download_manager::{DownloadQueue, queue_downloads};
 use components::dots_menu::{DotsMenu, MenuAction};
 use components::playlist_modal::PlaylistModal;
 use components::selection_bar::SelectionBar;
@@ -19,6 +20,7 @@ pub fn JellyfinArtist(
     mut queue: Signal<Vec<reader::models::Track>>,
     mut current_queue_index: Signal<usize>,
 ) -> Element {
+    let is_offline = use_context::<Signal<bool>>();
     let mut ctrl = use_context::<hooks::use_player_controller::PlayerController>();
     let mut show_playlist_modal = use_signal(|| false);
     let mut active_menu_track = use_signal(|| None::<PathBuf>);
@@ -26,6 +28,7 @@ pub fn JellyfinArtist(
 
     let mut is_selection_mode = use_signal(|| false);
     let mut selected_tracks = use_signal(|| HashSet::<PathBuf>::new());
+    let download_queue = use_context::<Signal<DownloadQueue>>();
 
     let sort_order = use_signal(move || config.read().artist_view_order.clone());
     use_effect(move || {
@@ -52,7 +55,21 @@ pub fn JellyfinArtist(
                 artist_map.insert(name, Some(PathBuf::from(format!("directurl:{}", url))));
             }
         }
-        let mut artists: Vec<_> = artist_map.into_iter().collect();
+        let offline = *is_offline.read();
+        let conf = config.read();
+        let mut artists: Vec<_> = artist_map.into_iter().filter(|(artist, _)| {
+            if !offline { return true; }
+            lib.jellyfin_tracks.iter().any(|t| {
+                if t.artist.to_lowercase() != artist.to_lowercase() { return false; }
+                let s = t.path.to_string_lossy();
+                let id = s.split(':').nth(1).unwrap_or(&s);
+                if let Some(path_str) = conf.offline_tracks.get(id) {
+                    std::path::Path::new(path_str).exists()
+                } else {
+                    false
+                }
+            })
+        }).collect();
         artists.sort_by(|a, b| a.0.to_lowercase().cmp(&b.0.to_lowercase()));
         artists
     });
@@ -63,9 +80,21 @@ pub fn JellyfinArtist(
         if artist.is_empty() {
             return Vec::new();
         }
+        let offline = *is_offline.read();
+        let conf = config.read();
         lib.jellyfin_tracks
             .iter()
             .filter(|t| t.artist.to_lowercase() == artist.to_lowercase())
+            .filter(|t| {
+                if !offline { return true; }
+                let s = t.path.to_string_lossy();
+                let id = s.split(':').nth(1).unwrap_or(&s);
+                if let Some(path_str) = conf.offline_tracks.get(id) {
+                    std::path::Path::new(path_str).exists()
+                } else {
+                    false
+                }
+            })
             .cloned()
             .collect::<Vec<_>>()
     });
@@ -108,10 +137,25 @@ pub fn JellyfinArtist(
             return Vec::new();
         }
         let artist_lc = artist.to_lowercase();
+        let offline = *is_offline.read();
+        let conf = config.read();
         let mut albums: Vec<_> = lib
             .jellyfin_albums
             .iter()
             .filter(|a| a.artist.to_lowercase() == artist_lc)
+            .filter(|a| {
+                if !offline { return true; }
+                lib.jellyfin_tracks.iter().any(|t| {
+                    if t.album_id != a.id { return false; }
+                    let s = t.path.to_string_lossy();
+                    let id = s.split(':').nth(1).unwrap_or(&s);
+                    if let Some(path_str) = conf.offline_tracks.get(id) {
+                        std::path::Path::new(path_str).exists()
+                    } else {
+                        false
+                    }
+                })
+            })
             .cloned()
             .collect();
         albums.sort_by(|a, b| {
@@ -448,9 +492,7 @@ pub fn JellyfinArtist(
                         } else {
                             {
                                 let add_all_to_playlist_text = i18n::t("add_all_to_playlist").to_string();
-                                let album_menu_actions = vec![
-                                    MenuAction::new(add_all_to_playlist_text.as_str(), "fa-solid fa-list-music"),
-                                ];
+                                let download_album_text = "Download Album".to_string();
                                 rsx! {
                                     div { class: "grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-6",
                                         for album in artist_albums() {
@@ -459,6 +501,29 @@ pub fn JellyfinArtist(
                                                 let id_for_action = album.id.clone();
                                                 let id_for_navigate = album.id.clone();
                                                 let is_open = open_album_menu.read().as_deref() == Some(&album.id);
+                                                let is_downloaded = {
+                                                    let lib = library.peek();
+                                                    let conf = config.read();
+                                                    let aid = album.id.clone();
+                                                    let tracks: Vec<_> = lib.jellyfin_tracks.iter().filter(|t| t.album_id == aid).collect();
+                                                    !tracks.is_empty() && tracks.iter().all(|t| {
+                                                        let s = t.path.to_string_lossy();
+                                                        let tid = s.split(':').nth(1).unwrap_or(&s);
+                                                        if let Some(path_str) = conf.offline_tracks.get(tid) {
+                                                            std::path::Path::new(path_str).exists()
+                                                        } else {
+                                                            false
+                                                        }
+                                                    })
+                                                };
+                                                let album_menu_actions = vec![
+                                                    MenuAction::new(add_all_to_playlist_text.as_str(), "fa-solid fa-list-music"),
+                                                    if is_downloaded {
+                                                        MenuAction::new("Remove downloads", "fa-solid fa-trash").destructive()
+                                                    } else {
+                                                        MenuAction::new(download_album_text.as_str(), "fa-solid fa-download")
+                                                    }
+                                                ];
                                                 let cover_url = if let Some(server) = &config.read().server {
                                     utils::map_cover_url(album.cover_path.as_ref().and_then(|p| {
                                         let path_str = p.to_string_lossy();
@@ -522,6 +587,36 @@ pub fn JellyfinArtist(
                                                                         if idx == 0 {
                                                                             pending_album_id_for_playlist.set(Some(id.clone()));
                                                                             show_album_playlist_modal.set(true);
+                                                                        } else if idx == 1 {
+                                                                            if is_downloaded {
+                                                                                let album_id = id.clone();
+                                                                                let ids: Vec<String> = {
+                                                                                    let lib = library.read();
+                                                                                    lib.jellyfin_tracks
+                                                                                        .iter()
+                                                                                        .filter(|t| t.album_id == album_id)
+                                                                                        .filter_map(|t| {
+                                                                                            let s = t.path.to_string_lossy().to_string();
+                                                                                            s.split(':').nth(1).map(|id| id.to_string())
+                                                                                        })
+                                                                                        .collect()
+                                                                                };
+                                                                                crate::server::download_manager::delete_downloads(ids, config, download_queue);
+                                                                            } else {
+                                                                                let album_id = id.clone();
+                                                                                let requests: Vec<(String, String, String)> = {
+                                                                                    let lib = library.read();
+                                                                                    lib.jellyfin_tracks
+                                                                                        .iter()
+                                                                                        .filter(|t| t.album_id == album_id)
+                                                                                        .filter_map(|t| {
+                                                                                            let s = t.path.to_string_lossy().to_string();
+                                                                                            s.split(':').nth(1).map(|id| (id.to_string(), t.title.clone(), t.artist.clone()))
+                                                                                        })
+                                                                                        .collect()
+                                                                                };
+                                                                                queue_downloads(requests, config, download_queue);
+                                                                            }
                                                                         }
                                                                     }
                                                                 },
@@ -594,6 +689,53 @@ pub fn JellyfinArtist(
                                     }
                                 },
                                 on_delete_track: move |_| active_menu_track.set(None),
+                                on_download_track: move |idx: usize| {
+                                    if let Some(track) = artist_tracks().get(idx) {
+                                        let s = track.path.to_string_lossy();
+                                        if let Some(item_id) = s.split(':').nth(1) {
+                                            let is_downloaded = if let Some(path_str) = config.read().offline_tracks.get(item_id) {
+                                                std::path::Path::new(path_str).exists()
+                                            } else {
+                                                false
+                                            };
+                                            if is_downloaded {
+                                                crate::server::download_manager::delete_downloads(
+                                                    vec![item_id.to_string()],
+                                                    config,
+                                                    download_queue,
+                                                );
+                                            } else {
+                                                queue_downloads(
+                                                    vec![(item_id.to_string(), track.title.clone(), track.artist.clone())],
+                                                    config,
+                                                    download_queue,
+                                                );
+                                            }
+                                        }
+                                        active_menu_track.set(None);
+                                    }
+                                },
+                                on_download_all: move |_| {
+                                    let requests: Vec<(String, String, String)> = artist_tracks()
+                                        .iter()
+                                        .filter_map(|t| {
+                                            let s = t.path.to_string_lossy().to_string();
+                                            s.split(':').nth(1).map(|id| (id.to_string(), t.title.clone(), t.artist.clone()))
+                                        })
+                                        .collect();
+                                    queue_downloads(requests, config, download_queue);
+                                },
+                                on_delete_all: move |_| {
+                                    let ids: Vec<String> = artist_tracks()
+                                        .iter()
+                                        .filter_map(|t| {
+                                            let s = t.path.to_string_lossy().to_string();
+                                            s.split(':').nth(1).map(|id| id.to_string())
+                                        })
+                                        .collect();
+                                    crate::server::download_manager::delete_downloads(ids, config, download_queue);
+                                },
+                                is_downloading_all: download_queue.read().is_active(),
                                 actions: Some(rsx! {
                                     SortOrderToggle { sort_order }
                                 }),

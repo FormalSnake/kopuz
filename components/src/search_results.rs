@@ -1,4 +1,5 @@
 use crate::track_row::TrackRow;
+use config::AppConfig;
 use dioxus::prelude::*;
 use hooks::use_player_controller::PlayerController;
 use player::player;
@@ -26,6 +27,8 @@ pub fn SearchResults(
     mut selected_track_for_playlist: Signal<Option<std::path::PathBuf>>,
 ) -> Element {
     let mut ctrl = use_context::<PlayerController>();
+    let config = use_context::<Signal<AppConfig>>();
+    let offline_tracks = config.read().offline_tracks.clone();
 
     rsx! {
         div { class: "mt-8 space-y-8",
@@ -42,6 +45,21 @@ pub fn SearchResults(
                                 let track_delete = track.clone();
                                 let is_menu_open = active_menu_track.read().as_ref() == Some(&track.path);
                                 let search_queue: Vec<Track> = tracks.iter().map(|(t, _)| t.clone()).collect();
+                                let item_id: Option<String> = {
+                                    let s = track.path.to_string_lossy();
+                                    if s.starts_with("jellyfin:") {
+                                        s.split(':').nth(1).map(|id| id.to_string())
+                                    } else { None }
+                                };
+                                let is_downloaded = item_id
+                                    .as_ref()
+                                    .map_or(false, |id| {
+                                        if let Some(path_str) = offline_tracks.get(id) {
+                                            std::path::Path::new(path_str).exists()
+                                        } else {
+                                            false
+                                        }
+                                    });
 
                                 rsx! {
                                     TrackRow {
@@ -49,6 +67,7 @@ pub fn SearchResults(
                                         track: track.clone(),
                                         cover_url: cover_url.clone(),
                                         is_menu_open: is_menu_open,
+                                        is_downloaded: is_downloaded,
                                         on_click_menu: move |_| {
                                             if active_menu_track.read().as_ref() == Some(&track_menu.path) {
                                                 active_menu_track.set(None);

@@ -43,6 +43,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 i18n = { workspace = true }
 urlencoding = "2.1.3"
+reqwest = { workspace = true }
 
 
 [target.'cfg(target_os = "macos")'.dependencies]

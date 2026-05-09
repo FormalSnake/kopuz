@@ -6,8 +6,8 @@ use crate::web_storage::{
     save_web_ui_state,
 };
 use components::{
-    bottombar::Bottombar, fullscreen::Fullscreen, rightbar::Rightbar, sidebar::Sidebar,
-    titlebar::Titlebar,
+    bottombar::Bottombar, download_overlay::DownloadOverlay, fullscreen::Fullscreen,
+    rightbar::Rightbar, sidebar::Sidebar, titlebar::Titlebar,
 };
 #[cfg(not(target_arch = "wasm32"))]
 use dioxus::desktop::tao::dpi::LogicalSize;
@@ -17,6 +17,7 @@ use dioxus::prelude::*;
 #[cfg(not(target_arch = "wasm32"))]
 use discord_presence::Presence;
 use kopuz_route::Route;
+use pages::server::download_manager::DownloadQueue;
 use player::player::Player;
 use queue_state::PersistedQueueState;
 use reader::FavoritesStore;
@@ -279,7 +280,13 @@ fn main() {
             window = window.with_decorations(initial_titlebar_mode == config::TitlebarMode::System);
         }
 
+        let webview_data_dir = directories::ProjectDirs::from("com", "temidaradev", "kopuz")
+            .map(|dirs| dirs.cache_dir().join("webview"))
+            .unwrap_or_else(|| std::path::PathBuf::from("./cache/webview"));
+        let _ = std::fs::create_dir_all(&webview_data_dir);
+
         let config = dioxus::desktop::Config::new()
+            .with_data_directory(webview_data_dir)
             .with_window(window)
             .with_custom_protocol("artwork", |_headers, request| {
                 let uri = request.uri();
@@ -406,6 +413,7 @@ fn App() -> Element {
     let cover_cache = use_memo(move || cache_dir().join("covers"));
     #[cfg(not(target_arch = "wasm32"))]
     let _ = std::fs::create_dir_all(cover_cache());
+    let download_queue = use_signal(DownloadQueue::default);
     let mut trigger_rescan = use_signal(|| 0);
     let mut scan_current_file = use_signal(|| Option::<String>::None);
     let current_playing = use_signal(|| 0);
@@ -483,6 +491,9 @@ fn App() -> Element {
     let mut server_playlist_key_initialized = use_signal(|| false);
     let mut queue = use_signal(Vec::<reader::Track>::new);
     let current_queue_index = use_signal(|| 0usize);
+
+    let mut network_banner: Signal<Option<bool>> = use_signal(|| None);
+    let mut auto_switched_to_offline = use_signal(|| false);
     let mut ctrl = hooks::use_player_controller(
         player,
         is_playing,
@@ -672,6 +683,79 @@ fn App() -> Element {
                 let snapshot = pending_queue_state_snapshot.read().clone();
                 persist_queue_state_snapshot(snapshot, path.clone()).await;
                 flushed_revision = latest_revision;
+            }
+        }
+    });
+
+    let mut is_offline = use_signal(|| false);
+    use_context_provider(|| is_offline);
+
+    // Network connectivity monitor — only active in server mode and on non-wasm targets
+    #[cfg(not(target_arch = "wasm32"))]
+    use_future(move || async move {
+        loop {
+            if *initial_load_done.read() {
+                break;
+            }
+            utils::sleep(std::time::Duration::from_millis(500)).await;
+        }
+        let mut was_reachable = true;
+        loop {
+            utils::sleep(std::time::Duration::from_secs(30)).await;
+
+            let server_url = {
+                let conf = config.read();
+                if conf.active_source != config::MusicSource::Server {
+                    was_reachable = true;
+                    continue;
+                }
+                conf.server.as_ref().map(|s| s.url.clone())
+            };
+
+            let Some(base_url) = server_url else {
+                was_reachable = true;
+                continue;
+            };
+
+            let ping_url = format!("{}/System/Ping", base_url.trim_end_matches('/'));
+            let reachable = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(8))
+                .build()
+                .ok()
+                .map(|client| async move {
+                    client
+                        .get(&ping_url)
+                        .send()
+                        .await
+                        .map(|r| r.status().as_u16() < 500)
+                        .unwrap_or(false)
+                });
+
+            let reachable = match reachable {
+                Some(fut) => fut.await,
+                None => false,
+            };
+
+            if !reachable && was_reachable {
+                was_reachable = false;
+                is_offline.set(true);
+                auto_switched_to_offline.set(true);
+                config.write().active_source = config::MusicSource::Local;
+                network_banner.set(Some(true)); // offline banner
+            } else if reachable && !was_reachable {
+                was_reachable = true;
+                is_offline.set(false);
+                if *auto_switched_to_offline.read() {
+                    auto_switched_to_offline.set(false);
+                    config.write().active_source = config::MusicSource::Server;
+                    network_banner.set(Some(false));
+                    spawn(async move {
+                        utils::sleep(std::time::Duration::from_secs(4)).await;
+                        if network_banner.read().as_ref() == Some(&false) {
+                            network_banner.set(None);
+                        }
+                    });
+                }
             }
         }
     });
@@ -919,6 +1003,7 @@ fn App() -> Element {
 
     provide_context(ctrl);
     provide_context(config);
+    provide_context(download_queue);
 
     hooks::use_player_task(ctrl);
 
@@ -1018,6 +1103,46 @@ fn App() -> Element {
                     }
                 }
             }
+
+            if let Some(is_offline) = *network_banner.read() {
+                div {
+                    class: "flex-shrink-0",
+                    div {
+                        class: if is_offline {
+                            "flex items-center justify-between gap-3 px-4 py-2 bg-amber-500/15 border-b border-amber-500/20 text-amber-300 text-sm"
+                        } else {
+                            "flex items-center justify-between gap-3 px-4 py-2 bg-emerald-500/15 border-b border-emerald-500/20 text-emerald-300 text-sm"
+                        },
+                        div {
+                            class: "flex items-center gap-2",
+                            i { class: if is_offline { "fa-solid fa-wifi-slash text-xs" } else { "fa-solid fa-wifi text-xs" } }
+                            span {
+                                if is_offline {
+                                    "No internet connection — switched to offline mode"
+                                } else {
+                                    "Back online — switched to server mode"
+                                }
+                            }
+                            if is_offline {
+                                button {
+                                    class: "ml-2 text-xs underline opacity-70 hover:opacity-100 transition-opacity",
+                                    onclick: move |_| {
+                                        config.write().active_source = config::MusicSource::Server;
+                                        network_banner.set(None);
+                                    },
+                                    "Keep server mode"
+                                }
+                            }
+                        }
+                        button {
+                            class: "opacity-50 hover:opacity-100 transition-opacity p-1",
+                            onclick: move |_| network_banner.set(None),
+                            i { class: "fa-solid fa-xmark text-xs" }
+                        }
+                    }
+                }
+            }
+
             div {
                 class: "{content_row_class}",
                 Sidebar {
@@ -1238,6 +1363,7 @@ fn App() -> Element {
                 persisted_volume: persisted_volume,
                 palette: palette,
             }
+            DownloadOverlay { queue: download_queue }
             Bottombar {
                 library: library,
                 favorites_store,

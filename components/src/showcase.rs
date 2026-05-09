@@ -17,10 +17,15 @@ pub struct ShowcaseProps {
     pub on_add_to_playlist: Option<EventHandler<usize>>,
     pub on_delete_track: Option<EventHandler<usize>>,
     pub on_remove_from_playlist: Option<EventHandler<usize>>,
+    pub on_download_track: Option<EventHandler<usize>>,
     pub active_track: Option<std::path::PathBuf>,
     pub on_click_menu: Option<EventHandler<usize>>,
     pub on_close_menu: Option<EventHandler<()>>,
     pub actions: Option<Element>,
+    pub on_download_all: Option<EventHandler<()>>,
+    pub on_delete_all: Option<EventHandler<()>>,
+    #[props(default = false)]
+    pub is_downloading_all: bool,
     #[props(default = false)]
     pub is_selection_mode: bool,
     #[props(default = HashSet::new())]
@@ -44,6 +49,19 @@ pub fn Showcase(props: ShowcaseProps) -> Element {
 
     let lib = props.library.read();
     let is_server_source = config.read().active_source == MusicSource::Server;
+
+    // Read offline_tracks once for the whole render pass so we can cheaply check per-track
+    let offline_tracks = config.read().offline_tracks.clone();
+
+    let all_downloaded = !props.tracks.is_empty() && props.tracks.iter().all(|t| {
+        let p = t.path.to_string_lossy();
+        let id = p.split(':').nth(1).unwrap_or(&p);
+        if let Some(path_str) = offline_tracks.get(id) {
+            std::path::Path::new(path_str).exists()
+        } else {
+            false
+        }
+    });
 
     rsx! {
          div {
@@ -79,7 +97,7 @@ pub fn Showcase(props: ShowcaseProps) -> Element {
                          {
                             let count = props.tracks.len();
                             let song_text = i18n::t_with("showcase_song_count", &[("count", count.to_string())]);
-                            rsx! { 
+                            rsx! {
                                 p { "{song_text}" }
                             }
                          }
@@ -94,6 +112,27 @@ pub fn Showcase(props: ShowcaseProps) -> Element {
                              class: "w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-400 text-black flex items-center justify-center transition-transform hover:scale-105",
                              onclick: move |_| props.on_play.call(0),
                              i { class: "fa-solid fa-play text-xl ml-1" }
+                         }
+                         if props.on_download_all.is_some() || props.on_delete_all.is_some() {
+                             button {
+                                 class: "w-12 h-12 rounded-full border border-white/20 hover:border-white/40 text-white/70 hover:text-white flex items-center justify-center transition-colors",
+                                 title: if all_downloaded { "Remove downloads" } else { "Download all for offline playback" },
+                                 disabled: props.is_downloading_all,
+                                 onclick: move |_| {
+                                     if all_downloaded {
+                                         if let Some(ref h) = props.on_delete_all { h.call(()); }
+                                     } else {
+                                         if let Some(ref h) = props.on_download_all { h.call(()); }
+                                     }
+                                 },
+                                 if props.is_downloading_all {
+                                     i { class: "fa-solid fa-spinner fa-spin" }
+                                 } else if all_downloaded {
+                                     i { class: "fa-solid fa-trash" }
+                                 } else {
+                                     i { class: "fa-solid fa-download" }
+                                 }
+                             }
                          }
                      }
                      if let Some(actions) = props.actions {
@@ -154,11 +193,30 @@ pub fn Showcase(props: ShowcaseProps) -> Element {
                              let can_move_up = props.is_reorderable && idx > 0;
                              let can_move_down = props.is_reorderable && idx + 1 < track_count;
 
+                             // Determine if this track is already downloaded for offline playback.
+                             // Server tracks have paths like "jellyfin:{item_id}" or "jellyfin:{id}:{tag}"
+                             let item_id: Option<String> = {
+                                 let s = track.path.to_string_lossy();
+                                 if s.starts_with("jellyfin:") {
+                                     s.split(':').nth(1).map(|id| id.to_string())
+                                 } else {
+                                     None
+                                 }
+                             };
+                             let is_downloaded = item_id.as_ref()
+                                 .map_or(false, |id| {
+                                     if let Some(path_str) = offline_tracks.get(id) {
+                                         std::path::Path::new(path_str).exists()
+                                     } else {
+                                         false
+                                     }
+                                 });
+                             let is_downloading = false; // download_queue context not available in Showcase
+
                              rsx! {
                                  div {
                                      key: "{track.path.display()}",
                                      class: "flex items-center group",
-                                     style: "content-visibility: auto; contain-intrinsic-size: 0 60px;",
                                      div { class: "flex-1 min-w-0",
                                          TrackRow {
                                              track: track.clone(),
@@ -166,6 +224,8 @@ pub fn Showcase(props: ShowcaseProps) -> Element {
                                              is_menu_open: props.active_track.as_ref() == Some(&track.path),
                                              is_selection_mode: props.is_selection_mode,
                                              is_selected: is_selected,
+                                             is_downloaded: is_downloaded,
+                                             is_downloading: is_downloading,
                                              on_select: move |selected| {
                                                 if let Some(handler) = &props.on_select {
                                                     handler.call((idx, selected));
@@ -198,6 +258,11 @@ pub fn Showcase(props: ShowcaseProps) -> Element {
                                              },
                                              on_remove_from_playlist: move |_| {
                                                  if let Some(handler) = &props.on_remove_from_playlist {
+                                                     handler.call(idx);
+                                                 }
+                                             },
+                                             on_download: move |_| {
+                                                 if let Some(handler) = &props.on_download_track {
                                                      handler.call(idx);
                                                  }
                                              },

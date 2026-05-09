@@ -17,6 +17,7 @@ pub fn JellyfinHome(
     on_select_playlist: EventHandler<String>,
     on_search_artist: EventHandler<String>,
 ) -> Element {
+    let is_offline = use_context::<Signal<bool>>();
     let config = use_context::<Signal<AppConfig>>();
     let mut has_fetched = use_signal(|| false);
 
@@ -54,7 +55,25 @@ pub fn JellyfinHome(
         let mut unique_albums = Vec::new();
         let mut seen_titles = std::collections::HashSet::new();
 
+        let offline = *is_offline.read();
+        let downloaded_album_ids: std::collections::HashSet<String> = if offline {
+            lib.jellyfin_tracks.iter().filter(|t| {
+                let id = t.path.to_string_lossy();
+                let id_str = id.split(':').nth(1).unwrap_or(&id);
+                if let Some(path_str) = conf.offline_tracks.get(id_str) {
+                    std::path::Path::new(path_str).exists()
+                } else {
+                    false
+                }
+            }).map(|t| t.album_id.clone()).collect()
+        } else {
+            std::collections::HashSet::new()
+        };
+
         for album in albums {
+            if offline && !downloaded_album_ids.contains(&album.id) {
+                continue;
+            }
             if seen_titles.insert(album.title.trim().to_lowercase()) {
                 unique_albums.push(album);
             }
@@ -110,7 +129,20 @@ pub fn JellyfinHome(
         let conf = config.read();
         let mut unique_artists = std::collections::HashSet::new();
         let mut artist_list = Vec::new();
+        let offline = *is_offline.read();
         for track in &lib.jellyfin_tracks {
+            if offline {
+                let s = track.path.to_string_lossy();
+                let id = s.split(':').nth(1).unwrap_or(&s);
+                let is_downloaded = if let Some(path_str) = conf.offline_tracks.get(id) {
+                    std::path::Path::new(path_str).exists()
+                } else {
+                    false
+                };
+                if !is_downloaded {
+                    continue;
+                }
+            }
             if unique_artists.insert(track.artist.clone()) {
                 let cover_url = if let Some(server) = &conf.server {
                     let path_str = track.path.to_string_lossy();
@@ -136,9 +168,21 @@ pub fn JellyfinHome(
 
     let recent_playlists = use_memo(move || {
         let store = playlist_store.read();
+        let conf = config.read();
+        let offline = *is_offline.read();
         store
             .jellyfin_playlists
             .iter()
+            .filter(|p| {
+                if !offline { return true; }
+                !p.tracks.is_empty() && p.tracks.iter().all(|tid| {
+                    if let Some(path_str) = conf.offline_tracks.get(tid) {
+                        std::path::Path::new(path_str).exists()
+                    } else {
+                        false
+                    }
+                })
+            })
             .rev()
             .take(10)
             .cloned()
