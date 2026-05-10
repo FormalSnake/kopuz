@@ -42,7 +42,7 @@ Kopuz allows you to scan your local directories for audio files, or stream from 
 - **Smooth Navigation**: Enjoy a polished interface where scroll positions reset properly as you browse different views and pages.
 - **Reduce Animations**: Accessibility setting to tone down motion effects if you prefer a calmer UI.
 - **Equalizer**: Built-in 5-band equalizer with presets and custom settings to fine-tune your sound.
-- **Crossfade**: Blend track transitions for smoother automatic playback between songs.
+- **Crossfade**: Blend track transitions for smoother automatic playback between songs on native desktop builds. Browser playback currently uses normal track switching.
 - **Channel Mode**: Switch between `Stereo`, `Mono`, `Left only`, `Right only`, and `Swap L/R` output modes.
 
 ## Installation
