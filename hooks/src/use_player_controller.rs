@@ -5,8 +5,8 @@ use dioxus::{logger::tracing, prelude::*};
 use player::player::{NowPlayingMeta, Player};
 use reader::{Library, Track};
 use scrobble;
-use utils;
 use std::time::Duration;
+use utils;
 
 #[cfg(not(target_arch = "wasm32"))]
 use player::decoder;
@@ -53,12 +53,21 @@ pub struct PlayerController {
     pub config: Signal<AppConfig>,
     pub play_generation: Signal<usize>,
     pending_resume: Signal<Option<PendingResumeState>>,
+    pub pending_crossfade_ui: Signal<Option<PendingCrossfadeUiState>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct PendingResumeState {
     track_path: String,
     progress_secs: u64,
+}
+
+#[derive(Clone, Debug)]
+pub struct PendingCrossfadeUiState {
+    pub next_idx: usize,
+    pub switch_after_secs: u64,
+    pub outgoing_duration_secs: u64,
+    pub outgoing_progress_secs: u64,
 }
 
 impl PlayerController {
@@ -167,6 +176,47 @@ impl PlayerController {
         self.pending_resume.set(None);
     }
 
+    fn clear_pending_crossfade_ui(&mut self) {
+        self.pending_crossfade_ui.set(None);
+    }
+
+    fn build_pending_crossfade_ui(
+        next_idx: usize,
+        outgoing_duration_secs: u64,
+        outgoing_progress_secs: u64,
+    ) -> PendingCrossfadeUiState {
+        PendingCrossfadeUiState {
+            next_idx,
+            switch_after_secs: outgoing_duration_secs.saturating_sub(outgoing_progress_secs),
+            outgoing_duration_secs,
+            outgoing_progress_secs,
+        }
+    }
+
+    fn schedule_pending_crossfade_ui(
+        &mut self,
+        next_idx: usize,
+        outgoing_duration_secs: u64,
+        outgoing_progress_secs: u64,
+    ) {
+        self.pending_crossfade_ui
+            .set(Some(Self::build_pending_crossfade_ui(
+                next_idx,
+                outgoing_duration_secs,
+                outgoing_progress_secs,
+            )));
+    }
+
+    pub fn commit_pending_crossfade_ui(&mut self, next_progress_secs: u64) -> bool {
+        let Some(pending) = self.pending_crossfade_ui.read().clone() else {
+            return false;
+        };
+
+        self.pending_crossfade_ui.set(None);
+        self.hydrate_current_track_metadata(pending.next_idx, next_progress_secs);
+        true
+    }
+
     fn set_pending_resume_for_track(&mut self, track: &Track, progress_secs: u64) {
         self.pending_resume.set(Some(PendingResumeState {
             track_path: Self::track_key(track),
@@ -203,6 +253,45 @@ impl PlayerController {
         }
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn should_crossfade(&self) -> bool {
+        self.config.peek().crossfade_seconds > 0
+            && *self.is_playing.peek()
+            && self.player.peek().can_resume()
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn should_crossfade(&self) -> bool {
+        false
+    }
+
+    pub fn has_next_track(&self) -> bool {
+        let idx = *self.current_queue_index.peek();
+        let queue_len = self.queue.peek().len();
+
+        if queue_len == 0 {
+            return false;
+        }
+
+        let loop_mode = *self.loop_mode.peek();
+        let shuffle = *self.shuffle.peek();
+
+        match loop_mode {
+            LoopMode::Track => true,
+            _ => {
+                if shuffle && queue_len > 1 {
+                    !self.shuffle_order.peek().is_empty() || loop_mode == LoopMode::Queue
+                } else if shuffle && queue_len == 1 {
+                    true
+                } else if idx + 1 < queue_len {
+                    true
+                } else {
+                    loop_mode == LoopMode::Queue
+                }
+            }
+        }
+    }
+
     pub fn play_track(&mut self, idx: usize) {
         let current_idx = *self.current_queue_index.peek();
         self.history.with_mut(|h| {
@@ -210,10 +299,18 @@ impl PlayerController {
                 h.push(current_idx);
             }
         });
-        self.play_track_no_history(idx);
+        self.play_track_no_history_without_crossfade(idx);
     }
 
     pub fn play_track_no_history(&mut self, idx: usize) {
+        self.play_track_no_history_with_transition(idx, false);
+    }
+
+    pub fn play_track_no_history_without_crossfade(&mut self, idx: usize) {
+        self.play_track_no_history_with_transition(idx, false);
+    }
+
+    fn play_track_no_history_with_transition(&mut self, idx: usize, allow_crossfade: bool) {
         self.play_generation.with_mut(|g| *g += 1);
         let current_gen = *self.play_generation.peek();
 
@@ -221,6 +318,17 @@ impl PlayerController {
             let path_str = track.path.to_string_lossy().to_string();
             let (restore_seek_secs, clear_pending_resume_on_success) =
                 self.pending_resume_seek(&track);
+            let use_crossfade = allow_crossfade
+                &&
+                self.should_crossfade() && restore_seek_secs.map_or(true, |secs| secs == 0);
+            let outgoing_duration_secs = *self.current_song_duration.peek();
+            let outgoing_progress_secs = (*self.current_song_progress.peek())
+                .min(outgoing_duration_secs);
+            if !use_crossfade {
+                self.clear_pending_crossfade_ui();
+            }
+            let crossfade_duration =
+                Duration::from_secs(self.config.peek().crossfade_seconds as u64);
             let scheme = path_str
                 .split(':')
                 .next()
@@ -260,13 +368,17 @@ impl PlayerController {
                     };
                     if let Some(local_path) = offline_path {
                         if let Ok((source, hint)) = decoder::open_file(&local_path) {
-                            self.current_queue_index.set(idx);
-                            self.player.write().stop();
-                            self.is_playing.set(false);
+                            if !use_crossfade {
+                                self.current_queue_index.set(idx);
+                                self.player.write().stop_for_transition();
+                                self.is_playing.set(false);
+                            }
 
                             let cover_url = self.cover_url_for_track(&track);
-                            self.hydrate_current_track_metadata(idx, 0);
-                            self.current_song_cover_url.set(cover_url.clone());
+                            if !use_crossfade {
+                                self.hydrate_current_track_metadata(idx, 0);
+                                self.current_song_cover_url.set(cover_url.clone());
+                            }
                             self.is_loading.set(true);
 
                             let mut player = self.player;
@@ -276,6 +388,7 @@ impl PlayerController {
                             let play_generation = self.play_generation;
                             let volume = self.volume;
                             let mut current_song_progress = self.current_song_progress;
+                            let mut pending_crossfade_ui = self.pending_crossfade_ui;
                             let mut pending_resume = self.pending_resume;
                             let cfg_signal = self.config;
 
@@ -288,7 +401,17 @@ impl PlayerController {
                                         duration: std::time::Duration::from_secs(track.duration),
                                         artwork: Some(cover_url),
                                     };
-                                    if let Err(e) = player.write().play(source, meta, hint) {
+                                    let result = if use_crossfade {
+                                        player.write().crossfade_to(
+                                            source,
+                                            meta,
+                                            hint,
+                                            crossfade_duration,
+                                        )
+                                    } else {
+                                        player.write().play(source, meta, hint)
+                                    };
+                                    if let Err(e) = result {
                                         eprintln!("Offline playback error: {e}");
                                         is_loading.set(false);
                                         skip_in_progress.set(false);
@@ -300,6 +423,17 @@ impl PlayerController {
                                             player.write().seek(Duration::from_secs(seek_secs));
                                         }
                                     }
+                                    if use_crossfade {
+                                        pending_crossfade_ui.set(Some(
+                                            PlayerController::build_pending_crossfade_ui(
+                                                idx,
+                                                outgoing_duration_secs,
+                                                outgoing_progress_secs,
+                                            ),
+                                        ));
+                                    } else {
+                                        current_song_progress.set(0);
+                                    }
                                     is_playing.set(true);
                                     is_loading.set(false);
                                     skip_in_progress.set(false);
@@ -308,7 +442,6 @@ impl PlayerController {
                                         pending_resume.set(None);
                                     }
                                     let _ = cfg_signal;
-                                    current_song_progress.set(0);
                                 }
                             });
                             return;
@@ -376,8 +509,10 @@ impl PlayerController {
                         return;
                     }
 
-                    self.player.write().stop();
-                    self.is_playing.set(false);
+                    if !use_crossfade {
+                        self.player.write().stop_for_transition();
+                        self.is_playing.set(false);
+                    }
 
                     let mut player = self.player;
                     let mut is_playing = self.is_playing;
@@ -386,11 +521,14 @@ impl PlayerController {
                     let play_generation = self.play_generation;
                     let volume = self.volume;
                     let mut current_song_progress = self.current_song_progress;
+                    let mut pending_crossfade_ui = self.pending_crossfade_ui;
                     let mut pending_resume = self.pending_resume;
                     let cfg_signal = self.config;
 
-                    self.hydrate_current_track_metadata(idx, 0);
-                    self.current_song_cover_url.set(cover_url.clone());
+                    if !use_crossfade {
+                        self.hydrate_current_track_metadata(idx, 0);
+                        self.current_song_cover_url.set(cover_url.clone());
+                    }
 
                     self.is_loading.set(true);
 
@@ -413,7 +551,17 @@ impl PlayerController {
                                     artwork: Some(cover_url.clone()),
                                 };
 
-                                if let Err(e) = player.write().play(source, meta, hint) {
+                                let result = if use_crossfade {
+                                    player.write().crossfade_to(
+                                        source,
+                                        meta,
+                                        hint,
+                                        crossfade_duration,
+                                    )
+                                } else {
+                                    player.write().play(source, meta, hint)
+                                };
+                                if let Err(e) = result {
                                     eprintln!("Playback error: {e}");
                                     is_loading.set(false);
                                     skip_in_progress.set(false);
@@ -425,6 +573,17 @@ impl PlayerController {
                                         player.write().seek(Duration::from_secs(seek_secs));
                                         current_song_progress.set(seek_secs);
                                     }
+                                }
+                                if use_crossfade {
+                                    pending_crossfade_ui.set(Some(
+                                        PlayerController::build_pending_crossfade_ui(
+                                            idx,
+                                            outgoing_duration_secs,
+                                            outgoing_progress_secs,
+                                        ),
+                                    ));
+                                } else {
+                                    current_song_progress.set(0);
                                 }
                                 if clear_pending_resume_on_success {
                                     pending_resume.set(None);
@@ -668,7 +827,9 @@ impl PlayerController {
                 }
             } else {
                 #[cfg(not(target_arch = "wasm32"))]
-                self.current_queue_index.set(idx);
+                if !use_crossfade {
+                    self.current_queue_index.set(idx);
+                }
                 #[cfg(target_arch = "wasm32")]
                 {
                     let _ = idx;
@@ -697,7 +858,14 @@ impl PlayerController {
                             artwork,
                         };
 
-                        if let Err(e) = self.player.write().play(source, meta, hint) {
+                        let result = if use_crossfade {
+                            self.player
+                                .write()
+                                .crossfade_to(source, meta, hint, crossfade_duration)
+                        } else {
+                            self.player.write().play(source, meta, hint)
+                        };
+                        if let Err(e) = result {
                             eprintln!("Playback error: {e}");
                             self.skip_in_progress.set(false);
                             return;
@@ -706,7 +874,15 @@ impl PlayerController {
 
                         self.skip_in_progress.set(false);
 
-                        self.hydrate_current_track_metadata(idx, 0);
+                        if !use_crossfade {
+                            self.hydrate_current_track_metadata(idx, 0);
+                        } else {
+                            self.schedule_pending_crossfade_ui(
+                                idx,
+                                outgoing_duration_secs,
+                                outgoing_progress_secs,
+                            );
+                        }
 
                         self.is_playing.set(true);
 
@@ -798,6 +974,14 @@ impl PlayerController {
     }
 
     pub fn play_next(&mut self) {
+        self.play_next_with_transition(false);
+    }
+
+    pub fn play_next_with_crossfade(&mut self) {
+        self.play_next_with_transition(true);
+    }
+
+    fn play_next_with_transition(&mut self, allow_crossfade: bool) {
         let idx = *self.current_queue_index.peek();
         let queue_len = self.queue.peek().len();
 
@@ -810,29 +994,91 @@ impl PlayerController {
 
         match loop_mode {
             LoopMode::Track => {
-                self.play_track(idx);
+                if allow_crossfade {
+                    let current_idx = *self.current_queue_index.peek();
+                    self.history.with_mut(|h| {
+                        if h.last() != Some(&current_idx) {
+                            h.push(current_idx);
+                        }
+                    });
+                    self.play_track_no_history_with_transition(idx, true);
+                } else {
+                    self.play_track_no_history_without_crossfade(idx);
+                }
             }
             _ => {
                 if shuffle && queue_len > 1 {
                     let next_idx = self.shuffle_order.with_mut(|order| order.pop());
                     match next_idx {
-                        Some(i) => self.play_track(i),
+                        Some(i) => {
+                            if allow_crossfade {
+                                let current_idx = *self.current_queue_index.peek();
+                                self.history.with_mut(|h| {
+                                    if h.last() != Some(&current_idx) {
+                                        h.push(current_idx);
+                                    }
+                                });
+                                self.play_track_no_history_with_transition(i, true);
+                            } else {
+                                self.play_track_no_history_without_crossfade(i);
+                            }
+                        }
                         None => {
                             if loop_mode == LoopMode::Queue {
                                 self.rebuild_shuffle_order();
                                 let i = self.shuffle_order.with_mut(|order| order.pop()).unwrap_or(0);
-                                self.play_track(i);
+                                if allow_crossfade {
+                                    let current_idx = *self.current_queue_index.peek();
+                                    self.history.with_mut(|h| {
+                                        if h.last() != Some(&current_idx) {
+                                            h.push(current_idx);
+                                        }
+                                    });
+                                    self.play_track_no_history_with_transition(i, true);
+                                } else {
+                                    self.play_track_no_history_without_crossfade(i);
+                                }
                             } else {
                                 self.is_playing.set(false);
                             }
                         }
                     }
                 } else if shuffle && queue_len == 1 {
-                    self.play_track(0);
+                    if allow_crossfade {
+                        let current_idx = *self.current_queue_index.peek();
+                        self.history.with_mut(|h| {
+                            if h.last() != Some(&current_idx) {
+                                h.push(current_idx);
+                            }
+                        });
+                        self.play_track_no_history_with_transition(0, true);
+                    } else {
+                        self.play_track_no_history_without_crossfade(0);
+                    }
                 } else if idx + 1 < queue_len {
-                    self.play_track(idx + 1);
+                    if allow_crossfade {
+                        let current_idx = *self.current_queue_index.peek();
+                        self.history.with_mut(|h| {
+                            if h.last() != Some(&current_idx) {
+                                h.push(current_idx);
+                            }
+                        });
+                        self.play_track_no_history_with_transition(idx + 1, true);
+                    } else {
+                        self.play_track_no_history_without_crossfade(idx + 1);
+                    }
                 } else if loop_mode == LoopMode::Queue {
-                    self.play_track(0);
+                    if allow_crossfade {
+                        let current_idx = *self.current_queue_index.peek();
+                        self.history.with_mut(|h| {
+                            if h.last() != Some(&current_idx) {
+                                h.push(current_idx);
+                            }
+                        });
+                        self.play_track_no_history_with_transition(0, true);
+                    } else {
+                        self.play_track_no_history_without_crossfade(0);
+                    }
                 } else {
                     self.is_playing.set(false);
                 }
@@ -860,14 +1106,14 @@ impl PlayerController {
         }
 
         if let Some(prev_idx) = self.history.with_mut(|h| h.pop()) {
-            self.play_track_no_history(prev_idx);
+            self.play_track_no_history_without_crossfade(prev_idx);
             return;
         }
 
         if idx > 0 {
-            self.play_track_no_history(idx - 1);
+            self.play_track_no_history_without_crossfade(idx - 1);
         } else if *self.loop_mode.peek() == LoopMode::Queue {
-            self.play_track_no_history(queue_len - 1);
+            self.play_track_no_history_without_crossfade(queue_len - 1);
         }
     }
 
@@ -948,6 +1194,7 @@ impl PlayerController {
         current_queue_index: usize,
         progress_secs: u64,
     ) {
+        self.clear_pending_crossfade_ui();
         self.player.write().stop();
         self.is_playing.set(false);
         self.is_loading.set(false);
@@ -997,6 +1244,7 @@ pub fn use_player_controller(
     let shuffle_order = use_signal(|| Vec::<usize>::new());
     let loop_mode = use_signal(|| LoopMode::None);
     let pending_resume = use_signal(|| None::<PendingResumeState>);
+    let pending_crossfade_ui = use_signal(|| None::<PendingCrossfadeUiState>);
 
     PlayerController {
         player,
@@ -1022,5 +1270,6 @@ pub fn use_player_controller(
         config,
         play_generation,
         pending_resume,
+        pending_crossfade_ui,
     }
 }
