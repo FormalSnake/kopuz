@@ -116,7 +116,7 @@ pub fn LocalAlbum(
                                                                 .read()
                                                                 .tracks
                                                                 .iter()
-                                                                .filter(|t| t.album == title)
+                                                                .filter(|t| t.album_id == id)
                                                                 .cloned()
                                                                 .collect();
                                                             tracks_for_queue.sort_by(|a, b| {
