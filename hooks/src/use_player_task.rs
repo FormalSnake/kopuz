@@ -376,7 +376,7 @@ pub fn use_player_task(ctrl: PlayerController) {
                             discord_cover_url.set(None);
                             discord_cover_sent.set(false);
 
-                            if cover.starts_with("http") {
+                            if cover.starts_with("http") && !cover.contains("dioxus.localhost") {
                                 discord_cover_url.set(Some(cover.clone()));
                             } else {
                                 let mbid = {
@@ -411,7 +411,7 @@ pub fn use_player_task(ctrl: PlayerController) {
                                 let resolved = discord_cover_url.read().clone();
                                 let cover_ref = if let Some(ref url) = resolved {
                                     Some(url.as_str())
-                                } else if cover.starts_with("http") {
+                                } else if cover.starts_with("http") && !cover.contains("dioxus.localhost") {
                                     Some(cover.as_str())
                                 } else {
                                     None
