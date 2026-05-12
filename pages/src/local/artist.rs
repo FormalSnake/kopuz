@@ -358,40 +358,46 @@ pub fn LocalArtist(
                                                                         open_album_menu.set(None);
                                                                         match idx {
                                                                             0 => {
-                                                                                                                                        let mut tracks_for_queue: Vec<_> = library
-                                                                                                                                            .read()
-                                                                                                                                            .tracks
-                                                                                                                                            .iter()
-                                                                                                                                            .filter(|t| t.album == title)
-                                                                                                                                            .cloned()
-                                                                                                                                            .collect();
-                                                                                                                                        tracks_for_queue.sort_by(|a, b| {
-                                                                                                                                            a.track_number
-                                                                                                                                                .cmp(&b.track_number)
-                                                                                                                                                .then_with(|| a.title.cmp(&b.title))
-                                                                                                                                        });
-                                                                                                                                        queue.write().extend(tracks_for_queue);
-                                                                                                                                    }
-                                                                                                                                    1 => {
-                                                                                                                                        pending_album_id_for_playlist.set(Some(id.clone()));
-                                                                                                                                        show_album_playlist_modal.set(true);
-                                                                                                                                    }
-                                                                                                                                    2 => {
-                                                                                                                                        let tracks_to_delete: Vec<_> = library
-                                                                                                                                            .read()
-                                                                                                                                            .tracks
-                                                                                                                                            .iter()
-                                                                                                                                            .filter(|t| t.album == title)
-                                                                                                                                            .map(|t| t.path.clone())
-                                                                                                                                            .collect();
-                                                                                                                                        for path in &tracks_to_delete {
-                                                                                                                                            let _ = std::fs::remove_file(path);
-                                                                                                                                        }
-                                                                                                                                        let mut lib = library.write();
-                                                                                                                                        lib.albums.retain(|a| a.title != title);
-                                                                                                                                        lib.tracks.retain(|t| t.album != title);
-                                                                                                                                    }
-                                                                                                                                    _ => {}
+                                                                                let mut tracks_for_queue: Vec<_> = library
+                                                                                    .read()
+                                                                                    .tracks
+                                                                                    .iter()
+                                                                                    .filter(|t| t.album_id == id)
+                                                                                    .cloned()
+                                                                                    .collect();
+
+                                                                                tracks_for_queue.sort_by(|a, b| {
+                                                                                    a.track_number
+                                                                                        .cmp(&b.track_number)
+                                                                                        .then_with(|| a.title.cmp(&b.title))
+                                                                                });
+
+                                                                                queue.write().extend(tracks_for_queue);
+                                                                            }
+                                                                            1 => {
+                                                                                pending_album_id_for_playlist.set(Some(id.clone()));
+                                                                                show_album_playlist_modal.set(true);
+                                                                            }
+                                                                            2 => {
+                                                                                let tracks_to_delete: Vec<_> = library
+                                                                                    .read()
+                                                                                    .tracks
+                                                                                    .iter()
+                                                                                    .filter(|t| t.album == title)
+                                                                                    .map(|t| t.path.clone())
+                                                                                    .collect();
+
+                                                                                for path in &tracks_to_delete {
+                                                                                    let _ = std::fs::remove_file(path);
+                                                                                }
+
+                                                                                let mut lib = library.write();
+
+                                                                                lib.albums.retain(|a| a.title != title);
+                                                                                lib.tracks.retain(|t| t.album != title);
+                                                                            }
+
+                                                                            _ => {}
                                                                         }
                                                                     }
                                                                 },
