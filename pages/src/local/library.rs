@@ -45,12 +45,6 @@ pub fn LocalLibrary(
     let album_covers = use_memo(move || (items.album_covers)());
 
     let cover_urls = std::sync::Arc::new(album_covers());
-    let is_empty = all_tracks.is_empty();
-    let all_selected = !is_empty
-        && all_tracks
-            .iter()
-            .all(|track| selected_tracks.read().contains(&track.path));
-    let queue_source = std::sync::Arc::new(queue_tracks());
 
     let scroll_top = *scroll_stat.read();
     let row_height = ITEM_HEIGHT;
@@ -66,6 +60,11 @@ pub fn LocalLibrary(
         let t = displayed_tracks.read();
         (t.len(), t.is_empty())
     };
+
+    let all_selected = !is_empty
+        && displayed_tracks()
+            .iter()
+            .all(|track| selected_tracks.read().contains(&track.path));
 
     let start_index = {
         let max_start = total_tracks.saturating_sub(1);
