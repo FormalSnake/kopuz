@@ -6,16 +6,11 @@ fn handle_select_click(
     is_selected: bool,
     is_selection_mode: bool,
     on_select: Option<EventHandler<bool>>,
-    on_long_press: Option<EventHandler<()>>,
 ) {
-    if !is_selected && !is_selection_mode {
-        if let Some(handler) = on_long_press {
-            handler.call(());
-        } else if let Some(handler) = on_select {
-            handler.call(true);
+    if is_selection_mode {
+        if let Some(handler) = on_select {
+            handler.call(!is_selected);
         }
-    } else if let Some(handler) = on_select {
-        handler.call(!is_selected);
     }
 }
 
@@ -143,7 +138,7 @@ pub fn TrackRow(
                     long_press_occurred.set(false);
                     return;
                 }
-                handle_select_click(is_selected, is_selection_mode, on_select, on_long_press);
+                handle_select_click(is_selected, is_selection_mode, on_select);
             },
             ondoubleclick: move |evt| {
                 evt.stop_propagation();
@@ -174,7 +169,7 @@ pub fn TrackRow(
                         aria_label: if is_selected { "Deselect track" } else { "Select track" },
                         onclick: move |evt| {
                             evt.stop_propagation();
-                            handle_select_click(is_selected, is_selection_mode, on_select, on_long_press);
+                            handle_select_click(is_selected, is_selection_mode, on_select);
                         },
                         if is_selected {
                             i { class: "fa-solid fa-check", style: "font-size: 9px;" }
