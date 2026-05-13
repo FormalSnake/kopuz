@@ -1176,14 +1176,16 @@ impl PlayerController {
 
         if idx > 0 {
             if *self.shuffle.peek() {
-                self.shuffle_order.with_mut(|so| so.insert(0, idx));
+                self.play_track_no_history_without_crossfade(idx);
+            } else {
+                self.play_track_no_history_without_crossfade(idx - 1);
             }
-            self.play_track_no_history_without_crossfade(idx - 1);
         } else if *self.loop_mode.peek() == LoopMode::Queue {
             if *self.shuffle.peek() {
-                self.shuffle_order.with_mut(|so| so.insert(0, idx));
+                self.play_track_no_history_without_crossfade(idx);
+            } else {
+                self.play_track_no_history_without_crossfade(queue_len - 1);
             }
-            self.play_track_no_history_without_crossfade(queue_len - 1);
         }
     }
 
@@ -1320,7 +1322,7 @@ impl PlayerController {
                 *idx = Self::remap_queue_index(*idx, from, to);
             }
         });
-        
+
         self.shuffle_order.with_mut(|shuffle_order| {
             for idx in shuffle_order.iter_mut() {
                 *idx = Self::remap_queue_index(*idx, from, to);
