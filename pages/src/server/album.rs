@@ -5,7 +5,6 @@ use components::selection_bar::SelectionBar;
 use components::track_row::TrackRow;
 use config::{AppConfig, MusicService};
 use dioxus::prelude::*;
-use rand::seq::SliceRandom;
 use reader::{Library, PlaylistStore};
 use server::jellyfin::JellyfinClient;
 use server::subsonic::SubsonicClient;

@@ -3,7 +3,6 @@ use components::playlist_modal::PlaylistModal;
 use components::selection_bar::SelectionBar;
 use config::{AppConfig, ArtistViewOrder};
 use dioxus::prelude::*;
-use rand::seq::SliceRandom;
 use reader::{Library, PlaylistStore};
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;

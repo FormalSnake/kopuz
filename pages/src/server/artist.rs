@@ -4,7 +4,6 @@ use components::playlist_modal::PlaylistModal;
 use components::selection_bar::SelectionBar;
 use config::{AppConfig, ArtistViewOrder, MusicService};
 use dioxus::prelude::*;
-use rand::seq::SliceRandom;
 use reader::{Library, PlaylistStore};
 use server::jellyfin::JellyfinClient;
 use server::subsonic::SubsonicClient;
