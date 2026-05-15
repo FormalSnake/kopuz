@@ -51,11 +51,6 @@ pub fn JellyfinLibrary(
         is_loading.set(true);
         fetch_generation.with_mut(|g| *g += 1);
         let current_gen = *fetch_generation.peek();
-        {
-            let mut lib_write = library.write();
-            lib_write.jellyfin_tracks.clear();
-            lib_write.jellyfin_albums.clear();
-        }
         spawn(async move {
             if *fetch_generation.read() == current_gen {
                 let _ =
