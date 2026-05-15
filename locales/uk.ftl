@@ -25,6 +25,10 @@ add = Додати
 add_folder = Додати папку
 no_music_folders = Музичні папки не налаштовані
 add_server = Додати сервер
+<!-- NEEDS LOCALIZATION -->
+connect_to_lastfm = Connect to Last.fm
+lastfm_connected = Last.fm Connected
+<!-- NEEDS LOCALIZATION -->
 server_details = Деталі сервера
 server_name = Назва сервера
 server_url = Адреса сервера
@@ -117,6 +121,10 @@ heart_track_to_add_server = Уподобайте трек поки він гра
 search_placeholder = Шукайте виконавців, альбоми та пісні...
 no_results_found = Нічого не знайдено по запиту "{ $query }"
 listenbrainz_token_placeholder = Введіть свій ключ (токен) від ListenBrainz
+<!-- NEEDS LOCALIZATION -->
+lastfm_api_key_placeholder = Enter your Last.fm API Key
+lastfm_api_secret_placeholder = Enter your Last.fm API Secret
+<!-- NEEDS LOCALIZATION -->
 
 # Empty States
 album_not_found = Альбом не знайдено
@@ -179,6 +187,7 @@ repeat_track = Повтор: трек
 rescan_library = Пересканувати бібліотеку
 refresh_music_library = Оновити музичну бібліотеку
 listenbrainz = ListenBrainz
+lastfm = Last.fm
 album_art_gradient = Градієнт обкладинки альбому
 default_theme = За замовчуванням
 gruvbox_material = Gruvbox Material

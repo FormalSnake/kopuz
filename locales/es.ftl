@@ -25,6 +25,10 @@ add = Agregar
 add_folder = Agregar carpeta
 no_music_folders = No hay carpetas de música configuradas
 add_server = Agregar servidor
+<!-- NEED LOCALIZATION -->
+connect_to_lastfm = Connect to Last.fm 
+lastfm_connected = Last.fm Connected
+<!-- NEED LOCALIZATION -->
 server_details = Detalles del servidor
 server_name = Nombre del servidor
 server_url = URL del servidor
@@ -118,6 +122,10 @@ heart_track_to_add_server = Dale corazón a una pista mientras se reproduce para
 search_placeholder = Buscar artistas, álbumes o pistas...
 no_results_found = No se encontraron resultados para "{ $query }"
 listenbrainz_token_placeholder = Introduce tu token de ListenBrainz
+<!-- NEED LOCALIZATION -->
+lastfm_api_key_placeholder = Enter your Last.fm API Key
+lastfm_api_secret_placeholder = Enter your Last.fm API Secret
+<!-- NEEDS LOCALIZATION -->
 
 # Empty States
 album_not_found = Álbum no encontrado
@@ -180,6 +188,7 @@ repeat_track = Repetición: Pista
 rescan_library = Re-escanear biblioteca
 refresh_music_library = Refrescar biblioteca de música
 listenbrainz = ListenBrainz
+lastfm = Last.fm
 album_art_gradient = Degradado de la carátula
 default_theme = Tema predeterminado
 gruvbox_material = Gruvbox Material

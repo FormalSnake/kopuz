@@ -25,6 +25,10 @@ add = Ekle
 add_folder = Klasör Ekle
 no_music_folders = Müzik klasörü yapılandırılmadı
 add_server = Sunucu Ekle
+<!-- NEEDS LOCALIZATION -->
+connect_to_lastfm = Connect to Last.fm
+lastfm_connected = Last.fm Connected
+<!-- NEED LOCALIZATION -->
 server_details = Sunucu Detayları
 server_name = Sunucu Adı
 server_url = Sunucu URL'si
@@ -117,6 +121,10 @@ heart_track_to_add_server = Eklemek ve sunucunuza senkronize etmek için çalark
 search_placeholder = Sanatçı, albüm veya parça ara...
 no_results_found = "{ $query }" için sonuç bulunamadı
 listenbrainz_token_placeholder = ListenBrainz token'ınızı girin
+<!-- NEEDS LOCALIZATION -->
+lastfm_api_key_placeholder = Enter your Last.fm API Key
+lastfm_api_secret_placeholder = Enter your Last.fm API Secret
+<!-- NEEDS LOCALIZATION -->
 
 # Empty States
 album_not_found = Albüm bulunamadı
@@ -179,6 +187,7 @@ repeat_track = Tekrar: Parça
 rescan_library = Kütüphaneyi Tara
 refresh_music_library = Müzik Kütüphaneni Yenile
 listenbrainz = ListenBrainz
+lastfm = Last.fm
 album_art_gradient = Albüm kapağı gradyanı
 default_theme = Varsayılan
 gruvbox_material = Gruvbox Material

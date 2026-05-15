@@ -25,6 +25,10 @@ add = 󱥄󱥌
 add_folder = 󱥄󱥌 󱤉 󱤕
 no_music_folders = 󱤕 󱤧 󱤬 󱤂
 add_server = 󱥄󱥸︀󱤉󱥌
+<!-- NEEDS LOCALIZATION -->
+connect_to_lastfm = Connect to Last.fm
+lastfm_connected = Last.fm Connected
+<!-- NEED LOCALIZATION -->
 server_details = 󱥡󱥌
 server_name = 󱥂󱥌
 server_url = 󱤿URL 󱥌
@@ -116,6 +120,10 @@ heart_track_to_add_server = 󱥄󱤭󱤉󱥀󱥅󱤬󱤠󱤕󱤡󱤕󱤧󱤖󱥩
 search_placeholder = 󱥄󱤃󱤉󱤑󱥉, 󱤉󱤟󱥍󱤕󱥖, 󱤉󱤕󱦜󱦜󱦜
 no_results_found = "{ $query }"󱤧󱤬󱤂
 listenbrainz_token_placeholder = 󱥄󱥌󱤉"token ListenBrainz"
+<!-- NEEDS LOCALIZATION -->
+lastfm_api_key_placeholder = Enter your Last.fm API Key
+lastfm_api_secret_placeholder = Enter your Last.fm API Secret
+<!-- NEEDS LOCALIZATION -->
 
 # Empty States
 album_not_found = 󱤟󱥍󱦗󱤕󱥖󱦘󱤧󱤬󱤂
@@ -173,6 +181,7 @@ repeat_track = 󱥄󱥝󱦝󱥳
 rescan_library = 󱥄󱤮󱥝󱤉󱥓󱤕
 refresh_music_library = 󱥄󱤮󱥝󱤉󱥓󱤕
 listenbrainz = ListenBrainz
+lastfm = Last.fm
 album_art_gradient = Album art gradient
 default_theme = Default
 gruvbox_material = Gruvbox Material

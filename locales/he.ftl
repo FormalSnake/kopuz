@@ -25,6 +25,10 @@ add = הוספה
 add_folder = הוספת תיקייה
 no_music_folders = לא הוגדרו תיקיות מוזיקה
 add_server = הוספת שרת
+<!-- NEEDS LOCALIZATION -->
+connect_to_lastfm = Connect to Last.fm
+lastfm_connected = Last.fm Connected
+<!-- NEEDS LOCALIZATION -->
 server_details = פרטי שרת
 server_name = שם השרת
 server_url = כתובת השרת
@@ -117,6 +121,10 @@ heart_track_to_add_server = סמנו שיר בלב בזמן שהוא מתנגן 
 search_placeholder = חיפוש אמנים, אלבומים או שירים...
 no_results_found = לא נמצאו תוצאות עבור "{ $query }"
 listenbrainz_token_placeholder = הזנת טוקן ListenBrainz
+<!-- NEEDS LOCALIZATION -->
+lastfm_api_key_placeholder = Enter your Last.fm API Key
+lastfm_api_secret_placeholder = Enter your Last.fm API Secret
+<!-- NEEDS LOCALIZATION -->
 
 # Empty States
 album_not_found = האלבום לא נמצא
@@ -179,6 +187,7 @@ repeat_track = חזרה: שיר
 rescan_library = סרוק ספרייה מחדש
 refresh_music_library = רענון ספריית מוזיקה
 listenbrainz = ListenBrainz
+lastfm = Last.fm
 album_art_gradient = מעבר צבעים בעטיפת האלבום
 default_theme = ברירת מחדל
 gruvbox_material = Gruvbox Material

@@ -25,6 +25,10 @@ add = Tambah
 add_folder = Tambah Folder
 no_music_folders = Tidak ada folder musik yang diset
 add_server = Tambah Server
+<!-- NEEDS LOCALIZATION -->
+connect_to_lastfm = Connect to Last.fm
+lastfm_connected = Last.fm Connected
+<!-- NEEDS LOCALIZATION -->
 server_details = Detail Server
 server_name = Nama Server
 server_url = URL Server
@@ -171,6 +175,10 @@ heart_track_to_add_server = Sukai lagu yang sedang diputar untuk menambahkannya 
 search_placeholder = Cari artis, album atau lagu...
 no_results_found = Tidak ada hasil untuk "{ $query }"
 listenbrainz_token_placeholder = Masukkan token ListenBrainz kamu
+<!-- NEEDS LOCALIZATION -->
+lastfm_api_key_placeholder = Enter your Last.fm API Key
+lastfm_api_secret_placeholder = Enter your Last.fm API Secret
+<!-- NEEDS LOCALIZATION -->
 
 # Empty States
 album_not_found = Album tidak ditemukan
@@ -230,6 +238,7 @@ repeat_track = Ulang: Lagu
 rescan_library = Scan ulang koleksi
 refresh_music_library = Perbarui Koleksi Musik
 listenbrainz = ListenBrainz
+lastfm = Last.fm
 album_art_gradient = Gradien Album art
 default_theme = Bawaan
 gruvbox_material = Gruvbox Material
