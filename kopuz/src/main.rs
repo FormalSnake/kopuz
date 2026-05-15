@@ -696,6 +696,9 @@ fn App() -> Element {
     let mut selected_album_id = use_signal(String::new);
     let mut selected_playlist_id = use_signal(|| None::<String>);
     let mut selected_artist_name = use_signal(String::new);
+    let fetched_artist_images: Signal<std::collections::HashMap<String, String>> =
+        use_signal(std::collections::HashMap::new);
+    let is_fetching_artist_images = use_signal(|| false);
     let search_query = use_signal(String::new);
     let mut last_server_playlist_key = use_signal(|| None::<String>);
     let mut server_playlist_key_initialized = use_signal(|| false);
@@ -1240,6 +1243,8 @@ fn App() -> Element {
     provide_context(config);
     provide_context(download_queue);
     provide_context(scroll_positions);
+    provide_context(fetched_artist_images);
+    provide_context(is_fetching_artist_images);
     provide_context(components::NavigationController {
         current_route,
         selected_artist_name,

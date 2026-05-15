@@ -42,9 +42,9 @@ pub fn JellyfinArtist(
     let mut show_album_playlist_modal = use_signal(|| false);
     let mut pending_album_id_for_playlist = use_signal(|| None::<String>);
 
-    // Local cache of artist name → direct image URL, populated on demand.
-    let mut fetched_artist_images = use_signal(|| std::collections::HashMap::<String, String>::new());
-    let mut is_fetching_images = use_signal(|| false);
+    let mut fetched_artist_images =
+        use_context::<Signal<std::collections::HashMap<String, String>>>();
+    let mut is_fetching_images = use_context::<Signal<bool>>();
 
     use_effect(move || {
         let use_artist_photo = config.read().artist_photo_source == ArtistPhotoSource::ArtistPhoto;
