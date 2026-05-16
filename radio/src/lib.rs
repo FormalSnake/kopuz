@@ -11,6 +11,7 @@ pub mod vocaloid;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct RadioMetadata {
+    pub station: String,
     pub title: String,
     pub artist: String,
     pub cover_url: Option<String>,

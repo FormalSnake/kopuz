@@ -8,6 +8,8 @@ struct DoujinstyleResponse {
     data: DoujinstyleData,
 }
 
+const STATION_NAME: &str = "Doujinstyle";
+
 #[derive(Deserialize, Debug)]
 struct DoujinstyleData {
     track_artist: Option<String>,
@@ -56,6 +58,7 @@ impl RadioMetadataProvider for DoujinstyleProvider {
                             last_title = comparison_str;
 
                             let meta = RadioMetadata {
+                                station: STATION_NAME.to_string(),
                                 title,
                                 artist,
                                 cover_url,

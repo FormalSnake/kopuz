@@ -3,6 +3,8 @@ use tokio::sync::mpsc;
 
 pub struct ListenMoeProvider;
 
+const STATION_NAME: &str = "Listen.Moe";
+
 fn parse_track_update(d: &serde_json::Value) -> Option<RadioMetadata> {
     let song = d.get("song")?;
 
@@ -41,6 +43,7 @@ fn parse_track_update(d: &serde_json::Value) -> Option<RadioMetadata> {
         .map(|s| format!("https://cdn.listen.moe/covers/{}", s));
 
     Some(RadioMetadata {
+        station: STATION_NAME.to_string(),
         title,
         artist,
         cover_url,

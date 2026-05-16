@@ -9,6 +9,8 @@ struct VocaloidResponse {
     primary: Option<VocaloidPrimary>,
 }
 
+const STATION_NAME: &str = "Vocaloid";
+
 #[derive(Deserialize, Debug)]
 struct VocaloidPrimary {
     #[serde(rename = "Title")]
@@ -39,6 +41,7 @@ impl RadioMetadataProvider for VocaloidProvider {
                 if let Ok(json) = resp.json::<VocaloidResponse>().await {
                     if let Some(primary) = json.primary {
                         let meta = RadioMetadata {
+                            station: STATION_NAME.to_string(),
                             title: primary.title.unwrap_or_default(),
                             artist: primary.subtitle.unwrap_or_default(),
                             cover_url: primary.image,

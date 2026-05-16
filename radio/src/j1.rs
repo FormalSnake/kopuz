@@ -8,6 +8,8 @@ struct J1Response {
     station: Vec<J1Station>,
 }
 
+const STATION_NAME: &str = "J1FM";
+
 #[derive(Deserialize, Debug)]
 struct J1Station {
     name: String,
@@ -53,6 +55,7 @@ impl RadioMetadataProvider for J1Provider {
                             if station_data.title != last_title {
                                 last_title = station_data.title.clone();
                                 let meta = RadioMetadata {
+                                    station: STATION_NAME.to_string(),
                                     title: station_data.title.clone(),
                                     artist: station_data.artist.clone(),
                                     cover_url: Some(station_data.image_url.clone()),

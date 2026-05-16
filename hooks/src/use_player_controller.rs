@@ -559,6 +559,7 @@ impl PlayerController {
                     let mut radio_task = self.radio_task;
                     let mut current_song_title = self.current_song_title;
                     let mut current_song_artist = self.current_song_artist;
+                    let mut current_song_album = self.current_song_album;
                     let mut current_song_cover_url = self.current_song_cover_url;
 
                     if !use_crossfade {
@@ -680,6 +681,7 @@ impl PlayerController {
                                             while let Some(meta) = rx.recv().await {
                                                 current_song_title.set(meta.title.clone());
                                                 current_song_artist.set(meta.artist.clone());
+                                                current_song_album.set(meta.station.clone());
                                                 current_song_cover_url
                                                     .set(meta.cover_url.unwrap_or_default());
                                             }
