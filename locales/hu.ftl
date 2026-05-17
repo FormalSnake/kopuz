@@ -326,6 +326,7 @@ crossfade = Áttűnés
 crossfade_off = Ki
 
 continue_listening = Hallgatás folytatása
+music = Zene
 made_for_you = Neked készült
 recently_added = Nemrég hozzáadott
 customize_home = Kezdőlap testreszabása

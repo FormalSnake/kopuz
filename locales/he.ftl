@@ -326,6 +326,7 @@ crossfade = מעבר הדרגתי
 crossfade_off = כבוי
 
 continue_listening = המשך האזנה
+music = מוזיקה
 made_for_you = נוצר עבורך
 recently_added = נוסף לאחרונה
 customize_home = התאמת הבית

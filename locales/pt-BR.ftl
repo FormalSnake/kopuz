@@ -325,6 +325,7 @@ crossfade = Transição Contínua
 crossfade_off = Desligado
 
 continue_listening = Continuar ouvindo
+music = Música
 made_for_you = Feito para você
 recently_added = Adicionado recentemente
 customize_home = Personalizar início

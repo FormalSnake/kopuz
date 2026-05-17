@@ -326,6 +326,7 @@ crossfade = 크로스페이드
 crossfade_off = 끄기
 
 continue_listening = 계속 듣기
+music = 음악
 made_for_you = 당신을 위해
 recently_added = 최근 추가됨
 customize_home = 홈 맞춤설정

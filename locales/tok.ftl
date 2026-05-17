@@ -326,6 +326,7 @@ crossfade = ante kalama
 crossfade_off = ala
 
 continue_listening = o kute sin
+music = kalama musi
 made_for_you = pali tawa sina
 recently_added = kalama sin pi tenpo poka
 customize_home = o ante e tomo

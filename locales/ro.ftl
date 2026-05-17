@@ -326,6 +326,7 @@ crossfade = Întrepătrundere
 crossfade_off = Oprit
 
 continue_listening = Continuă ascultarea
+music = Muzică
 made_for_you = Făcut pentru tine
 recently_added = Adăugate recent
 customize_home = Personalizează pagina principală

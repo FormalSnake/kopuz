@@ -332,6 +332,7 @@ crossfade = تلاشي متقاطع
 crossfade_off = إيقاف
 
 continue_listening = متابعة الاستماع
+music = موسيقى
 made_for_you = صُنع من أجلك
 recently_added = أُضيف مؤخراً
 customize_home = تخصيص الرئيسية

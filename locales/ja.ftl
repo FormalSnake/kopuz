@@ -332,6 +332,7 @@ crossfade = クロスフェード
 crossfade_off = オフ
 
 continue_listening = 続きを聴く
+music = 音楽
 made_for_you = あなたのために
 recently_added = 最近追加
 customize_home = ホームをカスタマイズ

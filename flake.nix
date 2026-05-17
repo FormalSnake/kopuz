@@ -92,6 +92,10 @@
         }
       );
 
+      checks = forAllSystems (system: {
+        default = self.packages.${system}.default;
+      });
+
       apps = forAllSystems (system: {
         default = {
           type = "app";

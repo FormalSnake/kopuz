@@ -326,6 +326,7 @@ crossfade = Crossfade (Σταδιακή μίξη)
 crossfade_off = Ανενεργό
 
 continue_listening = Συνέχιση ακρόασης
+music = Μουσική
 made_for_you = Φτιαγμένο για σένα
 recently_added = Προστέθηκαν πρόσφατα
 customize_home = Προσαρμογή αρχικής

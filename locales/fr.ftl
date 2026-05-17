@@ -327,6 +327,7 @@ crossfade = Fondu enchaîné
 crossfade_off = Désactivé
 
 continue_listening = Continuer l'écoute
+music = Musique
 made_for_you = Fait pour vous
 recently_added = Ajouté récemment
 customize_home = Personnaliser l'accueil

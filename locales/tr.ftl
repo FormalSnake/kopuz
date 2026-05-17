@@ -326,6 +326,7 @@ crossfade = Çapraz Geçiş
 crossfade_off = Kapalı
 
 continue_listening = Dinlemeye devam et
+music = Müzik
 made_for_you = Sana özel
 recently_added = Son eklenenler
 customize_home = Ana sayfayı özelleştir

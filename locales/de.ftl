@@ -326,6 +326,7 @@ crossfade = Überblendung
 crossfade_off = Aus
 
 continue_listening = Weiterhören
+music = Musik
 made_for_you = Für dich gemacht
 recently_added = Kürzlich hinzugefügt
 customize_home = Startseite anpassen

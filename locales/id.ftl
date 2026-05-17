@@ -325,6 +325,7 @@ crossfade = Crossfade
 crossfade_off = Mati
 
 continue_listening = Lanjutkan mendengarkan
+music = Musik
 made_for_you = Dibuat untukmu
 recently_added = Baru ditambahkan
 customize_home = Sesuaikan beranda

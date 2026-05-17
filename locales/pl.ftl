@@ -326,6 +326,7 @@ crossfade = Płynne przejście
 crossfade_off = Wył.
 
 continue_listening = Słuchaj dalej
+music = Muzyka
 made_for_you = Stworzone dla Ciebie
 recently_added = Ostatnio dodane
 customize_home = Dostosuj stronę główną

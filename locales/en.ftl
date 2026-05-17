@@ -243,6 +243,7 @@ folder_playlists = Folder Playlists
 folder_playlist = Folder
 featured_album = Featured Album
 continue_listening = Continue Listening
+music = Music
 made_for_you = Made For You
 recently_added = Recently Added
 customize_home = Customize Home

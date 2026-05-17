@@ -327,6 +327,7 @@ crossfade = 󱥭 󱤴
 crossfade_off = 󱤄
 
 continue_listening = Continue Listening
+music = 󱤕󱤻
 made_for_you = Made For You
 recently_added = Recently Added
 customize_home = Customize Home
