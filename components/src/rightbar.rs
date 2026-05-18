@@ -281,13 +281,20 @@ pub fn Rightbar(
             .get(..current_idx)
             .unwrap_or_default()
             .iter()
-            .filter_map(|&qi| q.get(qi).cloned().map(|t| (qi, t)))
+            .enumerate()
+            .filter_map(|(logical_idx, &queue_idx)| {
+                q.get(queue_idx).cloned().map(|t| (logical_idx, t))
+            })
             .collect();
         let next = order
             .get(current_idx + 1..)
             .unwrap_or_default()
             .iter()
-            .filter_map(|&qi| q.get(qi).cloned().map(|t| (qi, t)))
+            .enumerate()
+            .filter_map(|(offset, &queue_idx)| {
+                let logical_idx = current_idx + 1 + offset;
+                q.get(queue_idx).cloned().map(|t| (logical_idx, t))
+            })
             .collect();
         (back, next)
     } else {
