@@ -20,14 +20,8 @@ pub fn Rightbar(
     mut current_song_artist: Signal<String>,
     mut current_song_album: Signal<String>,
 ) -> Element {
-    let ctrl = use_context::<PlayerController>();
-
-    if !*is_rightbar_open.read() {
-        return rsx! { div {} };
-    }
-
     let mut active_tab = use_signal(|| 0usize);
-
+    let ctrl = use_context::<PlayerController>();
     let config = use_context::<Signal<AppConfig>>();
 
     let mut lyrics: Signal<Option<Option<utils::lyrics::Lyrics>>> = use_signal(|| None);
@@ -171,8 +165,13 @@ pub fn Rightbar(
         }
     };
 
+    if !*is_rightbar_open.read() {
+        return rsx! { div {} };
+    }
+
     rsx! {
         div {
+            id: "rightbar-root",
             class: "bg-black/40 border-l border-white/5 flex flex-col h-full flex-shrink-0 z-10 relative",
             style: "width: {width}px; min-width: {width}px;",
 
@@ -223,8 +222,7 @@ pub fn Rightbar(
                     current_queue_index,
                     layout: crate::queue_list_view::LayoutMode::Rightbar,
                 }
-            }
-            else if *active_tab.read() == 1 {
+            } else if *active_tab.read() == 1 {
                 LyricsView {
                     lyrics,
                     current_song_progress,

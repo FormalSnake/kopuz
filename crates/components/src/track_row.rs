@@ -1,21 +1,13 @@
 use crate::NavigationController;
 use crate::constants::*;
 use crate::dots_menu::{DotsMenu, MenuAction};
+use crate::queue_drag::{
+    clear_dragged_queue_track, handle_select_click, is_queue_drag_enabled, set_dragged_queue_track,
+    set_dragged_queue_tracks,
+};
 use config::{AppConfig, UiStyle};
 use dioxus::prelude::*;
 use reader::models::Track;
-
-fn handle_select_click(
-    is_selected: bool,
-    is_selection_mode: bool,
-    on_select: Option<EventHandler<bool>>,
-) {
-    if is_selection_mode {
-        if let Some(handler) = on_select {
-            handler.call(!is_selected);
-        }
-    }
-}
 
 #[component]
 pub fn TrackRow(
@@ -39,6 +31,7 @@ pub fn TrackRow(
     #[props(default = false)] is_downloaded: bool,
     #[props(default = false)] is_downloading: bool,
     #[props(default = false)] is_currently_playing: bool,
+    #[props(default = Vec::new())] selected_queue_tracks: Vec<Track>,
     #[props(default = None)] row_num: Option<usize>,
 ) -> Element {
     let config = use_context::<Signal<AppConfig>>();
@@ -50,6 +43,15 @@ pub fn TrackRow(
     } else {
         "none"
     };
+    let drag_track_mouse = track.clone();
+    let drag_track_normal_mouse = track.clone();
+    let drag_selected_tracks_mouse = selected_queue_tracks.clone();
+    let drag_selected_tracks_normal_mouse = selected_queue_tracks.clone();
+    let drag_cover_url = cover_url.as_ref().map(|url| url.as_ref().to_string());
+    let drag_cover_url_normal = drag_cover_url.clone();
+    let mut pending_queue_drag = use_signal(|| None::<(f64, f64)>);
+    let mut pending_queue_drag_normal = use_signal(|| None::<(f64, f64)>);
+    const QUEUE_DRAG_THRESHOLD_PX: f64 = 6.0;
     let add_to_queue_text = i18n::t("add_to_queue").to_string();
     let add_to_playlist_text = i18n::t("add_to_playlist").to_string();
     let remove_from_playlist_text = i18n::t("remove_from_playlist").to_string();
@@ -153,7 +155,7 @@ pub fn TrackRow(
     if is_modern {
         return rsx! {
             div {
-                class: "grid px-2 py-1.5 rounded-lg mx-1 group cursor-default transition-colors hover:bg-white/5 select-none",
+                class: "track-row-draggable grid px-2 py-1.5 rounded-lg mx-1 group cursor-grab active:cursor-grabbing transition-colors hover:bg-white/5 select-none",
                 style: if is_currently_playing {
                     format!("grid-template-columns: {columns_modern}; background: color-mix(in oklab, var(--color-indigo-500) 12%, transparent); box-shadow: {selection_shadow};")
                 } else {
@@ -169,9 +171,45 @@ pub fn TrackRow(
                         handle_select_click(is_selected, is_selection_mode, on_select);
                     }
                 },
+                draggable: "false",
                 ondoubleclick: move |_| { if !is_selection_mode { on_play.call(()); } },
-                onmousedown: move |_| start_long_press(),
-                onmouseup: move |_| cancel_long_press(),
+                onmousedown: move |evt| {
+                    if is_queue_drag_enabled() && (!is_selection_mode || is_selected) {
+                        let coords = evt.client_coordinates();
+                        pending_queue_drag.set(Some((coords.x, coords.y)));
+                    }
+                    start_long_press();
+                },
+                onmousemove: move |evt| {
+                    let drag_start = *pending_queue_drag.read();
+                    if let Some((start_x, start_y)) = drag_start {
+                        let coords = evt.client_coordinates();
+                        let dx = coords.x - start_x;
+                        let dy = coords.y - start_y;
+                        if dx.hypot(dy) >= QUEUE_DRAG_THRESHOLD_PX {
+                            pending_queue_drag.set(None);
+                            if is_selection_mode && !drag_selected_tracks_mouse.is_empty() {
+                                set_dragged_queue_tracks(
+                                    drag_selected_tracks_mouse.clone(),
+                                    coords.x,
+                                    coords.y,
+                                );
+                            } else {
+                                set_dragged_queue_track(
+                                    drag_track_mouse.clone(),
+                                    drag_cover_url.clone(),
+                                    coords.x,
+                                    coords.y,
+                                );
+                            }
+                        }
+                    }
+                },
+                onmouseup: move |_| {
+                    pending_queue_drag.set(None);
+                    cancel_long_press();
+                    clear_dragged_queue_track();
+                },
                 onmouseleave: move |_| cancel_long_press(),
                 ontouchstart: move |_| start_long_press(),
                 ontouchend: move |_| cancel_long_press(),
@@ -349,12 +387,13 @@ pub fn TrackRow(
     // normal UI
     return rsx! {
         div {
-            class: "grid items-center h-14 p-2 rounded-lg hover:bg-white/5 group transition-colors relative select-none",
+            class: "track-row-draggable grid items-center h-14 p-2 rounded-lg hover:bg-white/5 group transition-colors relative select-none cursor-grab active:cursor-grabbing",
             style: if is_currently_playing {
                 format!("grid-template-columns: {columns_normal}; column-gap: 1.5rem; background: color-mix(in oklab, var(--color-indigo-500) 12%, transparent); box-shadow: {selection_shadow};")
             } else {
                 format!("grid-template-columns: {columns_normal}; column-gap: 1.5rem; box-shadow: {selection_shadow};")
             },
+            draggable: "false",
             onclick: move |evt| {
                 evt.stop_propagation();
                 if *long_press_occurred.read() {
@@ -369,8 +408,43 @@ pub fn TrackRow(
                     on_play.call(());
                 }
             },
-            onmousedown: move |_| start_long_press(),
-            onmouseup: move |_| cancel_long_press(),
+            onmousedown: move |evt| {
+                if is_queue_drag_enabled() && (!is_selection_mode || is_selected) {
+                    let coords = evt.client_coordinates();
+                    pending_queue_drag_normal.set(Some((coords.x, coords.y)));
+                }
+                start_long_press();
+            },
+            onmousemove: move |evt| {
+                let drag_start = *pending_queue_drag_normal.read();
+                if let Some((start_x, start_y)) = drag_start {
+                    let coords = evt.client_coordinates();
+                    let dx = coords.x - start_x;
+                    let dy = coords.y - start_y;
+                    if dx.hypot(dy) >= QUEUE_DRAG_THRESHOLD_PX {
+                        pending_queue_drag_normal.set(None);
+                        if is_selection_mode && !drag_selected_tracks_normal_mouse.is_empty() {
+                            set_dragged_queue_tracks(
+                                drag_selected_tracks_normal_mouse.clone(),
+                                coords.x,
+                                coords.y,
+                            );
+                        } else {
+                            set_dragged_queue_track(
+                                drag_track_normal_mouse.clone(),
+                                drag_cover_url_normal.clone(),
+                                coords.x,
+                                coords.y,
+                            );
+                        }
+                    }
+                }
+            },
+            onmouseup: move |_| {
+                pending_queue_drag_normal.set(None);
+                cancel_long_press();
+                clear_dragged_queue_track();
+            },
             onmouseleave: move |_| cancel_long_press(),
             ontouchstart: move |_| start_long_press(),
             ontouchend: move |_| cancel_long_press(),
