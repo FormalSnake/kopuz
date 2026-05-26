@@ -112,8 +112,6 @@ pub fn Rightbar(
         });
     });
 
-
-
     let mut is_resizing = use_signal(|| false);
 
     use_effect(move || {

@@ -229,25 +229,25 @@ pub async fn fetch_lyrics(
         || track_path.starts_with("custom:");
 
     // 1. Local .lrc file (only for local tracks)
-    if !is_server
-        && let Some(lyrics) = fetch_local_lrc(track_path).await {
-            if let Ok(mut cache) = lyrics_cache().lock() {
-                cache.put(cache_key, Some(lyrics.clone()));
-            }
-            return Some(lyrics);
+    if !is_server && let Some(lyrics) = fetch_local_lrc(track_path).await {
+        if let Ok(mut cache) = lyrics_cache().lock() {
+            cache.put(cache_key, Some(lyrics.clone()));
         }
+        return Some(lyrics);
+    }
 
     // 2. Server lyrics
     if let Some(server_url) = server_url {
         if track_path.starts_with("jellyfin:") {
             if let (Some(item_id), Some(token)) =
                 (extract_server_id(track_path, "jellyfin:"), server_token)
-                && let Some(lyrics) = fetch_jellyfin_lyrics(&item_id, server_url, token).await {
-                    if let Ok(mut cache) = lyrics_cache().lock() {
-                        cache.put(cache_key, Some(lyrics.clone()));
-                    }
-                    return Some(lyrics);
+                && let Some(lyrics) = fetch_jellyfin_lyrics(&item_id, server_url, token).await
+            {
+                if let Ok(mut cache) = lyrics_cache().lock() {
+                    cache.put(cache_key, Some(lyrics.clone()));
                 }
+                return Some(lyrics);
+            }
         } else if track_path.starts_with("subsonic:") || track_path.starts_with("custom:") {
             let prefix = if track_path.starts_with("subsonic:") {
                 "subsonic:"
@@ -258,16 +258,14 @@ pub async fn fetch_lyrics(
                 extract_server_id(track_path, prefix),
                 server_user_id,
                 server_token,
-            )
-                && let Some(lyrics) =
-                    fetch_subsonic_lyrics(&song_id, server_url, username, password, artist, title)
-                        .await
-                {
-                    if let Ok(mut cache) = lyrics_cache().lock() {
-                        cache.put(cache_key, Some(lyrics.clone()));
-                    }
-                    return Some(lyrics);
+            ) && let Some(lyrics) =
+                fetch_subsonic_lyrics(&song_id, server_url, username, password, artist, title).await
+            {
+                if let Ok(mut cache) = lyrics_cache().lock() {
+                    cache.put(cache_key, Some(lyrics.clone()));
                 }
+                return Some(lyrics);
+            }
         }
     }
 
@@ -595,9 +593,10 @@ async fn fetch_from_lrclib(
 
     if res.status().is_success()
         && let Ok(data) = res.json::<LrcLibResponse>().await
-            && let Some(lyrics) = extract_from_lrclib_response(&data) {
-                return Some(lyrics);
-            }
+        && let Some(lyrics) = extract_from_lrclib_response(&data)
+    {
+        return Some(lyrics);
+    }
 
     let search_url = format!(
         "https://lrclib.net/api/search?track_name={}&artist_name={}",
@@ -612,26 +611,29 @@ async fn fetch_from_lrclib(
         .ok()?;
 
     if search_res.status().is_success()
-        && let Ok(results) = search_res.json::<Vec<LrcLibResponse>>().await {
-            for data in results {
-                if let Some(lyrics) = extract_from_lrclib_response(&data) {
-                    return Some(lyrics);
-                }
+        && let Ok(results) = search_res.json::<Vec<LrcLibResponse>>().await
+    {
+        for data in results {
+            if let Some(lyrics) = extract_from_lrclib_response(&data) {
+                return Some(lyrics);
             }
         }
+    }
 
     None
 }
 
 fn extract_from_lrclib_response(data: &LrcLibResponse) -> Option<Lyrics> {
     if let Some(synced) = &data.synced_lyrics
-        && !synced.trim().is_empty() {
-            return Some(Lyrics::Synced(parse_lrc(synced)));
-        }
+        && !synced.trim().is_empty()
+    {
+        return Some(Lyrics::Synced(parse_lrc(synced)));
+    }
     if let Some(plain) = &data.plain_lyrics
-        && !plain.trim().is_empty() {
-            return Some(Lyrics::Plain(plain.clone()));
-        }
+        && !plain.trim().is_empty()
+    {
+        return Some(Lyrics::Plain(plain.clone()));
+    }
     None
 }
 

@@ -74,18 +74,19 @@ async fn search_release_mbid(
 
     let body: ReleaseSearchResponse = resp.json().await?;
     if let Some(releases) = body.releases
-        && let Some(first) = releases.first() {
-            let score = first.score.unwrap_or(0);
-            if score >= 80 {
-                tracing::info!("MusicBrainz match: release={} (score={})", first.id, score);
-                return Ok(Some(first.id.clone()));
-            } else {
-                tracing::info!(
-                    "MusicBrainz top result score {} too low (need >= 80)",
-                    score
-                );
-            }
+        && let Some(first) = releases.first()
+    {
+        let score = first.score.unwrap_or(0);
+        if score >= 80 {
+            tracing::info!("MusicBrainz match: release={} (score={})", first.id, score);
+            return Ok(Some(first.id.clone()));
+        } else {
+            tracing::info!(
+                "MusicBrainz top result score {} too low (need >= 80)",
+                score
+            );
         }
+    }
 
     Ok(None)
 }
@@ -130,11 +131,12 @@ async fn resolve_via_itunes(
     }
 
     if let Some(result) = body.results.first()
-        && let Some(url) = &result.artwork_url_100 {
-            let hires = url.replace("100x100bb", "600x600bb");
-            tracing::info!("iTunes match -> {}", hires);
-            return Ok(Some(hires));
-        }
+        && let Some(url) = &result.artwork_url_100
+    {
+        let hires = url.replace("100x100bb", "600x600bb");
+        tracing::info!("iTunes match -> {}", hires);
+        return Ok(Some(hires));
+    }
 
     Ok(None)
 }
@@ -155,19 +157,20 @@ pub async fn resolve_cover_art_url(
     album: &str,
 ) -> Option<String> {
     if let Some(id) = mbid
-        && !id.is_empty() {
-            match verify_cover_exists(id).await {
-                Ok(true) => {
-                    let url = cover_art_url(id);
-                    tracing::info!("Resolved via embedded MBID -> {}", url);
-                    return Some(url);
-                }
-                Ok(false) => {
-                    tracing::warn!("Embedded MBID {} has no front cover, falling back", id)
-                }
-                Err(e) => tracing::warn!("Error verifying MBID {}: {}", id, e),
+        && !id.is_empty()
+    {
+        match verify_cover_exists(id).await {
+            Ok(true) => {
+                let url = cover_art_url(id);
+                tracing::info!("Resolved via embedded MBID -> {}", url);
+                return Some(url);
             }
+            Ok(false) => {
+                tracing::warn!("Embedded MBID {} has no front cover, falling back", id)
+            }
+            Err(e) => tracing::warn!("Error verifying MBID {}: {}", id, e),
         }
+    }
 
     match search_release_mbid(artist, album).await {
         Ok(Some(release_id)) => match verify_cover_exists(&release_id).await {

@@ -83,12 +83,13 @@ pub async fn scan_directory(
             .collect();
 
         if artists.len() == 1
-            && let Some(artist) = artists.iter().next() {
-                library
-                    .local_artist_images
-                    .entry(artist.clone())
-                    .or_insert(img_path);
-            }
+            && let Some(artist) = artists.iter().next()
+        {
+            library
+                .local_artist_images
+                .entry(artist.clone())
+                .or_insert(img_path);
+        }
     }
 
     Ok(())

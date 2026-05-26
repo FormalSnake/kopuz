@@ -274,7 +274,8 @@ fn read_with_symphonia(
     ) {
         if let Some(mut metadata) = probed.metadata.get() {
             let revision = metadata
-                .skip_to_latest().cloned()
+                .skip_to_latest()
+                .cloned()
                 .or_else(|| metadata.current().cloned());
             if let Some(revision) = revision {
                 tags.extend(revision.tags().iter().cloned());
@@ -285,7 +286,8 @@ fn read_with_symphonia(
         {
             let mut metadata = format.metadata();
             let revision = metadata
-                .skip_to_latest().cloned()
+                .skip_to_latest()
+                .cloned()
                 .or_else(|| metadata.current().cloned());
             if let Some(revision) = revision {
                 tags.extend(revision.tags().iter().cloned());

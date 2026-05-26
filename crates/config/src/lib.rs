@@ -644,9 +644,10 @@ impl SavedServer {
 
     pub fn matches(&self, server: &MusicServer) -> bool {
         if let Some(sid) = server.id.as_ref()
-            && sid == &self.id {
-                return true;
-            }
+            && sid == &self.id
+        {
+            return true;
+        }
         self.url == server.url && self.service == server.service
     }
 }
@@ -802,9 +803,10 @@ impl AppConfig {
 
     pub fn migrate_servers(&mut self) {
         if let Some(server) = self.server.as_mut()
-            && server.id.is_none() {
-                server.id = Some(uuid::Uuid::new_v4().to_string());
-            }
+            && server.id.is_none()
+        {
+            server.id = Some(uuid::Uuid::new_v4().to_string());
+        }
         if let Some(server) = self.server.clone() {
             let already = self.servers.iter().any(|s| s.matches(&server));
             if !already {
@@ -831,9 +833,10 @@ impl AppConfig {
     pub fn remove_saved_server(&mut self, id: &str) {
         self.servers.retain(|s| s.id != id);
         if let Some(active) = &self.server
-            && active.id.as_deref() == Some(id) {
-                self.server = None;
-            }
+            && active.id.as_deref() == Some(id)
+        {
+            self.server = None;
+        }
     }
 
     pub fn find_saved_server(&self, id: &str) -> Option<&SavedServer> {
@@ -932,10 +935,11 @@ impl AppConfig {
 
     pub fn save(&self, path: &Path) -> std::io::Result<()> {
         if let Some(parent) = path.parent()
-            && let Err(e) = fs::create_dir_all(parent) {
-                eprintln!("Failed to create config directory {:?}: {}", parent, e);
-                return Err(e);
-            }
+            && let Err(e) = fs::create_dir_all(parent)
+        {
+            eprintln!("Failed to create config directory {:?}: {}", parent, e);
+            return Err(e);
+        }
         let data = match serde_json::to_string_pretty(self) {
             Ok(d) => d,
             Err(e) => {

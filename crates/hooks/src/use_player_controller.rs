@@ -438,94 +438,96 @@ impl PlayerController {
                         None
                     };
                     if let Some(local_path) = offline_path
-                        && let Ok((source, hint)) = decoder::open_file(&local_path) {
-                            if !use_crossfade {
-                                self.current_queue_index.set(idx);
-                                self.player.write().stop_for_transition();
-                                self.is_playing.set(false);
-                            }
+                        && let Ok((source, hint)) = decoder::open_file(&local_path)
+                    {
+                        if !use_crossfade {
+                            self.current_queue_index.set(idx);
+                            self.player.write().stop_for_transition();
+                            self.is_playing.set(false);
+                        }
 
-                            let cover_url = self.cover_url_for_track(&track);
-                            if !use_crossfade {
-                                self.hydrate_current_track_metadata(idx, 0);
-                                self.current_song_cover_url.set(cover_url.clone());
-                            }
-                            self.is_loading.set(true);
+                        let cover_url = self.cover_url_for_track(&track);
+                        if !use_crossfade {
+                            self.hydrate_current_track_metadata(idx, 0);
+                            self.current_song_cover_url.set(cover_url.clone());
+                        }
+                        self.is_loading.set(true);
 
-                            let mut player = self.player;
-                            let mut is_playing = self.is_playing;
-                            let mut is_loading = self.is_loading;
-                            let mut skip_in_progress = self.skip_in_progress;
-                            let play_generation = self.play_generation;
-                            let volume = self.volume;
-                            let mut current_song_progress = self.current_song_progress;
-                            let mut pending_crossfade_ui = self.pending_crossfade_ui;
-                            let mut pending_resume = self.pending_resume;
-                            let cfg_signal = self.config;
+                        let mut player = self.player;
+                        let mut is_playing = self.is_playing;
+                        let mut is_loading = self.is_loading;
+                        let mut skip_in_progress = self.skip_in_progress;
+                        let play_generation = self.play_generation;
+                        let volume = self.volume;
+                        let mut current_song_progress = self.current_song_progress;
+                        let mut pending_crossfade_ui = self.pending_crossfade_ui;
+                        let mut pending_resume = self.pending_resume;
+                        let cfg_signal = self.config;
 
-                            spawn(async move {
-                                if *play_generation.read() == current_gen {
-                                    let meta = NowPlayingMeta {
-                                        title: track.title.clone(),
-                                        artist: track.artist.clone(),
-                                        album: track.album.clone(),
-                                        duration: std::time::Duration::from_secs(track.duration),
-                                        artwork: Some(cover_url),
-                                    };
-                                    let result = if use_crossfade {
-                                        player.write().crossfade_to(
-                                            source,
-                                            meta,
-                                            hint,
-                                            crossfade_duration,
-                                        )
-                                    } else {
-                                        player.write().play(source, meta, hint)
-                                    };
-                                    if let Err(e) = result {
-                                        eprintln!("Offline playback error: {e}");
-                                        is_loading.set(false);
-                                        skip_in_progress.set(false);
-                                        return;
-                                    }
-                                    player.write().set_volume(*volume.peek());
-                                    if let Some(seek_secs) = restore_seek_secs
-                                        && seek_secs > 0 {
-                                            player.write().seek(Duration::from_secs(seek_secs));
-                                        }
-                                    if use_crossfade {
-                                        pending_crossfade_ui.set(Some(
-                                            PlayerController::build_pending_crossfade_ui(
-                                                idx,
-                                                outgoing_duration_secs,
-                                                outgoing_progress_secs,
-                                            ),
-                                        ));
-                                    } else {
-                                        current_song_progress.set(0);
-                                    }
-                                    is_playing.set(true);
+                        spawn(async move {
+                            if *play_generation.read() == current_gen {
+                                let meta = NowPlayingMeta {
+                                    title: track.title.clone(),
+                                    artist: track.artist.clone(),
+                                    album: track.album.clone(),
+                                    duration: std::time::Duration::from_secs(track.duration),
+                                    artwork: Some(cover_url),
+                                };
+                                let result = if use_crossfade {
+                                    player.write().crossfade_to(
+                                        source,
+                                        meta,
+                                        hint,
+                                        crossfade_duration,
+                                    )
+                                } else {
+                                    player.write().play(source, meta, hint)
+                                };
+                                if let Err(e) = result {
+                                    eprintln!("Offline playback error: {e}");
                                     is_loading.set(false);
                                     skip_in_progress.set(false);
-
-                                    if clear_pending_resume_on_success {
-                                        pending_resume.set(None);
-                                    }
-                                    let _ = cfg_signal;
+                                    return;
                                 }
-                            });
-                            return;
-                        }
+                                player.write().set_volume(*volume.peek());
+                                if let Some(seek_secs) = restore_seek_secs
+                                    && seek_secs > 0
+                                {
+                                    player.write().seek(Duration::from_secs(seek_secs));
+                                }
+                                if use_crossfade {
+                                    pending_crossfade_ui.set(Some(
+                                        PlayerController::build_pending_crossfade_ui(
+                                            idx,
+                                            outgoing_duration_secs,
+                                            outgoing_progress_secs,
+                                        ),
+                                    ));
+                                } else {
+                                    current_song_progress.set(0);
+                                }
+                                is_playing.set(true);
+                                is_loading.set(false);
+                                skip_in_progress.set(false);
+
+                                if clear_pending_resume_on_success {
+                                    pending_resume.set(None);
+                                }
+                                let _ = cfg_signal;
+                            }
+                        });
+                        return;
+                    }
                 }
 
                 if let Some((stream_url, cover_url)) = {
                     if is_radio_item {
-                        self
-                            .station_registry
+                        self.station_registry
                             .read()
                             .get(&id)
                             .and_then(|s| s.streams.iter().find(|str| str.id == stream_id))
-                            .map(|s| s.url.clone()).map(|stream_url| (stream_url, String::new()))
+                            .map(|s| s.url.clone())
+                            .map(|stream_url| (stream_url, String::new()))
                     } else {
                         let conf = self.config.read();
                         conf.server.as_ref().map(|server| match server.service {
@@ -662,10 +664,11 @@ impl PlayerController {
                                 }
                                 player.write().set_volume(*volume.peek());
                                 if let Some(seek_secs) = restore_seek_secs
-                                    && seek_secs > 0 {
-                                        player.write().seek(Duration::from_secs(seek_secs));
-                                        current_song_progress.set(seek_secs);
-                                    }
+                                    && seek_secs > 0
+                                {
+                                    player.write().seek(Duration::from_secs(seek_secs));
+                                    current_song_progress.set(seek_secs);
+                                }
                                 if use_crossfade {
                                     pending_crossfade_ui.set(Some(
                                         PlayerController::build_pending_crossfade_ui(
@@ -733,8 +736,7 @@ impl PlayerController {
                                     let scrobble_cfg = cfg_signal;
                                     let scrobble_id = id.clone();
                                     let duration_secs = scrobble_track.duration;
-                                    let threshold_secs =
-                                        std::cmp::min(240, ((duration_secs / 2)));
+                                    let threshold_secs = std::cmp::min(240, (duration_secs / 2));
 
                                     spawn(async move {
                                         // track must be longer than 30 seconds
@@ -966,29 +968,30 @@ impl PlayerController {
 
                                     spawn(async move {
                                         if let Ok(response) = reqwest::get(&cover_url).await
-                                            && let Ok(bytes) = response.bytes().await {
-                                                let temp_dir = std::env::temp_dir();
-                                                let random_id: u64 = rand::random();
-                                                let file_path = temp_dir
-                                                    .join(format!("kopuz_cover_{}.jpg", random_id));
+                                            && let Ok(bytes) = response.bytes().await
+                                        {
+                                            let temp_dir = std::env::temp_dir();
+                                            let random_id: u64 = rand::random();
+                                            let file_path = temp_dir
+                                                .join(format!("kopuz_cover_{}.jpg", random_id));
 
-                                                if tokio::fs::write(&file_path, bytes).await.is_ok()
-                                                    && *play_generation.read() == current_gen {
-                                                        let path_str =
-                                                            file_path.to_string_lossy().to_string();
-                                                        let new_meta = NowPlayingMeta {
-                                                            title: track.title,
-                                                            artist: track.artist,
-                                                            album: track.album,
-                                                            duration:
-                                                                std::time::Duration::from_secs(
-                                                                    track.duration,
-                                                                ),
-                                                            artwork: Some(path_str),
-                                                        };
-                                                        player.write().update_metadata(new_meta);
-                                                    }
+                                            if tokio::fs::write(&file_path, bytes).await.is_ok()
+                                                && *play_generation.read() == current_gen
+                                            {
+                                                let path_str =
+                                                    file_path.to_string_lossy().to_string();
+                                                let new_meta = NowPlayingMeta {
+                                                    title: track.title,
+                                                    artist: track.artist,
+                                                    album: track.album,
+                                                    duration: std::time::Duration::from_secs(
+                                                        track.duration,
+                                                    ),
+                                                    artwork: Some(path_str),
+                                                };
+                                                player.write().update_metadata(new_meta);
                                             }
+                                        }
                                     });
                                 }
                             }
@@ -1324,9 +1327,10 @@ impl PlayerController {
                         self.is_playing.set(true);
 
                         if let Some(seek_secs) = restore_seek_secs
-                            && seek_secs > 0 {
-                                self.apply_restore_seek(seek_secs);
-                            }
+                            && seek_secs > 0
+                        {
+                            self.apply_restore_seek(seek_secs);
+                        }
                         if clear_pending_resume_on_success {
                             self.clear_pending_resume();
                         }
@@ -1337,7 +1341,7 @@ impl PlayerController {
                             let scrobble_track = track.clone();
 
                             let duration_secs = scrobble_track.duration;
-                            let threshold_secs = std::cmp::min(240, ((duration_secs / 2)));
+                            let threshold_secs = std::cmp::min(240, (duration_secs / 2));
 
                             spawn(async move {
                                 // track must be longer than 30 seconds

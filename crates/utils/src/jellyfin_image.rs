@@ -7,9 +7,10 @@ pub fn jellyfin_image_url(
     quality: u32,
 ) -> String {
     if let Some(tag) = image_tag
-        && let Some(url) = decode_embedded_cover_url(tag) {
-            return url;
-        }
+        && let Some(url) = decode_embedded_cover_url(tag)
+    {
+        return url;
+    }
 
     let mut params = Vec::new();
     params.push(format!("maxWidth={}", max_width));
@@ -62,9 +63,10 @@ pub fn jellyfin_image_url_from_path(
     }
 
     if let Some(tag) = tag
-        && let Some(url) = decode_embedded_cover_url(tag) {
-            return Some(url);
-        }
+        && let Some(url) = decode_embedded_cover_url(tag)
+    {
+        return Some(url);
+    }
 
     if server_url.is_empty() {
         return None;
@@ -113,29 +115,31 @@ pub fn track_cover_url_with_album_fallback(
     }
 
     if !album_id_str.is_empty()
-        && let Some((album_item_id, album_tag)) = parse_jellyfin_path(album_id_str) {
-            if album_tag == Some("none") {
-                return None;
-            }
-
-            if let Some(tag) = album_tag
-                && let Some(url) = decode_embedded_cover_url(tag) {
-                    return Some(url);
-                }
-
-            if !can_build_remote {
-                return None;
-            }
-
-            return Some(jellyfin_image_url(
-                server_url,
-                album_item_id,
-                album_tag,
-                access_token,
-                max_width,
-                quality,
-            ));
+        && let Some((album_item_id, album_tag)) = parse_jellyfin_path(album_id_str)
+    {
+        if album_tag == Some("none") {
+            return None;
         }
+
+        if let Some(tag) = album_tag
+            && let Some(url) = decode_embedded_cover_url(tag)
+        {
+            return Some(url);
+        }
+
+        if !can_build_remote {
+            return None;
+        }
+
+        return Some(jellyfin_image_url(
+            server_url,
+            album_item_id,
+            album_tag,
+            access_token,
+            max_width,
+            quality,
+        ));
+    }
 
     if let Some((id, _)) = parse_jellyfin_path(track_path_str) {
         if !can_build_remote {

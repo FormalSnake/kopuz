@@ -187,10 +187,12 @@ fn process_ws_message(
 fn check_heartbeat(json: &Value, def: &WebSocketSourceDef, current_interval: u64) -> Option<u64> {
     if let Some(hb) = &def.heartbeat
         && let Some(val) = extract_value(json, &hb.interval_field)
-            && let Some(ms) = val.as_u64()
-                && ms > 0 && ms != current_interval {
-                    return Some(ms);
-                }
+        && let Some(ms) = val.as_u64()
+        && ms > 0
+        && ms != current_interval
+    {
+        return Some(ms);
+    }
     None
 }
 

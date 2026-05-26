@@ -560,17 +560,18 @@ fn main() {
                         if high_quality {
                             let hq_path = hq_cache_path(&file_path);
                             if hq_path.exists()
-                                && let Ok(b) = tokio::fs::read(&hq_path).await {
-                                    responder.respond(
-                                        http::Response::builder()
-                                            .header("Content-Type", "image/jpeg")
-                                            .header("Access-Control-Allow-Origin", "*")
-                                            .header("Cache-Control", "public, max-age=31536000")
-                                            .body(std::borrow::Cow::from(b))
-                                            .unwrap(),
-                                    );
-                                    return;
-                                }
+                                && let Ok(b) = tokio::fs::read(&hq_path).await
+                            {
+                                responder.respond(
+                                    http::Response::builder()
+                                        .header("Content-Type", "image/jpeg")
+                                        .header("Access-Control-Allow-Origin", "*")
+                                        .header("Cache-Control", "public, max-age=31536000")
+                                        .body(std::borrow::Cow::from(b))
+                                        .unwrap(),
+                                );
+                                return;
+                            }
                             match tokio::fs::read(&file_path).await {
                                 Ok(raw) => {
                                     let file_path_clone = file_path.clone();
@@ -1289,15 +1290,16 @@ fn App() -> Element {
                 }
 
                 if let Ok(Ok(loaded_queue_state)) = queue_res
-                    && let Some(queue_state) = sanitize_queue_state(loaded_queue_state) {
-                        ctrl.restore_queue_state(
-                            queue_state.queue,
-                            queue_state.current_queue_index,
-                            queue_state.progress_secs,
-                            queue_state.shuffle_order,
-                            queue_state.shuffle_enabled,
-                        );
-                    }
+                    && let Some(queue_state) = sanitize_queue_state(loaded_queue_state)
+                {
+                    ctrl.restore_queue_state(
+                        queue_state.queue,
+                        queue_state.current_queue_index,
+                        queue_state.progress_secs,
+                        queue_state.shuffle_order,
+                        queue_state.shuffle_enabled,
+                    );
+                }
 
                 initial_load_done.set(true);
             });
@@ -1363,8 +1365,7 @@ fn App() -> Element {
     });
 
     use_effect(move || {
-        if !*initial_load_done.read() {
-        }
+        if !*initial_load_done.read() {}
 
         #[cfg(target_arch = "wasm32")]
         {

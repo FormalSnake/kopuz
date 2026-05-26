@@ -10,7 +10,6 @@ use dioxus::prelude::*;
 use hooks::PlayerController;
 use reader::models::Track;
 
-
 #[component]
 pub fn TrackRow(
     track: Track,
@@ -378,6 +377,7 @@ pub fn TrackRow(
                                         if let Some(handler) = on_queue { handler.call(()); }
                                         return;
                                     }
+                                }
                                 if idx == add_to_playlist_idx {
                                     on_add_to_playlist.call(());
                                 } else if remove_action_idx == Some(idx) {
@@ -612,6 +612,7 @@ pub fn TrackRow(
                                     }
                                     return;
                                 }
+                            }
 
                             if idx == add_to_playlist_idx {
                                 on_add_to_playlist.call(());

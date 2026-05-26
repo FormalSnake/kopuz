@@ -29,9 +29,10 @@ pub fn subsonic_image_url_from_path(
     }
 
     if let Some(tag) = tag
-        && let Some(url) = decode_embedded_cover_url(tag) {
-            return Some(url);
-        }
+        && let Some(url) = decode_embedded_cover_url(tag)
+    {
+        return Some(url);
+    }
 
     let mut url = reqwest::Url::parse(&format!(
         "{}/rest/getCoverArt.view",

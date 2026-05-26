@@ -31,9 +31,10 @@ impl I18nState {
             return result;
         }
         if let Some(fb) = &self.fallback
-            && let Some(result) = format_message(fb, key, args) {
-                return result;
-            }
+            && let Some(result) = format_message(fb, key, args)
+        {
+            return result;
+        }
         key.to_string()
     }
 }

@@ -337,11 +337,12 @@ impl Player {
                             *fade = None;
                         }
                         if let Ok(fading_state_guard) = stream_fading_session_state.lock()
-                            && let Some(fading_state) = fading_state_guard.as_ref() {
-                                let mut st = fading_state.lock().unwrap_or_else(|e| e.into_inner());
-                                st.stopped = true;
-                                st.finished = true;
-                            }
+                            && let Some(fading_state) = fading_state_guard.as_ref()
+                        {
+                            let mut st = fading_state.lock().unwrap_or_else(|e| e.into_inner());
+                            st.stopped = true;
+                            st.finished = true;
+                        }
                     }
 
                     if channels > 0 && device_sample_rate > 0 {
@@ -491,9 +492,10 @@ impl Player {
         let old_decoder_handle = self.decoder_handle.take();
 
         if let Some(old_consumer) = old_consumer
-            && let Ok(mut fading_consumer) = self.fading_consumer.lock() {
-                *fading_consumer = Some(old_consumer);
-            }
+            && let Ok(mut fading_consumer) = self.fading_consumer.lock()
+        {
+            *fading_consumer = Some(old_consumer);
+        }
         if let Ok(mut fading_state) = self.fading_session_state.lock() {
             *fading_state = Some(old_state);
         }
@@ -638,11 +640,12 @@ impl Player {
 
     fn stop_fading_session(&mut self) {
         if let Ok(fading_state) = self.fading_session_state.lock()
-            && let Some(state) = fading_state.as_ref() {
-                let mut st = state.lock().unwrap_or_else(|e| e.into_inner());
-                st.stopped = true;
-                st.finished = true;
-            }
+            && let Some(state) = fading_state.as_ref()
+        {
+            let mut st = state.lock().unwrap_or_else(|e| e.into_inner());
+            st.stopped = true;
+            st.finished = true;
+        }
         if let Ok(mut fade) = self.crossfade_state.lock() {
             *fade = None;
         }
@@ -1081,10 +1084,11 @@ impl Player {
                 .store(time.as_micros() as u64, Ordering::Relaxed);
 
             if let Some(cons) = &self.ring_buf_consumer
-                && let Ok(cons) = cons.lock() {
-                    let mut dummy = [0.0f32; 2048];
-                    while cons.read(&mut dummy).unwrap_or(0) > 0 {}
-                }
+                && let Ok(cons) = cons.lock()
+            {
+                let mut dummy = [0.0f32; 2048];
+                while cons.read(&mut dummy).unwrap_or(0) > 0 {}
+            }
         }
 
         self.update_now_playing_system();
@@ -1222,9 +1226,11 @@ impl Player {
         let raw = Duration::from_micros(self.position_micros.load(Ordering::Relaxed));
 
         if let Some(meta) = &self.now_playing
-            && meta.duration > Duration::ZERO && raw > meta.duration {
-                return meta.duration;
-            }
+            && meta.duration > Duration::ZERO
+            && raw > meta.duration
+        {
+            return meta.duration;
+        }
         raw
     }
 }
