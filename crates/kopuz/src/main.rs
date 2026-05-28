@@ -1365,8 +1365,6 @@ fn App() -> Element {
     });
 
     use_effect(move || {
-        if !*initial_load_done.read() {}
-
         #[cfg(target_arch = "wasm32")]
         {
             let route = *current_route.read();
