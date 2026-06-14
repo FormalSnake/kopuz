@@ -30,6 +30,10 @@ pub const SOURCE_PREFIX: &str = "soundcloud";
 /// `client_id` query param.
 const API_V2: &str = "https://api-v2.soundcloud.com";
 
+/// The public developer API host. Unlike `api-v2` it isn't behind DataDome, so
+/// authenticated writes (like/unlike) go through here.
+const API_V1: &str = "https://api.soundcloud.com";
+
 /// The web player whose HTML/JS bundles carry the `client_id`.
 const WEB_HOST: &str = "https://soundcloud.com";
 
@@ -37,9 +41,15 @@ const WEB_HOST: &str = "https://soundcloud.com";
 /// API forces a re-scrape (the id rotates server-side every so often).
 static CLIENT_ID: Mutex<Option<String>> = Mutex::const_new(None);
 
+/// Chrome-on-macOS UA. SoundCloud's api-v2 write endpoints (like/repost) 403 any
+/// request that doesn't look like the web player, so every request carries it.
+const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) \
+    AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
 fn http_client() -> reqwest::Client {
     reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(15))
+        .user_agent(USER_AGENT)
         .build()
         .unwrap_or_default()
 }
@@ -568,24 +578,58 @@ pub async fn get_playlist_entries(playlist_id: &str, token: &str) -> Result<Vec<
 }
 
 /// Like or unlike a track on the signed-in account.
-pub async fn set_track_like(track_id: &str, like: bool, token: &str) -> Result<(), String> {
+///
+/// Routes through the public `api.soundcloud.com` like endpoint, which (unlike
+/// the web player's `api-v2` host) isn't behind DataDome bot-protection — so a
+/// plain request with the `OAuth` token works without matching a browser TLS
+/// fingerprint. `datadome` is kept only for the legacy `api-v2` fallback.
+pub async fn set_track_like(
+    track_id: &str,
+    like: bool,
+    token: &str,
+    datadome: Option<&str>,
+) -> Result<(), String> {
     let http = http_client();
+
+    // Public API: POST/DELETE https://api.soundcloud.com/likes/tracks/{id}
+    let url = format!("{API_V1}/likes/tracks/{track_id}");
+    let req = if like { http.post(&url) } else { http.delete(&url) }
+        .header("Accept", "application/json; charset=utf-8");
+    let resp = apply_auth(req, Some(token))
+        .send()
+        .await
+        .map_err(|e| format!("SoundCloud like HTTP: {e}"))?;
+    if resp.status().is_success() {
+        return Ok(());
+    }
+    let pub_status = resp.status();
+    let pub_body: String = resp.text().await.unwrap_or_default().chars().take(200).collect();
+    tracing::warn!(%pub_status, pub_body = %pub_body, "soundcloud public-api like failed; trying api-v2");
+
+    // Fallback: the web player's api-v2 endpoint (DataDome-gated; needs the
+    // browser session's datadome cookie + a real Chrome fingerprint, so this
+    // usually only succeeds from the browser itself).
     let cid = client_id(&http, false).await?;
     let uid = derive_user_id(token)
         .await
         .ok_or("SoundCloud: couldn't resolve the signed-in user id")?;
     let url = format!("{API_V2}/users/{uid}/track_likes/{track_id}?client_id={cid}");
-    let req = if like {
-        http.put(url)
-    } else {
-        http.delete(url)
-    };
-    apply_auth(req, Some(token))
+    let mut req = if like { http.put(url) } else { http.delete(url) }
+        .header("Origin", WEB_HOST)
+        .header("Referer", format!("{WEB_HOST}/"));
+    if let Some(dd) = datadome.filter(|s| !s.is_empty()) {
+        req = req.header("Cookie", format!("datadome={dd}"));
+    }
+    let resp = apply_auth(req, Some(token))
         .send()
         .await
-        .map_err(|e| format!("SoundCloud like HTTP: {e}"))?
-        .error_for_status()
         .map_err(|e| format!("SoundCloud like HTTP: {e}"))?;
+    let status = resp.status();
+    if !status.is_success() {
+        let body = resp.text().await.unwrap_or_default();
+        let body: String = body.chars().take(300).collect();
+        return Err(format!("SoundCloud like HTTP {status}: {body}"));
+    }
     Ok(())
 }
 
@@ -709,6 +753,27 @@ pub mod signin {
         browser: Browser,
         profile_root: &Path,
     ) -> Result<Option<String>, String> {
+        extract_cookie(browser, profile_root, "oauth_token").await
+    }
+
+    /// Pull the `datadome` cookie set by SoundCloud's DataDome bot-protection
+    /// during the human sign-in. api-v2 *write* endpoints (like/repost) 403 with
+    /// a captcha challenge unless the request carries this session cookie; reads
+    /// aren't gated, so this is only needed on mutations.
+    pub async fn extract_datadome(
+        browser: Browser,
+        profile_root: &Path,
+    ) -> Result<Option<String>, String> {
+        extract_cookie(browser, profile_root, "datadome").await
+    }
+
+    /// Decrypt the isolated profile's cookie store (via `rookie`) and return the
+    /// value of the named cookie, if present and non-empty.
+    pub async fn extract_cookie(
+        browser: Browser,
+        profile_root: &Path,
+        name: &str,
+    ) -> Result<Option<String>, String> {
         let db_path =
             pick_cookies_path(profile_root).ok_or_else(|| "no Cookies database yet".to_string())?;
         let profile_owned = profile_root.to_path_buf();
@@ -735,7 +800,7 @@ pub mod signin {
 
         Ok(cookies
             .into_iter()
-            .find(|c| c.name == "oauth_token" && !c.value.is_empty())
+            .find(|c| c.name == name && !c.value.is_empty())
             .map(|c| c.value))
     }
 

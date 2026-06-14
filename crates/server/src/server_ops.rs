@@ -18,6 +18,11 @@ pub struct ServerConn {
     pub token: String,
     pub user_id: String,
     pub device_id: String,
+    /// SoundCloud only: the browser + server id needed to re-read the isolated
+    /// profile's `datadome` cookie at write time (required to clear bot
+    /// protection on the like endpoint).
+    pub sc_browser: Option<config::Browser>,
+    pub sc_server_id: Option<String>,
 }
 
 impl ServerConn {
@@ -43,6 +48,8 @@ impl ServerConn {
             token,
             user_id,
             device_id: config.device_id.clone(),
+            sc_browser: server.yt_browser,
+            sc_server_id: server.id.clone(),
         })
     }
 }
@@ -199,8 +206,23 @@ pub async fn set_tracks_favorite(
             if conn.token.is_empty() {
                 return Err("Sign in to SoundCloud to like tracks".to_string());
             }
+            // DataDome bot-protection gates the like endpoint; re-read the
+            // session cookie from the isolated profile so the write isn't 403'd.
+            let datadome = match (conn.sc_browser, &conn.sc_server_id) {
+                (Some(browser), Some(server_id)) => {
+                    let profile = crate::soundcloud::signin::profile_dir(server_id);
+                    crate::soundcloud::signin::extract_datadome(browser, &profile)
+                        .await
+                        .ok()
+                        .flatten()
+                }
+                _ => None,
+            };
             for id in item_ids {
-                record!(crate::soundcloud::set_track_like(id, favorite, &conn.token).await);
+                record!(
+                    crate::soundcloud::set_track_like(id, favorite, &conn.token, datadome.as_deref())
+                        .await
+                );
             }
         }
     }
