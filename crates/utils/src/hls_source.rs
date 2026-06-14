@@ -14,6 +14,11 @@
 use std::io::{Error, ErrorKind, Result};
 use std::time::Duration;
 
+/// Upper bound on the assembled stream size. A single track's AAC stream is a
+/// few tens of MiB; this 1 GiB cap guards against a malformed/malicious
+/// playlist driving unbounded in-memory growth.
+const MAX_TOTAL_BYTES: usize = 1024 * 1024 * 1024;
+
 fn client() -> reqwest::blocking::Client {
     reqwest::blocking::Client::builder()
         .timeout(Duration::from_secs(30))
@@ -55,6 +60,12 @@ pub fn assemble(playlist_url: &str, user_agent: Option<&str>) -> Result<Vec<u8>>
             .and_then(|r| r.error_for_status())
             .and_then(|r| r.bytes())
             .map_err(|e| Error::other(format!("HLS segment fetch: {e}")))?;
+        if out.len().saturating_add(bytes.len()) > MAX_TOTAL_BYTES {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                "HLS stream exceeds maximum allowed size",
+            ));
+        }
         out.extend_from_slice(&bytes);
     }
     Ok(out)
@@ -106,9 +117,19 @@ fn resolve_url(base: &str, reference: &str) -> String {
             return format!("{base}/{rel}");
         }
         let path_part = base.split('?').next().unwrap_or(base);
-        if let Some(slash) = path_part.rfind('/') {
+        // Only treat a slash that lies after "scheme://host" as a path
+        // separator — rfind on the whole URL would otherwise match the slash
+        // in "https://" when the base has no path, mangling the result.
+        let after_scheme_start = scheme_end + 3;
+        if let Some(rel) = path_part
+            .get(after_scheme_start..)
+            .and_then(|host_and_path| host_and_path.rfind('/'))
+        {
+            let slash = after_scheme_start + rel;
             return format!("{}/{reference}", &path_part[..slash]);
         }
+        // Host only, no path component: append directly.
+        return format!("{path_part}/{reference}");
     }
     reference.to_string()
 }
@@ -151,6 +172,15 @@ mod tests {
         assert_eq!(
             resolve_url(base, "https://x.com/s.mp4"),
             "https://x.com/s.mp4"
+        );
+        // Base with host only (no path) must not match the scheme's slash.
+        assert_eq!(
+            resolve_url("https://host.com", "seg.mp4"),
+            "https://host.com/seg.mp4"
+        );
+        assert_eq!(
+            resolve_url("https://host.com?token=z", "seg.mp4"),
+            "https://host.com/seg.mp4"
         );
     }
 }

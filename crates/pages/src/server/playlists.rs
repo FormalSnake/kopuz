@@ -448,16 +448,21 @@ pub fn JellyfinPlaylists(
     });
 
     let playlists = jellyfin_playlists.read().clone();
-    let is_ytmusic_active = config
+    let is_music_sync_active = config
         .read()
         .server
         .as_ref()
-        .map(|s| s.service == MusicService::YtMusic)
+        .map(|s| {
+            matches!(
+                s.service,
+                MusicService::YtMusic | MusicService::SoundCloud
+            )
+        })
         .unwrap_or(false);
 
     rsx! {
         div {
-            if is_ytmusic_active {
+            if is_music_sync_active {
                 {
                     let syncing = *yt_is_syncing.read();
                     let done = *yt_synced_so_far.read();

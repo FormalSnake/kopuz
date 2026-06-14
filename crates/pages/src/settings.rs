@@ -360,10 +360,16 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                 .unwrap_or_else(|| "me".to_string());
             {
                 let mut cfg = config.write();
+                let saved_id = cfg.server.as_ref().and_then(|s| s.id.clone());
                 if let Some(srv) = cfg.server.as_mut() {
                     srv.access_token = Some(token);
                     srv.user_id = Some(user_id);
                     srv.yt_browser = Some(browser);
+                }
+                if let Some(id) = saved_id
+                    && let Some(saved) = cfg.servers.iter_mut().find(|s| s.id == id)
+                {
+                    saved.yt_browser = Some(browser);
                 }
             }
             error.set(None);

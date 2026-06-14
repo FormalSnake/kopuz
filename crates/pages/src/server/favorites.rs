@@ -191,7 +191,7 @@ pub fn JellyfinFavorites(
                                         .map(|d| d.as_secs())
                                         .unwrap_or(0);
                                     library.write().last_yt_sync_at = Some(now);
-                                    accumulated
+                                    let ids: Vec<String> = accumulated
                                         .iter()
                                         .filter_map(|t| {
                                             t.path
@@ -200,7 +200,33 @@ pub fn JellyfinFavorites(
                                                 .nth(1)
                                                 .map(|s| s.to_string())
                                         })
-                                        .collect()
+                                        .collect();
+                                    let liked_cover = accumulated.first().and_then(|t| {
+                                        t.path
+                                            .to_string_lossy()
+                                            .split(':')
+                                            .nth(2)
+                                            .filter(|s| s.starts_with("urlhex_"))
+                                            .map(|s| s.to_string())
+                                    });
+                                    let liked_entry = reader::models::JellyfinPlaylist {
+                                        id: "LM".to_string(),
+                                        name: "Liked Songs".to_string(),
+                                        tracks: ids.clone(),
+                                        image_tag: liked_cover,
+                                        cover_path: None,
+                                    };
+                                    {
+                                        let mut ps = playlist_store.write();
+                                        if let Some(existing) =
+                                            ps.jellyfin_playlists.iter_mut().find(|p| p.id == "LM")
+                                        {
+                                            *existing = liked_entry;
+                                        } else {
+                                            ps.jellyfin_playlists.insert(0, liked_entry);
+                                        }
+                                    }
+                                    ids
                                 }
                                 Err(e) => {
                                     tracing::warn!(error = %e, "SoundCloud favorites sync failed");

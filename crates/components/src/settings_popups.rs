@@ -16,14 +16,6 @@ pub fn AddServerPopup(
     on_close: EventHandler<()>,
     on_save: EventHandler<()>,
 ) -> Element {
-    let _service_value = match server_service() {
-        MusicService::Jellyfin => "jellyfin",
-        MusicService::Subsonic => "subsonic",
-        MusicService::Custom => "custom",
-        MusicService::YtMusic => "ytmusic",
-        MusicService::SoundCloud => "soundcloud",
-    };
-
     let server_name_optional = i18n::t("server_name_optional").to_string();
     let server_url_placeholder = i18n::t("server_url_placeholder").to_string();
     let custom_manual = i18n::t("custom_manual").to_string();

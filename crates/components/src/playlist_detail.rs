@@ -23,15 +23,16 @@ pub fn PlaylistDetail(
     let mut tracks = use_signal(Vec::<reader::models::Track>::new);
     let mut has_loaded_jellyfin_tracks = use_signal(|| false);
 
-    // YT Music's InnerTube has no playlist-reorder mutation, so reorder
-    // affordances need to be hidden / no-op on YT playlists. Doing the
-    // optimistic local swap and then no-op'ing the server side leaves a
-    // visual ghost that reverts on next sync — silent UX loss.
-    let active_service_is_ytmusic = config
+    // Neither YT Music's InnerTube nor SoundCloud's API exposes a
+    // playlist-reorder mutation, so reorder affordances need to be hidden /
+    // no-op on those playlists. Doing the optimistic local swap and then
+    // no-op'ing the server side leaves a visual ghost that reverts on next
+    // sync — silent UX loss.
+    let active_service_blocks_reorder = config
         .peek()
         .server
         .as_ref()
-        .map(|s| s.service == MusicService::YtMusic)
+        .map(|s| matches!(s.service, MusicService::YtMusic | MusicService::SoundCloud))
         .unwrap_or(false);
 
     let (playlist_name, local_tracks_paths, is_jellyfin, playlist_custom_cover, playlist_image_tag) =
@@ -506,9 +507,9 @@ pub fn PlaylistDetail(
                     }
                 }
             },
-            is_reorderable: !active_service_is_ytmusic,
+            is_reorderable: !active_service_blocks_reorder,
             on_move_up: move |idx: usize| {
-                if idx == 0 || active_service_is_ytmusic { return; }
+                if idx == 0 || active_service_blocks_reorder { return; }
                 tracks.write().swap(idx - 1, idx);
                 if !is_jellyfin {
                     let mut store = playlist_store.write();
@@ -588,7 +589,7 @@ pub fn PlaylistDetail(
             },
             on_move_down: move |idx: usize| {
                 let len = tracks.read().len();
-                if idx + 1 >= len || active_service_is_ytmusic { return; }
+                if idx + 1 >= len || active_service_blocks_reorder { return; }
                 tracks.write().swap(idx, idx + 1);
                 if !is_jellyfin {
                     let mut store = playlist_store.write();

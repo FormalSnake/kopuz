@@ -290,5 +290,10 @@ mod tests {
         let yt = ServerConn::resolve(&cfg("YtMusic", Some("cookie"), None)).unwrap();
         assert_eq!(yt.token, "cookie");
         assert!(yt.user_id.is_empty());
+
+        // SoundCloud authenticates by token — user_id optional, still resolves.
+        let sc = ServerConn::resolve(&cfg("SoundCloud", Some("oauth"), None)).unwrap();
+        assert_eq!(sc.token, "oauth");
+        assert!(sc.user_id.is_empty());
     }
 }

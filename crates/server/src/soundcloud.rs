@@ -225,12 +225,19 @@ pub async fn resolve_stream(track_id: &str, token: Option<&str>) -> Result<Resol
     if let Some(tc) = transcodings.iter().find(|tc| {
         transcoding_protocol(tc) == Some("hls") && transcoding_mime(tc) == Some("audio/mp4")
     }) {
-        let hls_url = tc
-            .get("url")
-            .and_then(|v| v.as_str())
-            .ok_or("SoundCloud AAC transcoding has no url")?;
-        let media = resolve_media_url(&http, hls_url, track_auth, token).await?;
-        return Ok(ResolvedStream::HlsAac(media));
+        // Best-effort: if the AAC/HLS transcoding can't be resolved, fall
+        // through to the progressive MP3 stream rather than failing the play.
+        if let Some(hls_url) = tc.get("url").and_then(|v| v.as_str()) {
+            match resolve_media_url(&http, hls_url, track_auth, token).await {
+                Ok(media) => return Ok(ResolvedStream::HlsAac(media)),
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "SoundCloud HLS resolve failed; falling back to progressive"
+                    );
+                }
+            }
+        }
     }
 
     let progressive_url = transcodings
@@ -463,6 +470,10 @@ pub async fn stream_liked_tracks<F: FnMut(Vec<Track>)>(
     let mut pages = 0;
     while let Some(url) = next.take() {
         if pages >= 20 {
+            tracing::warn!(
+                pages,
+                "SoundCloud liked-tracks pagination cap hit; sync is partial"
+            );
             break;
         }
         pages += 1;
@@ -495,6 +506,10 @@ pub async fn list_playlists(token: &str) -> Result<Vec<PlaylistSummary>, String>
     let mut pages = 0;
     while let Some(url) = next.take() {
         if pages >= 10 {
+            tracing::warn!(
+                pages,
+                "SoundCloud playlists pagination cap hit; list is partial"
+            );
             break;
         }
         pages += 1;
@@ -559,13 +574,21 @@ pub async fn get_playlist_entries(playlist_id: &str, token: &str) -> Result<Vec<
             .collect::<Vec<_>>()
             .join(",");
         let url = format!("{API_V2}/tracks?ids={ids_str}&client_id={cid}");
-        if let Ok(arr) = auth_get_json(&http, &url, Some(token)).await
-            && let Some(items) = arr.as_array()
-        {
-            for t in items {
-                if let Some(id) = t.get("id").and_then(|v| v.as_u64()) {
-                    by_id.insert(id, t.clone());
+        match auth_get_json(&http, &url, Some(token)).await {
+            Ok(arr) => {
+                if let Some(items) = arr.as_array() {
+                    for t in items {
+                        if let Some(id) = t.get("id").and_then(|v| v.as_u64()) {
+                            by_id.insert(id, t.clone());
+                        }
+                    }
                 }
+            }
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    "SoundCloud playlist hydration chunk failed; contents may be incomplete"
+                );
             }
         }
     }
