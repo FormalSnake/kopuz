@@ -122,6 +122,54 @@ fn build_tray_icon() -> Option<dioxus::desktop::trayicon::Icon> {
     dioxus::desktop::trayicon::Icon::from_rgba(image.into_raw(), width, height).ok()
 }
 
+#[cfg(target_os = "linux")]
+fn tray_backend_available() -> bool {
+    const CANDIDATES: &[&str] = &[
+        "libayatana-appindicator3.so.1",
+        "libappindicator3.so.1",
+        "libayatana-appindicator3.so",
+        "libappindicator3.so",
+    ];
+    CANDIDATES
+        .iter()
+        .any(|name| unsafe { libloading::Library::new(name) }.is_ok())
+}
+
+#[cfg(all(
+    not(target_arch = "wasm32"),
+    not(target_os = "android"),
+    not(target_os = "linux")
+))]
+fn tray_backend_available() -> bool {
+    true
+}
+
+#[cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))]
+fn show_tray_missing_popup() {
+    let msg = "System tray unavailable: appindicator library not found. \
+               Install libayatana-appindicator (Debian/Ubuntu/Arch) or \
+               libappindicator-gtk3 (Fedora). Closing the window will quit \
+               the app instead of minimizing to tray.";
+    let escaped = serde_json::to_string(msg).unwrap_or_else(|_| "\"\"".to_string());
+    let js = format!(
+        r#"(function(m){{
+            let t = document.getElementById('kopuz-tray-popup');
+            if (!t) {{
+                t = document.createElement('div');
+                t.id = 'kopuz-tray-popup';
+                t.style.cssText = 'position:fixed;right:16px;top:16px;max-width:360px;background:rgba(28,28,30,0.97);color:#fff;padding:14px 16px;border-radius:10px;font:13px/1.45 system-ui,sans-serif;z-index:99999;box-shadow:0 8px 28px rgba(0,0,0,0.5);border:1px solid rgba(255,170,60,0.45);opacity:0;transition:opacity 200ms;';
+                t.onclick = () => {{ t.style.opacity = '0'; }};
+                document.body.appendChild(t);
+            }}
+            t.innerHTML = '<div style="font-weight:600;margin-bottom:4px;color:#ffb347;">Tray icon unavailable</div>' + m;
+            requestAnimationFrame(() => {{ t.style.opacity = '1'; }});
+            clearTimeout(t._h);
+            t._h = setTimeout(() => {{ t.style.opacity = '0'; }}, 8000);
+        }})({escaped});"#
+    );
+    let _ = dioxus::document::eval(&js);
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct AvailableUpdate {
@@ -1372,9 +1420,6 @@ fn App() -> Element {
         windows_titlebar::set_custom_titlebar_enabled(mode == config::TitlebarMode::Custom);
     });
 
-    // System tray (desktop only). When `minimize_to_tray` is on, closing the
-    // window hides it instead of quitting and a tray icon is shown; clicking the
-    // tray icon restores the window (handled by dioxus's built-in tray handler).
     #[cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))]
     {
         use dioxus::desktop::trayicon::TrayIcon;
@@ -1383,12 +1428,53 @@ fn App() -> Element {
         use std::rc::Rc;
 
         let tray_slot: Rc<RefCell<Option<TrayIcon>>> = use_hook(|| Rc::new(RefCell::new(None)));
+        let tray_warned: Rc<RefCell<bool>> = use_hook(|| Rc::new(RefCell::new(false)));
+
+        const TRAY_SHOW_ID: &str = "kopuz-tray-show";
+        const TRAY_QUIT_ID: &str = "kopuz-tray-quit";
+
+        let win_ctx = window();
+        dioxus::desktop::use_tray_menu_event_handler({
+            let win_ctx = win_ctx.clone();
+            move |event| {
+                if event.id == TRAY_SHOW_ID {
+                    if win_ctx.is_visible() {
+                        win_ctx.set_visible(false);
+                    } else {
+                        win_ctx.set_visible(true);
+                        win_ctx.set_focus();
+                    }
+                } else if event.id == TRAY_QUIT_ID {
+                    win_ctx.set_close_behavior(WindowCloseBehaviour::WindowCloses);
+                    win_ctx.close();
+                }
+            }
+        });
 
         use_effect({
             let tray_slot = tray_slot.clone();
+            let tray_warned = tray_warned.clone();
             move || {
                 use dioxus::desktop::trayicon::TrayIconBuilder;
-                let enabled = config.read().minimize_to_tray;
+                let want_tray = config.read().minimize_to_tray;
+                let enabled = want_tray && tray_backend_available();
+                let mut warned = tray_warned.borrow_mut();
+                if want_tray && !enabled {
+                    tracing::error!(
+                        "minimize_to_tray is enabled but no system tray backend was found. \
+                         Install the appindicator library for your distro: \
+                         libayatana-appindicator3 (Debian/Ubuntu/Arch: libayatana-appindicator), \
+                         Fedora: libappindicator-gtk3. \
+                         Closing the window will quit the app instead of hiding to tray."
+                    );
+                    if !*warned {
+                        show_tray_missing_popup();
+                        *warned = true;
+                    }
+                } else {
+                    *warned = false;
+                }
+                drop(warned);
                 window().set_close_behavior(if enabled {
                     WindowCloseBehaviour::WindowHides
                 } else {
@@ -1398,7 +1484,19 @@ fn App() -> Element {
                 let mut slot = tray_slot.borrow_mut();
                 match (enabled, slot.is_some()) {
                     (true, false) => {
-                        let mut builder = TrayIconBuilder::new().with_tooltip("Kopuz");
+                        use dioxus::desktop::trayicon::menu::{Menu, MenuItem};
+
+                        let menu = Menu::new();
+                        let show = MenuItem::with_id(TRAY_SHOW_ID, "Show / Hide Kopuz", true, None);
+                        let quit = MenuItem::with_id(TRAY_QUIT_ID, "Quit Kopuz", true, None);
+                        if let Err(e) = menu.append_items(&[&show, &quit]) {
+                            tracing::warn!("Failed to build tray menu: {e}");
+                        }
+
+                        let mut builder = TrayIconBuilder::new()
+                            .with_tooltip("Kopuz")
+                            .with_menu(Box::new(menu))
+                            .with_menu_on_left_click(false);
                         if let Some(icon) = build_tray_icon() {
                             builder = builder.with_icon(icon);
                         }
