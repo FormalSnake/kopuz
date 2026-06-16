@@ -1255,6 +1255,26 @@ impl PlayerController {
                                         if let Ok(response) = reqwest::get(&cover_url).await
                                             && let Ok(bytes) = response.bytes().await
                                         {
+                                            #[cfg(target_os = "android")]
+                                            let cover_dir = {
+                                                let mut base = player::systemint::get_files_dir()
+                                                    .map(std::path::PathBuf::from)
+                                                    .unwrap_or_else(|| {
+                                                        std::path::PathBuf::from(".")
+                                                    })
+                                                    .join("cache");
+                                                if tokio::fs::create_dir_all(&base)
+                                                    .await
+                                                    .is_err()
+                                                {
+                                                    base = std::path::PathBuf::from("./cache");
+                                                }
+                                                base.join("covers")
+                                            };
+                                            #[cfg(all(
+                                                not(target_arch = "wasm32"),
+                                                not(target_os = "android")
+                                            ))]
                                             let cover_dir = directories::ProjectDirs::from(
                                                 "com",
                                                 "temidaradev",
