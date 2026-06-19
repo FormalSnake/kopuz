@@ -313,6 +313,9 @@ fn Tabs(
     current_queue_index: Signal<usize>,
     lyrics: Signal<Option<Option<utils::lyrics::Lyrics>>>,
     current_song_progress: Signal<u64>,
+    player: Signal<Player>,
+    volume: Signal<f32>,
+    persisted_volume: Signal<f32>,
 ) -> Element {
     let mut active_tab = use_signal(|| 0usize);
 
@@ -340,6 +343,12 @@ fn Tabs(
                     },
                     onclick: move |_| active_tab.set(1),
                     "{i18n::t(\"lyrics\")}"
+                }
+
+                div {
+                    class: "ml-auto flex items-center",
+                    style: "width: 160px;",
+                    VolumeControl { player, config, volume, persisted_volume }
                 }
             }
 
@@ -606,17 +615,6 @@ pub fn Fullscreen(
             }
 
             div {
-                class: "absolute top-4 right-6 z-[60]",
-                style: "width: 200px;",
-                VolumeControl {
-                    player,
-                    config,
-                    volume,
-                    persisted_volume,
-                }
-            }
-
-            div {
                 class: "flex flex-1 overflow-hidden",
 
                 div {
@@ -655,7 +653,10 @@ pub fn Fullscreen(
                     items,
                     current_queue_index,
                     lyrics,
-                    current_song_progress
+                    current_song_progress,
+                    player,
+                    volume,
+                    persisted_volume,
                 }
             }
         }
