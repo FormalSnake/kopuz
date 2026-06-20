@@ -99,6 +99,9 @@ fn logs_section(mut config: Signal<AppConfig>) -> Element {
     }
 }
 
+/// Debug-build-only database panel: reset / load release DB / seed / re-run
+/// import / vacuum / info, all against the disposable debug DB with a live
+/// pool swap (no restart). English-only by design (dev tool).
 #[cfg(any(target_arch = "wasm32", target_os = "android"))]
 fn logs_section(_config: Signal<AppConfig>) -> Element {
     rsx! {}
@@ -116,10 +119,7 @@ use hooks::use_player_controller::PlayerController;
 use tracing::Instrument;
 
 async fn validate(cookies: &str) -> bool {
-    ::server::ytmusic::YouTubeMusicClient::with_cookies(cookies.to_string())
-        .validate_cookies()
-        .await
-        .is_ok()
+    ::server::provider::validate_ytmusic_cookies(cookies).await
 }
 
 async fn try_resume(seed: Option<String>) -> Option<String> {
@@ -300,11 +300,65 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
         });
     };
 
+    // SoundCloud sign-in: launch the chosen browser at soundcloud.com/signin in
+    // an isolated profile, extract the `oauth_token` cookie, and store it on the
+    // active server (mirrors `ytmusic_auto_login`).
+    let soundcloud_auto_login = move || {
+        let (browser, server_id) = {
+            let cfg = config.peek();
+            let srv = cfg.server.as_ref();
+            (
+                srv.and_then(|s| s.yt_browser).unwrap_or(*yt_browser.peek()),
+                srv.and_then(|s| s.id.clone()).unwrap_or_default(),
+            )
+        };
+        let mut report = move |msg: String| {
+            error.set(Some(msg.clone()));
+            ctrl.playback_error.set(Some(msg));
+        };
+        spawn(async move {
+            let token = match ::server::soundcloud::signin::launch_signin_and_extract(
+                browser,
+                &server_id,
+                std::time::Duration::from_secs(300),
+            )
+            .await
+            {
+                Ok(t) => t,
+                Err(e) => {
+                    report(format!("SoundCloud sign-in failed ({browser}): {e}"));
+                    return;
+                }
+            };
+            let user_id = ::server::soundcloud::derive_user_id(&token)
+                .await
+                .unwrap_or_else(|| "me".to_string());
+            {
+                let mut cfg = config.write();
+                let saved_id = cfg.server.as_ref().and_then(|s| s.id.clone());
+                if let Some(srv) = cfg.server.as_mut() {
+                    srv.access_token = Some(token);
+                    srv.user_id = Some(user_id);
+                    srv.yt_browser = Some(browser);
+                }
+                if let Some(id) = saved_id
+                    && let Some(saved) = cfg.servers.iter_mut().find(|s| s.id == id)
+                {
+                    saved.yt_browser = Some(browser);
+                }
+            }
+            error.set(None);
+        });
+    };
+
     let handle_add_server = move |_| {
         let selected_service = server_service();
         let is_ytmusic = selected_service == MusicService::YtMusic;
+        let is_soundcloud = selected_service == MusicService::SoundCloud;
+        let is_browser_signin = selected_service.uses_browser_signin();
 
-        if !is_ytmusic && !server_url().starts_with("http") {
+        // Browser-sign-in backends (YT, SoundCloud) have no user-entered URL.
+        if !is_browser_signin && !server_url().starts_with("http") {
             error.set(Some(i18n::t("invalid_server_url").to_string()));
             return;
         }
@@ -325,6 +379,8 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
 
                 let effective_url = if is_ytmusic {
                     "https://music.youtube.com".to_string()
+                } else if is_soundcloud {
+                    "https://soundcloud.com".to_string()
                 } else {
                     url_input
                 };
@@ -345,19 +401,24 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                 }
                 // Persist the chosen browser on the active server too (not just the
                 // saved-list entry), so the sign-in flow knows which browser to use.
-                new_server.yt_browser = (is_ytmusic && !is_anon).then(|| *yt_browser.peek());
+                // Applies to every browser-sign-in backend (YT, SoundCloud).
+                new_server.yt_browser = (is_browser_signin && !is_anon).then(|| *yt_browser.peek());
 
                 let saved = config::SavedServer {
                     id: new_server.id.clone().unwrap_or_default(),
                     name: new_server.name.clone(),
                     url: new_server.url.clone(),
                     service: new_server.service,
-                    yt_browser: (is_ytmusic && !is_anon).then(|| *yt_browser.peek()),
+                    yt_browser: (is_browser_signin && !is_anon).then(|| *yt_browser.peek()),
                     yt_anonymous: is_anon,
                 };
                 {
                     let mut cfg = config.write();
                     cfg.add_saved_server(saved);
+                    cfg.active_source = new_server
+                        .id
+                        .clone()
+                        .map_or(config::Source::Local, config::Source::Server);
                     cfg.server = Some(new_server);
                 }
 
@@ -369,7 +430,9 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
 
                 if is_ytmusic && !is_anon {
                     ytmusic_auto_login();
-                } else if !is_ytmusic {
+                } else if is_soundcloud {
+                    soundcloud_auto_login();
+                } else if !is_browser_signin {
                     show_login.set(true);
                 }
                 // Anonymous YT needs no further setup — the server entry
@@ -379,48 +442,45 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
         );
     };
 
+    let db_for_switch = use_context::<hooks::ReadDb>();
     let handle_switch_server = move |id: String| {
-        let server = {
-            let cfg = config.read();
-            cfg.find_saved_server(&id).cloned()
-        };
-        if let Some(saved) = server {
-            let is_ytmusic = saved.service == MusicService::YtMusic;
-            let is_anon = is_ytmusic && saved.yt_anonymous;
-            let active = config::MusicServer {
-                name: saved.name,
-                url: saved.url,
-                service: saved.service,
-                // Anonymous YT keeps an empty (non-None) token so the
-                // backend treats it as anon rather than "needs sign-in".
-                access_token: is_anon.then(String::new),
-                user_id: None,
-                id: Some(saved.id),
-                // Carry the saved browser choice over so the sign-in
-                // launch hits the binary the user picked, not whatever
-                // the popup's default selector happens to be.
-                yt_browser: saved.yt_browser,
-                yt_anonymous: is_anon,
+        let db = db_for_switch.clone();
+        spawn(async move {
+            let Some(is_ytmusic) = config
+                .peek()
+                .find_saved_server(&id)
+                .map(|s| s.service == MusicService::YtMusic)
+            else {
+                return;
             };
-            config.write().server = Some(active);
-            if is_ytmusic && !is_anon {
-                ytmusic_auto_login();
-            } else if !is_ytmusic {
-                show_login.set(true);
+            // Shared switch (sidebar + Settings): loads creds and sets the active
+            // source + server snapshot together. `usable` ⇒ has stored creds or is
+            // anonymous YT; otherwise launch the right sign-in flow.
+            let usable =
+                hooks::source_switch::apply_source_switch(config, db, config::Source::Server(id))
+                    .await;
+            if !usable {
+                if is_ytmusic {
+                    ytmusic_auto_login();
+                } else {
+                    show_login.set(true);
+                }
             }
-            // Anonymous YT is immediately active — no sign-in launch.
-        }
+        });
     };
 
     let handle_delete_saved = move |id: String| {
-        let was_ytmusic = config
-            .peek()
-            .find_saved_server(&id)
-            .map(|s| s.service == MusicService::YtMusic)
-            .unwrap_or(false);
+        let service = config.peek().find_saved_server(&id).map(|s| s.service);
         config.write().remove_saved_server(&id);
-        if was_ytmusic {
-            let _ = ::server::ytmusic::isolated_profile::delete_profile(&id);
+        // Wipe the isolated browser-profile dir of browser-sign-in backends.
+        match service {
+            Some(MusicService::YtMusic) => {
+                let _ = ::server::ytmusic::isolated_profile::delete_profile(&id);
+            }
+            Some(MusicService::SoundCloud) => {
+                let _ = ::server::soundcloud::signin::delete_profile(&id);
+            }
+            _ => {}
         }
     };
 
@@ -583,28 +643,35 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                             }
                         }
 
-                        SettingItem {
-                            title: i18n::t("media_servers").to_string(),
-                            control: rsx! {
-                                ServerSettings {
-                                    active: config.read().server.clone(),
-                                    servers: config.read().servers.clone(),
-                                    on_add: move |_| show_add_server.set(true),
-                                    on_delete: handle_delete_saved,
-                                    on_switch: handle_switch_server,
-                                    on_login: move |_| {
-                                        let is_ytmusic = config
+                        div { id: "settings-media-servers",
+                            SettingItem {
+                                title: i18n::t("media_servers").to_string(),
+                                control: rsx! {
+                                    ServerSettings {
+                                        active: config.read().server.clone(),
+                                        active_source_id: config
                                             .read()
-                                            .server
-                                            .as_ref()
-                                            .map(|s| s.service == MusicService::YtMusic)
-                                            .unwrap_or(false);
-                                        if is_ytmusic {
-                                            ytmusic_auto_login();
-                                        } else {
-                                            show_login.set(true);
-                                        }
-                                    },
+                                            .active_source
+                                            .server_id()
+                                            .map(String::from),
+                                        servers: config.read().servers.clone(),
+                                        on_add: move |_| show_add_server.set(true),
+                                        on_delete: handle_delete_saved,
+                                        on_switch: handle_switch_server,
+                                        on_login: move |_| {
+                                            let is_ytmusic = config
+                                                .read()
+                                                .server
+                                                .as_ref()
+                                                .map(|s| s.service == MusicService::YtMusic)
+                                                .unwrap_or(false);
+                                            if is_ytmusic {
+                                                ytmusic_auto_login();
+                                            } else {
+                                                show_login.set(true);
+                                            }
+                                        },
+                                    }
                                 }
                             }
                         }
@@ -624,6 +691,17 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                     ToggleSetting {
                                         enabled: config.read().auto_check_updates,
                                         on_change: move |val| config.write().auto_check_updates = val,
+                                    }
+                                }
+                            }
+                        }
+                        if !cfg!(any(target_arch = "wasm32", target_os = "android")) {
+                            SettingItem {
+                                title: i18n::t("minimize_to_tray").to_string(),
+                                control: rsx! {
+                                    ToggleSetting {
+                                        enabled: config.read().minimize_to_tray,
+                                        on_change: move |val| config.write().minimize_to_tray = val,
                                     }
                                 }
                             }
@@ -1044,6 +1122,8 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                 }
 
                 {logs_section(config)}
+
+                {hooks::debug_db_section()}
 
                 {theme_editor_section(config)}
 

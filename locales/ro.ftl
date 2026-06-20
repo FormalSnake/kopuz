@@ -53,6 +53,10 @@ titlebar_system = Decorații sistem
 titlebar_off = Fără bară de titlu
 volume = Volum
 local = Local
+source = Source
+sources = Sources
+manage_sources = Manage sources
+source_on_this_device = On this device
 server = Server
 ytdlp = Descărcări
 
@@ -197,6 +201,8 @@ featured_album = Album recomandat
 minimize = Minimizează
 maximize = Maximizează
 close = Închide
+mini_player = Mini player
+restore_full_player = Restaurează playerul complet
 shuffle_on = Amestecare: Activat
 shuffle_off = Amestecare: Dezactivat
 repeat_off = Repetare: Dezactivat
@@ -405,6 +411,7 @@ radio_asiadreamradio_desc = Inima muzicii J-Pop - J-Pop, J-Rock, J-HipHop, J-Jaz
 radio_live_stream = Transmisie în direct
 
 auto_check_updates = Verifică automat actualizările
+minimize_to_tray = Minimizează în bara de sistem
 update_available = Actualizare disponibilă
 update_banner_message = Kopuz { $version } este disponibil.
 view_release = Vezi lansarea

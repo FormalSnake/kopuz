@@ -53,6 +53,10 @@ titlebar_system = زخارف النظام
 titlebar_off = بلا شريط عنوان
 volume = الصوت
 local = محلي
+source = Source
+sources = Sources
+manage_sources = Manage sources
+source_on_this_device = On this device
 server = خادم
 ytdlp = التنزيلات
 
@@ -197,6 +201,8 @@ featured_album = ألبوم مميز
 minimize = تصغير
 maximize = تكبير
 close = إغلاق
+mini_player = مشغل مصغر
+restore_full_player = استعادة المشغل الكامل
 shuffle_on = تبديل: تشغيل
 shuffle_off = تبديل: إيقاف
 repeat_off = تكرار: إيقاف
@@ -411,6 +417,7 @@ radio_asiadreamradio_desc = قلب موسيقى الجي-بوب - جي-بوب، 
 radio_live_stream = بث مباشر
 
 auto_check_updates = التحقق التلقائي من التحديثات
+minimize_to_tray = تصغير إلى صينية النظام
 update_available = تحديث متوفر
 update_banner_message = إصدار Kopuz { $version } متوفر.
 view_release = عرض الإصدار

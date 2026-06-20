@@ -7,7 +7,6 @@ use config::AppConfig;
 use dioxus::prelude::*;
 use hooks::use_player_controller::{LoopMode, PlayerController};
 use player::player::Player;
-use reader::Library;
 
 #[component]
 fn ProgressBarControl(
@@ -35,7 +34,7 @@ fn ProgressBarControl(
     rsx! {
         div {
             class: "w-full mb-6",
-            style: "max-width: 420px;",
+            style: "max-width: 520px;",
             div {
                 class: "flex items-center gap-3",
                 span { class: "text-xs text-white/70 font-mono", style: "width: 50px; text-align: left;", "{fmt_time(display_progress)}" }
@@ -95,7 +94,7 @@ fn VolumeControl(
     rsx! {
         div {
             class: "flex items-center gap-5 w-full",
-            style: "max-width: 420px;",
+            style: "max-width: 520px;",
             i { class: "fa-solid fa-volume-low text-white/40" }
             div {
                 class: "flex-1 cursor-pointer relative",
@@ -115,11 +114,11 @@ fn VolumeControl(
                     persisted_volume.set(new_val);
                 },
                 div {
-                    class: "absolute bg-white rounded-full",
-                    style: "height: 4px; top: 8px; left: 6px; right: 0;"
+                    class: "absolute bg-white/20 rounded-full",
+                    style: "height: 4px; top: 8px; left: 0; right: 0;"
                 }
                 div {
-                    class: "absolute bg-white/70 rounded-full pointer-events-none",
+                    class: "absolute bg-white rounded-full pointer-events-none",
                     style: "height: 4px; top: 8px; left: 0; width: {volume_percent}%;"
                 }
                 div {
@@ -157,9 +156,9 @@ fn PlaybackControl(mut is_playing: Signal<bool>) -> Element {
     rsx! {
         div {
             class: "flex items-center justify-between w-full mb-8",
-            style: "max-width: 420px;",
+            style: "max-width: 520px;",
             button {
-                class: format!("{} transition-all active:scale-95 relative flex-shrink-0", if *ctrl.shuffle.read() { "text-white" } else { "text-white/50 hover:text-white" }),
+                class: format!("{} transition-all active:scale-95 relative flex-shrink-0", if *ctrl.shuffle.read() { "text-white" } else { "text-white/70 hover:text-white" }),
                 onclick: move |_| ctrl.toggle_shuffle(),
                 title: if *ctrl.shuffle.read() { i18n::t("shuffle_on").to_string() } else { i18n::t("shuffle_off").to_string() },
                 i { class: "fa-solid fa-shuffle text-lg" }
@@ -191,7 +190,7 @@ fn PlaybackControl(mut is_playing: Signal<bool>) -> Element {
             button {
                 class: format!("{} transition-all active:scale-95 relative flex-shrink-0",
                     match *ctrl.loop_mode.read() {
-                        LoopMode::None => "text-white/50 hover:text-white",
+                        LoopMode::None => "text-white/70 hover:text-white",
                         LoopMode::Queue => "text-white",
                         LoopMode::Track => "text-white",
                     }
@@ -231,8 +230,8 @@ fn TrackMetadata(
 
     rsx! {
         div {
-            class: "rounded-2xl overflow-hidden mb-8 shadow-2xl",
-            style: "width: 100%; max-width: 420px; aspect-ratio: 1/1;",
+            class: "rounded-2xl overflow-hidden mb-8",
+            style: "width: 100%; max-width: 520px; aspect-ratio: 1/1; box-shadow: 0 25px 60px -15px rgba(0,0,0,0.55);",
             {
                 let cover = current_song_cover_url.read();
                 if cover.is_empty() {
@@ -251,7 +250,7 @@ fn TrackMetadata(
                     rsx! {
                         img {
                             src: "{src}",
-                            class: "w-full h-full object-cover"
+                            class: "w-full h-full object-contain"
                         }
                     }
                 }
@@ -260,12 +259,12 @@ fn TrackMetadata(
 
         div {
             class: "flex flex-col items-start w-full mb-2",
-            style: "max-width: 420px;",
-            h1 { class: "text-3xl font-bold text-white mb-2 line-clamp-1", "{current_song_title}" }
+            style: "max-width: 520px;",
+            h1 { class: "text-3xl font-bold text-white mb-2 line-clamp-2 w-full", "{current_song_title}" }
             div {
-                class: "flex items-center gap-2",
+                class: "flex flex-wrap items-center gap-x-2 gap-y-1 w-full",
                 button {
-                    class: "text-xl text-white/70 font-medium line-clamp-1 hover:text-white hover:underline text-left transition-colors",
+                    class: "text-xl text-white/70 font-medium line-clamp-2 max-w-full hover:text-white hover:underline text-left transition-colors",
                     onclick: move |_| {
                         let artist = current_song_artist.read().clone();
                         if artist.is_empty() {
@@ -276,9 +275,9 @@ fn TrackMetadata(
                     },
                     "{current_song_artist}"
                 }
-                span { class: "text-white/30", "•" }
+                span { class: "text-white/30 flex-shrink-0", "•" }
                 button {
-                    class: "text-lg text-white/50 line-clamp-1 hover:text-white/80 hover:underline text-left transition-colors",
+                    class: "text-lg text-white/50 line-clamp-2 max-w-full hover:text-white/80 hover:underline text-left transition-colors",
                     onclick: move |_| {
                         let album_id = current_track_snapshot
                             .as_ref()
@@ -297,7 +296,7 @@ fn TrackMetadata(
 
         div {
             class: "flex items-center gap-4 text-xs text-white/50 mb-6 w-full",
-            style: "max-width: 420px;",
+            style: "max-width: 520px;",
             if current_song_bitrate() > 0 {
                 span { style: "font-size: 10px;", "{current_song_bitrate} kbps" }
             }
@@ -307,12 +306,14 @@ fn TrackMetadata(
 
 #[component]
 fn Tabs(
-    library: Signal<Library>,
     config: Signal<AppConfig>,
     items: Vec<reader::Track>,
     current_queue_index: Signal<usize>,
     lyrics: Signal<Option<Option<utils::lyrics::Lyrics>>>,
     current_song_progress: Signal<u64>,
+    player: Signal<Player>,
+    volume: Signal<f32>,
+    persisted_volume: Signal<f32>,
 ) -> Element {
     let mut active_tab = use_signal(|| 0usize);
 
@@ -341,12 +342,17 @@ fn Tabs(
                     onclick: move |_| active_tab.set(1),
                     "{i18n::t(\"lyrics\")}"
                 }
+
+                div {
+                    class: "ml-auto flex items-center",
+                    style: "width: 160px;",
+                    VolumeControl { player, config, volume, persisted_volume }
+                }
             }
 
             if *active_tab.read() == 0 {
                 QueueListView {
                     items,
-                    library,
                     config,
                     current_queue_index,
                     layout: crate::queue_list_view::LayoutMode::Fullscreen,
@@ -365,7 +371,6 @@ fn Tabs(
 
 #[component]
 pub fn Fullscreen(
-    library: Signal<Library>,
     mut player: Signal<Player>,
     mut is_playing: Signal<bool>,
     mut is_fullscreen: Signal<bool>,
@@ -402,7 +407,7 @@ pub fn Fullscreen(
                 track.artist,
                 track.album,
                 track.duration,
-                track.path.to_string_lossy().into_owned(),
+                track.id.uid(),
             )
         } else {
             (
@@ -579,7 +584,6 @@ pub fn Fullscreen(
                 } else if tab == 1 {
                     QueueListView {
                         items,
-                        library,
                         config,
                         current_queue_index,
                         layout: crate::queue_list_view::LayoutMode::Fullscreen,
@@ -609,8 +613,14 @@ pub fn Fullscreen(
                 class: "flex flex-1 overflow-hidden",
 
                 div {
-                    class: "flex flex-col items-center justify-center p-8 lg:p-12 relative flex-shrink-0",
+                    class: "flex flex-col items-center justify-center p-8 lg:p-12 relative flex-shrink-0 overflow-hidden",
                     style: "width: 50%; max-width: 600px;",
+
+                    button {
+                        class: "absolute top-8 left-8 text-white/30 hover:text-white transition-colors z-10",
+                        onclick: move |_| is_fullscreen.set(false),
+                        i { class: "fa-solid fa-chevron-down text-2xl" }
+                    }
 
                     TrackMetadata {
                         is_fullscreen,
@@ -630,28 +640,17 @@ pub fn Fullscreen(
                     PlaybackControl {
                         is_playing
                     }
-
-                    VolumeControl {
-                        player,
-                        config,
-                        volume,
-                        persisted_volume,
-                    }
-
-                    button {
-                        class: "absolute top-8 left-8 text-white/30 hover:text-white transition-colors",
-                        onclick: move |_| is_fullscreen.set(false),
-                        i { class: "fa-solid fa-chevron-down text-2xl" }
-                    }
                 }
 
                 Tabs {
-                    library,
                     config,
                     items,
                     current_queue_index,
                     lyrics,
-                    current_song_progress
+                    current_song_progress,
+                    player,
+                    volume,
+                    persisted_volume,
                 }
             }
         }

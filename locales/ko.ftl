@@ -53,6 +53,10 @@ titlebar_system = 시스템 장식
 titlebar_off = 제목 표시줄 없음
 volume = 음량
 local = 로컬
+source = Source
+sources = Sources
+manage_sources = Manage sources
+source_on_this_device = On this device
 server = 서버
 ytdlp = 다운로드
 
@@ -197,6 +201,8 @@ featured_album = 추천 앨범
 minimize = 최소화
 maximize = 최대화
 close = 닫기
+mini_player = 미니 플레이어
+restore_full_player = 전체 플레이어 복원
 shuffle_on = 셔플: 켜짐
 shuffle_off = 셔플: 꺼짐
 repeat_off = 반복: 꺼짐
@@ -405,6 +411,7 @@ radio_asiadreamradio_desc = 제이팝 음악의 중심 - 제이팝, 제이락, �
 radio_live_stream = 라이브 스트림
 
 auto_check_updates = 업데이트 자동 확인
+minimize_to_tray = 시스템 트레이로 최소화
 update_available = 업데이트가 있습니다
 update_banner_message = Kopuz { $version }을(를) 사용할 수 있습니다.
 view_release = 릴리스 보기
