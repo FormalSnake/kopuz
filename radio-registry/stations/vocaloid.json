@@ -5,12 +5,7 @@
   "description": "radio_vocaloid_desc",
   "icon": "fa-solid fa-radio",
   "streams": [
-    {
-      "id": "main",
-      "name": "radio_live_stream",
-      "url": "https://vocaloid.radioca.st/stream",
-      "icon": "fa-solid fa-play"
-    }
+    { "id": "main", "name": "radio_live_stream", "url": "https://vocaloid.radioca.st/stream", "icon": "fa-solid fa-play" }
   ],
   "metadata": {
     "type": "static",

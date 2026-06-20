@@ -5,18 +5,8 @@
   "description": "radio_listen_moe_desc",
   "icon": "fa-solid fa-radio",
   "streams": [
-    {
-      "id": "jpop",
-      "name": "J-Pop",
-      "url": "https://listen.moe/stream",
-      "icon": "fa-solid fa-music"
-    },
-    {
-      "id": "kpop",
-      "name": "K-Pop",
-      "url": "https://listen.moe/kpop/stream",
-      "icon": "fa-solid fa-compact-disc"
-    }
+    { "id": "jpop", "name": "J-Pop", "url": "https://listen.moe/stream", "icon": "fa-solid fa-music" },
+    { "id": "kpop", "name": "K-Pop", "url": "https://listen.moe/kpop/stream", "icon": "fa-solid fa-compact-disc" }
   ],
   "metadata": {
     "type": "websocket",

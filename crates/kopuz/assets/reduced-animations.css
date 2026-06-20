@@ -9,14 +9,14 @@
 [data-reduce-animations="true"] *,
 [data-reduce-animations="true"] *::before,
 [data-reduce-animations="true"] *::after {
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
-  transition-delay: 0s !important;
-  scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
 }
 
 /* Ensure progress bars and seek sliders still work without animation delays */
 [data-reduce-animations="true"] input[type="range"] {
-  transition: none !important;
+    transition: none !important;
 }

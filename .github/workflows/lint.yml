@@ -3,20 +3,20 @@ name: lint
 on:
   push:
     paths:
-      - "README.md"
-      - ".github/workflows/lint.yml"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - "crates/**"
+      - 'README.md'
+      - '.github/workflows/lint.yml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'crates/**'
   pull_request:
     paths:
-      - "README.md"
-      - ".github/workflows/lint.yml"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - "crates/**"
+      - 'README.md'
+      - '.github/workflows/lint.yml'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - 'crates/**'
 
 jobs:
   deno-fmt:
