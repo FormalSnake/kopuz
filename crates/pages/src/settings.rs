@@ -415,14 +415,11 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                 control: rsx! {
                                     AppSelect {
                                         value: config.read().image_optimization_max_size.to_string(),
-                                        // A cap only ever lowers the size a view asks
-                                        // for, so every option stays under the widest
-                                        // default request (the home hero, 1400 px).
                                         options: vec![
-                                            ("128".to_string(), "128 px".to_string()),
                                             ("256".to_string(), "256 px".to_string()),
                                             ("512".to_string(), "512 px".to_string()),
                                             ("1024".to_string(), "1024 px".to_string()),
+                                            ("1920".to_string(), "1920 px".to_string()),
                                         ],
                                         on_change: move |value: String| {
                                             if let Ok(size) = value.parse::<u32>() {

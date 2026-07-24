@@ -2,7 +2,7 @@
 //!
 //! The UI calls these instead of branching on local-file-vs-remote-URL or
 //! `match service` per row: the source layer owns where a cover *lives* and how
-//! to turn it into a renderable URL. Local resolves the on-disk file to a sized
+//! to turn it into a renderable URL. Local resolves the on-disk file to an
 //! `artwork://` asset; a server resolves its remote image URL (per service).
 //!
 //! These are sync free functions, not [`MediaSource`](crate::source::MediaSource)
@@ -19,19 +19,21 @@ use utils::CoverUrl;
 
 use crate::source::ArtistView;
 
-/// A local cover as an `artwork://` asset sized for where it renders.
+/// A local cover as an `artwork://` asset.
 ///
-/// `max_width` always applies: serving the untouched file to an 80px row hands
-/// the WebView a full-resolution decode per row, which is what stalls long
-/// lists. The optimization setting is a further cap on top of it, for people who
-/// want even the large views (fullscreen, player) kept small.
-fn local_artwork(config: &AppConfig, path: Option<&Path>, max_width: u32) -> Option<CoverUrl> {
-    let cap = config
+/// The file is served untouched unless the user opts into optimization: a cover
+/// re-encoded down to its render size is visibly soft on a HiDPI display, where
+/// one CSS pixel is two or three real ones. Downscaling is a deliberate
+/// trade the user makes in settings, not the default.
+fn local_artwork(config: &AppConfig, path: Option<&Path>) -> Option<CoverUrl> {
+    match config
         .image_optimization_enabled
         .then_some(config.image_optimization_max_size)
-        .filter(|size| *size > 0);
-    let size = cap.map_or(max_width, |cap| max_width.min(cap));
-    utils::format_artwork_thumb_url(path, size)
+        .filter(|size| *size > 0)
+    {
+        Some(size) => utils::format_artwork_thumb_url(path, size),
+        None => utils::format_artwork_url(path),
+    }
 }
 
 /// Resolve a cover from a stored cover-path ref — album covers and artist-grid
@@ -52,7 +54,7 @@ pub fn from_path(
 ) -> Option<CoverUrl> {
     let path = cover_path?;
     if path.is_absolute() {
-        return local_artwork(config, Some(path), max_width);
+        return local_artwork(config, Some(path));
     }
     // A `urlhex_`/`directurl:` ref carries the full image URL and resolves with no
     // server; a bare service id needs the active server's base URL + token (absent
@@ -204,7 +206,7 @@ impl<'a> ArtistArt<'a> {
 /// declared view; none of them branches on the service.
 pub fn artist(config: &AppConfig, art: ArtistArt<'_>, max_width: u32) -> Option<CoverUrl> {
     let override_owned = art.override_path.map(Path::to_path_buf);
-    if let Some(cover) = local_artwork(config, override_owned.as_deref(), max_width) {
+    if let Some(cover) = local_artwork(config, override_owned.as_deref()) {
         return Some(cover);
     }
     if let Some(ArtistImageRef::Remote(url)) = art.photo {
@@ -214,7 +216,7 @@ pub fn artist(config: &AppConfig, art: ArtistArt<'_>, max_width: u32) -> Option<
         return Some(utils::cover_url_from_string(url.to_string()));
     }
     if let Some(ArtistImageRef::Local(path)) = art.photo
-        && let Some(cover) = local_artwork(config, Some(path), max_width)
+        && let Some(cover) = local_artwork(config, Some(path))
     {
         return Some(cover);
     }
@@ -234,9 +236,9 @@ pub fn artist(config: &AppConfig, art: ArtistArt<'_>, max_width: u32) -> Option<
 /// the per-service remote ref. No caller-side album lookup.
 pub fn track(config: &AppConfig, track: &Track, max_width: u32) -> Option<CoverUrl> {
     let Some(service) = track.id.service() else {
-        // Local track → its (album) art file as a sized asset.
+        // Local track → original album art, unless optimization is enabled.
         let owned = track.cover.as_deref().map(PathBuf::from);
-        return local_artwork(config, owned.as_deref(), max_width);
+        return local_artwork(config, owned.as_deref());
     };
     let server = config.server.as_ref()?;
     let url = match service {
@@ -376,38 +378,28 @@ mod tests {
         );
     }
 
-    /// The render size is what keeps long lists cheap, so it applies with the
-    /// optimization setting off — the setting only caps sizes above its own.
+    /// The render size never downsizes a local file — only the opt-in setting
+    /// does, and then at its own size regardless of the view.
     #[test]
-    fn local_artwork_is_sized_for_where_it_renders() {
+    fn local_artwork_is_original_unless_optimization_is_enabled() {
         let path = Path::new("/music/album/cover.png");
-        let row = from_path(&local_active(), Some(path), 80).expect("local cover");
-        assert!(
-            row.ends_with("&s=80"),
-            "row must request its render size: {row}"
-        );
-
-        let hero = from_path(&local_active(), Some(path), 1400).expect("local cover");
-        assert!(
-            hero.ends_with("&s=1400"),
-            "large views must not be capped by default: {hero}"
-        );
+        for max_width in [80, 1400] {
+            let original = from_path(&local_active(), Some(path), max_width).expect("local cover");
+            assert!(
+                !original.contains("&s="),
+                "default must serve original at {max_width}: {original}"
+            );
+        }
 
         let optimized = AppConfig {
             image_optimization_enabled: true,
             image_optimization_max_size: 512,
             ..local_active()
         };
-        let capped = from_path(&optimized, Some(path), 1400).expect("optimized local cover");
+        let resized = from_path(&optimized, Some(path), 80).expect("optimized local cover");
         assert!(
-            capped.ends_with("&s=512"),
-            "optimization must cap the request: {capped}"
-        );
-
-        let below_cap = from_path(&optimized, Some(path), 80).expect("optimized local cover");
-        assert!(
-            below_cap.ends_with("&s=80"),
-            "optimization must not upsize a small request: {below_cap}"
+            resized.ends_with("&s=512"),
+            "selected size must be used: {resized}"
         );
     }
 

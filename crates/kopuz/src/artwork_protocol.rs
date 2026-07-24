@@ -12,7 +12,14 @@ fn thumb_cache_path(file_path: &str, max_size: u32) -> std::path::PathBuf {
 fn make_thumbnail(raw: &[u8], max_size: u32, cache_path: &std::path::Path) -> Option<Vec<u8>> {
     use image::codecs::jpeg::JpegEncoder;
     let img = image::load_from_memory(raw).ok()?;
-    let img = img.thumbnail(max_size, max_size);
+    // `thumbnail` scales to fit the box in both directions — an unguarded call
+    // upsamples a cover that was already smaller than the cap, costing quality
+    // and bytes for no gain.
+    let img = if img.width() > max_size || img.height() > max_size {
+        img.thumbnail(max_size, max_size)
+    } else {
+        img
+    };
     let mut out: Vec<u8> = Vec::new();
     img.write_with_encoder(JpegEncoder::new_with_quality(&mut out, 85))
         .ok()?;
