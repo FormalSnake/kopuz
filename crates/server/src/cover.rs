@@ -19,12 +19,19 @@ use utils::CoverUrl;
 
 use crate::source::ArtistView;
 
-fn local_artwork(config: &AppConfig, path: Option<&Path>) -> Option<CoverUrl> {
-    if config.image_optimization_enabled {
-        utils::format_artwork_thumb_url(path, config.image_optimization_max_size)
-    } else {
-        utils::format_artwork_url(path)
-    }
+/// A local cover as an `artwork://` asset sized for where it renders.
+///
+/// `max_width` always applies: serving the untouched file to an 80px row hands
+/// the WebView a full-resolution decode per row, which is what stalls long
+/// lists. The optimization setting is a further cap on top of it, for people who
+/// want even the large views (fullscreen, player) kept small.
+fn local_artwork(config: &AppConfig, path: Option<&Path>, max_width: u32) -> Option<CoverUrl> {
+    let cap = config
+        .image_optimization_enabled
+        .then_some(config.image_optimization_max_size)
+        .filter(|size| *size > 0);
+    let size = cap.map_or(max_width, |cap| max_width.min(cap));
+    utils::format_artwork_thumb_url(path, size)
 }
 
 /// Resolve a cover from a stored cover-path ref — album covers and artist-grid
@@ -45,7 +52,7 @@ pub fn from_path(
 ) -> Option<CoverUrl> {
     let path = cover_path?;
     if path.is_absolute() {
-        return local_artwork(config, Some(path));
+        return local_artwork(config, Some(path), max_width);
     }
     // A `urlhex_`/`directurl:` ref carries the full image URL and resolves with no
     // server; a bare service id needs the active server's base URL + token (absent
@@ -197,7 +204,7 @@ impl<'a> ArtistArt<'a> {
 /// declared view; none of them branches on the service.
 pub fn artist(config: &AppConfig, art: ArtistArt<'_>, max_width: u32) -> Option<CoverUrl> {
     let override_owned = art.override_path.map(Path::to_path_buf);
-    if let Some(cover) = local_artwork(config, override_owned.as_deref()) {
+    if let Some(cover) = local_artwork(config, override_owned.as_deref(), max_width) {
         return Some(cover);
     }
     if let Some(ArtistImageRef::Remote(url)) = art.photo {
@@ -207,7 +214,7 @@ pub fn artist(config: &AppConfig, art: ArtistArt<'_>, max_width: u32) -> Option<
         return Some(utils::cover_url_from_string(url.to_string()));
     }
     if let Some(ArtistImageRef::Local(path)) = art.photo
-        && let Some(cover) = local_artwork(config, Some(path))
+        && let Some(cover) = local_artwork(config, Some(path), max_width)
     {
         return Some(cover);
     }
@@ -227,9 +234,9 @@ pub fn artist(config: &AppConfig, art: ArtistArt<'_>, max_width: u32) -> Option<
 /// the per-service remote ref. No caller-side album lookup.
 pub fn track(config: &AppConfig, track: &Track, max_width: u32) -> Option<CoverUrl> {
     let Some(service) = track.id.service() else {
-        // Local track → original album art, unless optimization is enabled.
+        // Local track → its (album) art file as a sized asset.
         let owned = track.cover.as_deref().map(PathBuf::from);
-        return local_artwork(config, owned.as_deref());
+        return local_artwork(config, owned.as_deref(), max_width);
     };
     let server = config.server.as_ref()?;
     let url = match service {
@@ -369,13 +376,21 @@ mod tests {
         );
     }
 
+    /// The render size is what keeps long lists cheap, so it applies with the
+    /// optimization setting off — the setting only caps sizes above its own.
     #[test]
-    fn local_artwork_is_original_unless_optimization_is_enabled() {
+    fn local_artwork_is_sized_for_where_it_renders() {
         let path = Path::new("/music/album/cover.png");
-        let original = from_path(&local_active(), Some(path), 80).expect("local cover");
+        let row = from_path(&local_active(), Some(path), 80).expect("local cover");
         assert!(
-            !original.contains("&s="),
-            "default must serve original: {original}"
+            row.ends_with("&s=80"),
+            "row must request its render size: {row}"
+        );
+
+        let hero = from_path(&local_active(), Some(path), 1400).expect("local cover");
+        assert!(
+            hero.ends_with("&s=1400"),
+            "large views must not be capped by default: {hero}"
         );
 
         let optimized = AppConfig {
@@ -383,10 +398,16 @@ mod tests {
             image_optimization_max_size: 512,
             ..local_active()
         };
-        let resized = from_path(&optimized, Some(path), 80).expect("optimized local cover");
+        let capped = from_path(&optimized, Some(path), 1400).expect("optimized local cover");
         assert!(
-            resized.ends_with("&s=512"),
-            "selected size must be used: {resized}"
+            capped.ends_with("&s=512"),
+            "optimization must cap the request: {capped}"
+        );
+
+        let below_cap = from_path(&optimized, Some(path), 80).expect("optimized local cover");
+        assert!(
+            below_cap.ends_with("&s=80"),
+            "optimization must not upsize a small request: {below_cap}"
         );
     }
 
