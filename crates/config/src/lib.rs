@@ -634,6 +634,10 @@ pub struct AppConfig {
     pub music_directory: Vec<PathBuf>,
     #[serde(default = "default_theme")]
     pub theme: String,
+    /// Palette file matugen or pywal writes, polled for changes while the live
+    /// theme is active. Empty means whichever default location exists.
+    #[serde(default)]
+    pub live_theme_path: String,
     #[serde(default = "default_device_id")]
     pub device_id: String,
     #[serde(default = "default_discord_presence")]
@@ -903,6 +907,7 @@ impl Default for AppConfig {
             spotify_prefer_active_device: true,
             music_directory: vec![music_directory],
             theme: default_theme(),
+            live_theme_path: String::new(),
             device_id: default_device_id(),
             discord_presence: Some(true),
             discord_presence_paused: Some(true),
