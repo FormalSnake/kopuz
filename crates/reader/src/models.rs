@@ -110,6 +110,7 @@ impl TrackId {
             ("subsonic", config::MusicService::Subsonic),
             ("custom", config::MusicService::Custom),
             ("soundcloud", config::MusicService::SoundCloud),
+            ("spotify", config::MusicService::Spotify),
         ] {
             if let Some(rest) = s.strip_prefix(prefix).and_then(|r| r.strip_prefix(':')) {
                 let item_id = rest.split(':').next().unwrap_or("").to_string();
@@ -130,6 +131,7 @@ fn service_prefix(s: config::MusicService) -> &'static str {
         config::MusicService::Subsonic => "subsonic",
         config::MusicService::Custom => "custom",
         config::MusicService::SoundCloud => "soundcloud",
+        config::MusicService::Spotify => "spotify",
     }
 }
 
@@ -227,7 +229,7 @@ impl CoverRef {
                 item_id: item_id.to_string(),
                 signed: false,
             },
-            MusicService::YtMusic | MusicService::SoundCloud => {
+            MusicService::YtMusic | MusicService::SoundCloud | MusicService::Spotify => {
                 cover.map_or(Self::None, Self::parse)
             }
         }
@@ -275,7 +277,9 @@ impl CoverRef {
             MusicService::Subsonic | MusicService::Custom => {
                 Self::remote_item(service, &item_id, track.cover.as_deref())
             }
-            MusicService::SoundCloud => track.cover.as_deref().map_or(Self::None, Self::parse),
+            MusicService::SoundCloud | MusicService::Spotify => {
+                track.cover.as_deref().map_or(Self::None, Self::parse)
+            }
         }
     }
 
