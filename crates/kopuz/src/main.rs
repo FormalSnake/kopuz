@@ -1691,7 +1691,7 @@ fn App() -> Element {
     // nobody asked for.
     let mut live_theme_css = use_signal(String::new);
     use_future(move || async move {
-        let mut last: Option<(PathBuf, std::time::SystemTime, u64)> = None;
+        let mut last: Option<(PathBuf, String)> = None;
         loop {
             if config.peek().theme != utils::live_theme::THEME_ID {
                 if last.take().is_some() {
@@ -1701,16 +1701,18 @@ fn App() -> Element {
                 continue;
             }
             let path = utils::live_theme::resolve_path(&config.peek().live_theme_path);
-            let current = utils::live_theme::stamp(&path).map(|(at, len)| (path.clone(), at, len));
-            if current != last {
-                last = current;
-                let css = tokio::task::spawn_blocking(move || {
-                    utils::live_theme::read(&path)
-                        .map(|vars| utils::live_theme::to_css(&vars))
-                        .unwrap_or_default()
-                })
+            let probe = path.clone();
+            let raw = tokio::task::spawn_blocking(move || utils::live_theme::read(&probe))
                 .await
                 .unwrap_or_default();
+            let current = raw.map(|raw| (path, raw));
+            if current != last {
+                last = current;
+                let css = last
+                    .as_ref()
+                    .and_then(|(path, raw)| utils::live_theme::parse(raw, path))
+                    .map(|vars| utils::live_theme::to_css(&vars))
+                    .unwrap_or_default();
                 live_theme_css.set(css);
             }
             utils::sleep(std::time::Duration::from_millis(LIVE_THEME_POLL_MS)).await;

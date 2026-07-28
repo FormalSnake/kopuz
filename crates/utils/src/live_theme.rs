@@ -73,28 +73,30 @@ fn pywal_path() -> Option<PathBuf> {
     Some(cache.join("wal").join("colors.json"))
 }
 
-/// Modification time and length of the palette file, `None` while it doesn't
-/// exist. Both move together on a rewrite, and a stat is cheap enough to poll.
-pub fn stamp(path: &Path) -> Option<(std::time::SystemTime, u64)> {
-    let meta = std::fs::metadata(path).ok()?;
-    Some((meta.modified().ok()?, meta.len()))
-}
-
-/// Read the palette. A missing file is normal, since the generator may not have
-/// run yet, so it stays quiet. Malformed JSON means the user's template is
-/// wrong, so it warns and leaves the current colours up.
-pub fn read(path: &Path) -> Option<HashMap<String, String>> {
-    let raw = match std::fs::read_to_string(path) {
-        Ok(raw) => raw,
+/// Raw palette text, `None` while the file doesn't exist. A generator that
+/// hasn't run yet is the normal case, so that stays quiet.
+///
+/// Polling compares this verbatim rather than a modification time and length
+/// stamp. Every palette is the same length, because the values are all
+/// fixed-width hex, so a stamp would rest entirely on the filesystem's mtime
+/// resolution and miss two wallpapers picked inside the same tick.
+pub fn read(path: &Path) -> Option<String> {
+    match std::fs::read_to_string(path) {
+        Ok(raw) => Some(raw),
         Err(e) => {
             tracing::debug!("live palette {} unreadable: {e}", path.display());
-            return None;
+            None
         }
-    };
-    match serde_json::from_str::<serde_json::Value>(&raw) {
+    }
+}
+
+/// Theme vars from palette text. Malformed JSON means the user's template is
+/// wrong, so it warns and leaves the current colours up.
+pub fn parse(raw: &str, source: &Path) -> Option<HashMap<String, String>> {
+    match serde_json::from_str::<serde_json::Value>(raw) {
         Ok(value) => Some(pywal_vars(&value).unwrap_or_else(|| flat_vars(&value))),
         Err(e) => {
-            tracing::warn!("live palette {} is malformed: {e}", path.display());
+            tracing::warn!("live palette {} is malformed: {e}", source.display());
             None
         }
     }
@@ -154,8 +156,12 @@ mod tests {
     use super::*;
 
     fn read_str(json: &str) -> HashMap<String, String> {
-        let value = serde_json::from_str(json).expect("test json parses");
-        pywal_vars(&value).unwrap_or_else(|| flat_vars(&value))
+        parse(json, Path::new("palette.json")).expect("test json parses")
+    }
+
+    #[test]
+    fn malformed_json_leaves_the_current_colours_alone() {
+        assert!(parse("{ not json", Path::new("palette.json")).is_none());
     }
 
     #[test]
