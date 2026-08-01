@@ -510,6 +510,9 @@ select:disabled {
 
 @media (min-width: 901px) and (min-height: 541px) {
     .settings-page.settings-layout-cd {
+        max-width: none !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
         padding-left: 0 !important;
     }
 
