@@ -124,6 +124,17 @@ pub fn ShowcaseNormal(props: ShowcaseProps) -> Element {
         ITEM_HEIGHT,
     );
 
+    for (display_idx, (track, _)) in sorted_track_pairs
+        .iter()
+        .enumerate()
+        .take(scroll_info.start_index)
+    {
+        if track.disc_number != last_disc && sort_state.peek().is_none() && props.is_album {
+            last_disc = track.disc_number;
+            last_disc_size = display_idx;
+        }
+    }
+
     rsx! {
          div {
              class: "select-none flex-1 min-h-0 flex flex-col w-full",
@@ -329,7 +340,11 @@ pub fn ShowcaseNormal(props: ShowcaseProps) -> Element {
                                              is_downloading: is_downloading,
                                              is_currently_playing,
                                              selected_queue_tracks: (*selected_queue_tracks_arc).clone(),
-                                             row_num: Some(display_idx + 1 - last_disc_size),
+                                             row_num: Some(showcase::track_row_number(
+                                                 track.track_number,
+                                                 display_idx + 1 - last_disc_size,
+                                                 props.is_album,
+                                             )),
                                              on_select: move |selected| {
                                                 if let Some(handler) = &props.on_select {
                                                     handler.call((idx, selected));
