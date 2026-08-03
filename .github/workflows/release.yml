@@ -190,6 +190,12 @@ jobs:
           codesign --force --deep --sign - dist/Kopuz.app
           codesign --verify --deep --strict --verbose=2 dist/Kopuz.app
 
+      - name: Free disk space for DMG
+        run: |
+          cargo clean
+          rm -rf node_modules
+          df -h /
+
       - name: Create DMG and checksum
         shell: bash
         env:
