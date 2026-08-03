@@ -11,18 +11,26 @@ pub const USER_AGENT: &str = concat!(
     " (https://github.com/temidaradev/kopuz)"
 );
 
-/// Use the artwork supplied by YouTube Music before trying metadata-based
-/// cover lookups. Other sources deliberately return `None` so their existing
-/// MusicBrainz/iTunes resolution remains unchanged.
 pub fn youtube_cover_art_url(track: &Track) -> Option<String> {
     if track.id.service() != Some(config::MusicService::YtMusic) {
         return None;
     }
 
-    match CoverRef::for_track(track) {
-        CoverRef::EmbeddedUrl(url) => Some(url),
-        _ => None,
+    let CoverRef::EmbeddedUrl(url) = CoverRef::for_track(track) else {
+        return None;
+    };
+
+    if reqwest::Url::parse(&url)
+        .ok()
+        .is_some_and(|parsed| parsed.host_str() == Some("i.ytimg.com"))
+    {
+        let video_id = track.id.key();
+        if !video_id.is_empty() {
+            return Some(format!("https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"));
+        }
     }
+
+    Some(url)
 }
 
 fn build_client() -> Result<reqwest::Client, reqwest::Error> {
@@ -309,6 +317,15 @@ mod tests {
         assert_eq!(
             youtube_cover_art_url(&track(MusicService::YtMusic, Some(url))).as_deref(),
             Some(url)
+        );
+    }
+
+    #[test]
+    fn youtube_video_thumbnails_use_the_stable_public_url() {
+        let signed = "https://i.ytimg.com/vi/video-id/hqdefault.jpg?sqp=temporary&rs=signature";
+        assert_eq!(
+            youtube_cover_art_url(&track(MusicService::YtMusic, Some(signed))).as_deref(),
+            Some("https://i.ytimg.com/vi/video-id/hqdefault.jpg")
         );
     }
 
