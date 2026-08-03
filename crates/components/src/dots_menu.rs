@@ -33,6 +33,10 @@ pub struct DotsMenuProps {
     pub button_class: String,
     #[props(default = "right".to_string())]
     pub anchor: String,
+    #[props(default = "bottom".to_string())]
+    pub placement: String,
+    #[props(default = "fa-solid fa-ellipsis-vertical".to_string())]
+    pub icon: String,
 }
 
 #[component]
@@ -68,7 +72,7 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                         props.on_open.call(());
                     }
                 },
-                i { class: "fa-solid fa-ellipsis-vertical" }
+                i { class: "{props.icon}" }
             }
 
             if props.is_open {
@@ -85,9 +89,11 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                     style: "{panel_style}",
                     onmounted: {
                         let anchor = props.anchor.clone();
+                        let placement = props.placement.clone();
                         move |panel_evt: MountedEvent| {
                             let trigger_evt = trigger_element.peek().clone();
                             let anchor = anchor.clone();
+                            let placement = placement.clone();
                             async move {
                                 let Some(trigger_evt) = trigger_evt else {
                                     return;
@@ -103,9 +109,14 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                                 } else {
                                     trigger_rect.max_x() - panel_rect.width()
                                 };
+                                let top = if placement == "top" {
+                                    trigger_rect.min_y() - panel_rect.height() - 4.0
+                                } else {
+                                    trigger_rect.max_y() + 4.0
+                                };
                                 panel_geometry.set(Some((
                                     left,
-                                    trigger_rect.max_y() + 4.0,
+                                    top,
                                     panel_rect.width(),
                                     panel_rect.height(),
                                 )));
