@@ -1,6 +1,7 @@
 name: build
 
 on:
+  workflow_dispatch:
   push:
     branches: [main, master]
   pull_request:
@@ -8,7 +9,7 @@ on:
 
 jobs:
   locale-parity:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, morph, small]
 
     steps:
       - uses: actions/checkout@v4
@@ -26,12 +27,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - runner: [self-hosted, linux, x64, morph, large]
             system: x86_64-linux
-          - os: macos-latest
+          - runner: macos-latest
             system: aarch64-darwin
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - uses: actions/checkout@v4
@@ -42,16 +43,16 @@ jobs:
         run: nix build .#checks.${{ matrix.system }}.default
 
   push-build:
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - runner: [self-hosted, linux, x64, morph, large]
             system: x86_64-linux
-          - os: macos-latest
+          - runner: macos-latest
             system: aarch64-darwin
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - uses: actions/checkout@v4
