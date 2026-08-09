@@ -435,4 +435,24 @@ mod tests {
 
         assert!(meta.image_tag.is_none());
     }
+
+    /// The UI's "Start Radio" action reads this flag alone (see
+    /// `radio_actions::radio_supported`) — a regression here silently hides
+    /// the menu item for every Subsonic/Navidrome user.
+    #[tokio::test]
+    async fn subsonic_capabilities_enable_radio() {
+        let dir = std::env::temp_dir().join(format!("kopuz-subsonic-caps-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let db = db::init(&dir.join("kopuz.db")).await.unwrap();
+        let conn = ServerConn {
+            service: MusicService::Subsonic,
+            url: "https://music.example.test".to_string(),
+            token: "password".to_string(),
+            user_id: "user".to_string(),
+            device_id: "test".to_string(),
+        };
+        let src = SubsonicSource::new(db, Source::Server("test".to_string()), &conn);
+
+        assert!(src.capabilities().radio);
+    }
 }
