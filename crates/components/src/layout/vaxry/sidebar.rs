@@ -158,7 +158,9 @@ pub fn SidebarVaxry(props: SidebarProps) -> Element {
         || config.read().cover_art_background
         || !config.read().custom_background_path.is_empty()
     {
-        format!("width: {current_width}px; background: rgba(0, 0, 0, 0.4); --vaxry-sidebar-fg: #fff;")
+        format!(
+            "width: {current_width}px; background: rgba(0, 0, 0, 0.4); --vaxry-sidebar-fg: #fff;"
+        )
     } else {
         // Theme-following surface (not a fixed black overlay) so the Vaxry chrome
         // harmonises with the active palette and the switcher text stays readable
