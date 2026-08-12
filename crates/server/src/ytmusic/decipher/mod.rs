@@ -132,10 +132,7 @@ fn patched_core() -> String {
 /// persistent engine runs this once at isolate boot; a subprocess engine gets
 /// it prepended to every program.
 pub(super) fn solver_bootstrap() -> String {
-    format!(
-        "{LIB}\nObject.assign(globalThis, lib);\n{}",
-        patched_core()
-    )
+    format!("{LIB}\nObject.assign(globalThis, lib);\n{}", patched_core())
 }
 
 /// Emitted by the fast path when the isolate has no player installed, or a
