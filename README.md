@@ -264,8 +264,8 @@ brew install --cask kopuz-org/tap/kopuz
 ```
 
 The build is signed ad-hoc rather than notarized, so Gatekeeper blocks the first
-launch. Install with `--no-quarantine`, or clear the flag afterwards as described
-in the [macOS](#macos) section:
+launch. Install with `--no-quarantine`, or clear the flag afterwards as
+described in the [macOS](#macos) section:
 
 ```bash
 brew install --cask --no-quarantine kopuz-org/tap/kopuz
