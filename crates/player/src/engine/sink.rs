@@ -200,6 +200,9 @@ impl AudioSink for CpalSink {
         let mut data_cb = make_cb(config);
         let on_event = self.on_event.clone();
         let latency_micros = self.latency_micros.clone();
+        // A stale device's latency must not carry into a new stream.
+        self.latency_micros
+            .store(0, std::sync::atomic::Ordering::Relaxed);
         let stream = self
             .device
             .build_output_stream(
