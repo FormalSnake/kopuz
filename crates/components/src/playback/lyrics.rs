@@ -270,23 +270,36 @@ pub fn LyricsView(
     // Clear functions when the component is dropped
     use_drop(move || {
         let _cleanup = eval(&format!(
-            "for (const key of ['updateLyrics', 'resetLyrics', 'setAutoSync', 'autoSync', 'programmaticScroll']) delete window[`__{layout}_${{key}}`];"
+            "for (const key of ['updateLyrics', 'resetLyrics', 'setAutoSync', 'autoSync']) delete window[`__{layout}_${{key}}`];"
         ));
     });
 
-    // Hand scroll control back to the user the moment they scroll the lyrics
-    // themselves; the sync button re-arms auto-scroll.
+    // Take over on real input, not on scroll events: line growth and the browser's
+    // own scroll anchoring move scrollTop on their own. The sync button re-arms.
     use_future(move || async move {
         let mut listener = eval(&format!(
             r#"
                 const attach = () => {{
                     const container = document.getElementById('{layout}-lyrics-content');
                     if (!container) {{ requestAnimationFrame(attach); return; }}
-                    container.addEventListener('scroll', () => {{
-                        if (window.__{layout}_programmaticScroll) return;
+                    const scrollKeys = new Set(
+                        ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']
+                    );
+                    const takeOver = () => {{
                         if (window.__{layout}_autoSync === false) return;
                         window.__{layout}_autoSync = false;
                         dioxus.send('user_scroll');
+                    }};
+                    container.addEventListener('wheel', takeOver, {{ passive: true }});
+                    container.addEventListener('touchmove', takeOver, {{ passive: true }});
+                    container.addEventListener('keydown', (e) => {{
+                        if (scrollKeys.has(e.key)) takeOver();
+                    }});
+                    // Scrollbar gutter only; a press on a line is a seek.
+                    container.addEventListener('pointerdown', (e) => {{
+                        if (e.target === container && e.offsetX >= container.clientWidth) {{
+                            takeOver();
+                        }}
                     }});
                 }};
                 attach();
@@ -314,7 +327,6 @@ pub fn LyricsView(
                 let activeClass = "{active_class}";
                 let inactiveClass = "{inactive_class}";
                 window.__{layout}_autoSync = true;
-                window.__{layout}_programmaticScroll = false;
 
                 const UNSUNG_ALPHA = 0.45;
                 const GLOW_DECAY_SECONDS = 0.6;
@@ -481,7 +493,6 @@ pub fn LyricsView(
                     const startedAt = performance.now();
                     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
-                    window.__{layout}_programmaticScroll = true;
                     const step = (now) => {{
                         const progress = Math.min(1, (now - startedAt) / durationMs);
                         container.scrollTop = startTop + distance * easeOutCubic(progress);
@@ -489,7 +500,6 @@ pub fn LyricsView(
                             scrollAnimationFrame = requestAnimationFrame(step);
                         }} else {{
                             scrollAnimationFrame = null;
-                            setTimeout(() => {{ window.__{layout}_programmaticScroll = false; }}, 80);
                         }}
                     }};
 
@@ -583,12 +593,13 @@ pub fn LyricsView(
                         cancelAnimationFrame(paintFrame);
                         paintFrame = null;
                     }}
-                    document
-                        .getElementById('{layout}-lyrics-content')
+                    const container = document.getElementById('{layout}-lyrics-content');
+                    container
                         ?.querySelectorAll('[data-lyric-line]')
                         .forEach((lineEl) => deactivateLine(lineEl));
                     currEl = null;
                     activeSecondaryEls = new Set();
+                    container?.scrollTo({{ top: 0, left: 0 }});
                 }}
             "#,
         ));
@@ -600,9 +611,8 @@ pub fn LyricsView(
         // a fresh track re-arms auto-scroll
         auto_sync.set(true);
 
-        // scroll to top on lyrics change
-        let _scroll_to_top = eval(&format!(
-            "if (window.__{layout}_autoSync !== undefined) window.__{layout}_autoSync = true; window.__{layout}_resetLyrics?.(); document.getElementById('{layout}-lyrics-content')?.scrollTo({{ top: 0, left: 0 }});"
+        let _reset = eval(&format!(
+            "if (window.__{layout}_autoSync !== undefined) window.__{layout}_autoSync = true; window.__{layout}_resetLyrics?.();"
         ));
 
         async move {
