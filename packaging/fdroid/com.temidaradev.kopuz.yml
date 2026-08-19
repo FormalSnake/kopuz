@@ -56,7 +56,8 @@ Builds:
     build:
       - export SQLX_OFFLINE=true
       - export ANDROID_NDK_HOME=$$NDK$$
-      - dx build --package kopuz --platform android --release --locked
+      - dx build --package kopuz --platform android --release --locked --target
+        aarch64-linux-android
       - cd target/dx/kopuz/release/android/app && ./gradlew assembleRelease
 
 AutoUpdateMode: Version

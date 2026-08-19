@@ -33,7 +33,7 @@ out_dir="target/android"
 out="$out_dir/kopuz-$version-arm64-v8a.apk"
 
 echo "[1/4] Compiling Rust and generating the Gradle project..."
-dx build --package kopuz --platform android --release
+dx build --package kopuz --platform android --release --target aarch64-linux-android
 
 echo "[2/4] Assembling the release APK..."
 (cd "$gradle_project" && ./gradlew assembleRelease)

@@ -389,14 +389,17 @@ jobs:
           echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/kopuz.keystore"
           echo "KOPUZ_ANDROID_KEYSTORE=$RUNNER_TEMP/kopuz.keystore" >> "$GITHUB_ENV"
 
+      # ANDROID_NDK_LATEST_HOME is a runner machine variable, invisible to the
+      # `env` expression context — it only resolves as a shell expansion here.
       - name: Build the release APK
         env:
-          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
-          NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
           KOPUZ_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KOPUZ_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KOPUZ_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./packaging/android/build-apk.sh
+        run: |
+          export ANDROID_NDK_HOME="${ANDROID_NDK_HOME:-$ANDROID_NDK_LATEST_HOME}"
+          export NDK_HOME="$ANDROID_NDK_HOME"
+          ./packaging/android/build-apk.sh
 
       - name: Create Android checksum
         shell: bash
