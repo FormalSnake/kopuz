@@ -301,7 +301,12 @@ jobs:
 
     # The signing secrets are scoped to the three steps that need them (guard,
     # decode, APK build) instead of the whole job, so the toolchain-install and
-    # npm steps never see them.
+    # npm steps never see them. The `secrets` context is not available in step
+    # `if` expressions, so the decode gate reads this job-level boolean, which
+    # carries no secret material.
+    env:
+      HAS_ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -372,7 +377,7 @@ jobs:
           fi
 
       - name: Decode the signing keystore
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: env.HAS_ANDROID_KEYSTORE == 'true'
         shell: bash
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
