@@ -285,7 +285,7 @@ pub fn LyricsView(
                     const container = document.getElementById('{layout}-lyrics-content');
                     if (!container) {{ requestAnimationFrame(attach); return; }}
                     const scrollKeys = new Set(
-                        ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']
+                        ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']
                     );
                     const takeOver = () => {{
                         if (window.__{layout}_autoSync === false) return;
@@ -710,6 +710,7 @@ pub fn LyricsView(
         div { class: "relative flex flex-col flex-1 min-h-0",
         div {
             id: "{layout}-lyrics-content",
+            tabindex: "0",
             class: match layout {
                 LayoutMode::Fullscreen => "flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-1",
                 LayoutMode::Rightbar => "flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-1",
