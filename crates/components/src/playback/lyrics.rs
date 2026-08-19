@@ -339,10 +339,12 @@ pub fn LyricsView(
                 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
 
                 // Playback time only arrives every ~16-50ms; extrapolate between
-                // updates so the wipe runs at frame rate instead of stepping.
+                // updates so the wipe runs at frame rate, capped so a stalled feed
+                // can't run away.
                 const clock = {{ time: 0, at: 0, playing: false }};
+                const MAX_EXTRAPOLATION_SECONDS = 0.1;
                 const nowSeconds = () => clock.playing
-                    ? clock.time + (performance.now() - clock.at) / 1000
+                    ? clock.time + Math.min((performance.now() - clock.at) / 1000, MAX_EXTRAPOLATION_SECONDS)
                     : clock.time;
 
                 const chunkAlpha = (lineEl) => lineEl.dataset.backgroundLine === 'true' ? 0.7 : 1;
@@ -641,7 +643,9 @@ pub fn LyricsView(
                 let main_line_indices = main_line_indices(&lines);
 
                 loop {
-                    let current_time = ctrl.displayed_progress_secs_f64();
+                    // The clock runs ahead of the speakers; hold the lyrics back.
+                    let offset_secs = f64::from(config.peek().lyrics_offset_ms) / 1000.0;
+                    let current_time = ctrl.displayed_progress_secs_f64() - offset_secs;
                     let playing = *ctrl.is_playing.peek();
                     if let Some(current_line_index) =
                         active_main_line_index(&lines, &main_line_indices, current_time)

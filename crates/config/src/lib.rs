@@ -792,6 +792,9 @@ pub struct AppConfig {
     pub prefer_local_lyrics: bool,
     #[serde(default)]
     pub enable_musixmatch_lyrics: bool,
+    /// Milliseconds to hold the lyrics behind the playback clock.
+    #[serde(default)]
+    pub lyrics_offset_ms: i32,
 }
 
 fn default_theme() -> String {
@@ -981,6 +984,7 @@ impl Default for AppConfig {
             pinned_stations: Vec::new(),
             prefer_local_lyrics: false,
             enable_musixmatch_lyrics: false,
+            lyrics_offset_ms: 0,
         }
     }
 }

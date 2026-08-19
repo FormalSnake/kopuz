@@ -414,6 +414,7 @@ metadata = Metadados
 auto_fetch_covers = Procurar capas de álbum automaticamente
 prefer_local_lyrics = Preferir letras locais (.lrc / incorporadas, sem recurso online)
 enable_musixmatch_lyrics = Usar o Musixmatch como fonte alternativa de letras
+lyrics_offset = Desfasamento da letra
 cover_fetch_strategy = Estratégia de pesquisa de capas
 musicbrainz_first = MusicBrainz primeiro
 lastfm_first = Last.fm primeiro

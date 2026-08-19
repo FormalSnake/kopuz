@@ -424,6 +424,7 @@ metadata = Metadata
 auto_fetch_covers = Hämta albumomslag automatiskt
 prefer_local_lyrics = Föredra lokala låttexter (.lrc/inbäddade, ingen online-reservlösning)
 enable_musixmatch_lyrics = Använd Musixmatch som reservkälla för låttexter
+lyrics_offset = Textförskjutning
 cover_fetch_strategy = Strategi för omslagshämtning
 musicbrainz_first = MusicBrainz först
 lastfm_first = Last.fm först

@@ -424,6 +424,7 @@ metadata = Metadata
 auto_fetch_covers = Otomatis mengambil sampul album
 prefer_local_lyrics = Prefer lirik lokal (.lrc / disematkan, bukan daring fallback)
 enable_musixmatch_lyrics = Gunakan lirik Musixmatch fallback
+lyrics_offset = Offset lirik
 cover_fetch_strategy = Strategi pengambilan sampul
 musicbrainz_first = Pertama MusicBrainz
 lastfm_first = Pertama Last.fm

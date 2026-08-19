@@ -424,6 +424,7 @@ metadata = Metadata
 auto_fetch_covers = Albumhoezen automatisch ophalen
 prefer_local_lyrics = Voorkeur voor lokale songteksten (.lrc / ingesloten, geen online terugval)
 enable_musixmatch_lyrics = Musixmatch als terugval voor songteksten gebruiken
+lyrics_offset = Songtekstverschuiving
 cover_fetch_strategy = Strategie voor ophalen van hoezen
 musicbrainz_first = MusicBrainz eerst
 lastfm_first = Last.fm eerst

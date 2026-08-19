@@ -416,6 +416,7 @@ metadata = Метаданные
 auto_fetch_covers = Автоматически загружать обложки альбомов
 prefer_local_lyrics = Предпочитать локальные тексты (.lrc / встроенные, без онлайн-резерва)
 enable_musixmatch_lyrics = Использовать Musixmatch как резервный источник текстов
+lyrics_offset = Смещение текста
 cover_fetch_strategy = Стратегия загрузки обложек
 musicbrainz_first = Сначала MusicBrainz
 lastfm_first = Сначала Last.fm

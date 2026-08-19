@@ -123,6 +123,13 @@ pub(super) fn DownloadsSection(mut config: Signal<AppConfig>) -> Element {
 
 #[component]
 pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
+    let lyrics_offset = config.read().lyrics_offset_ms;
+    let lyrics_offset_label = if lyrics_offset == 0 {
+        "0 ms".to_string()
+    } else {
+        format!("{lyrics_offset:+} ms")
+    };
+
     rsx! {
         SettingsSection { title: i18n::t("metadata").to_string(),
             SettingItem {
@@ -152,6 +159,32 @@ pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
                     ToggleSetting {
                         enabled: config.read().enable_musixmatch_lyrics,
                         on_change: move |val| config.write().enable_musixmatch_lyrics = val,
+                    }
+                }
+            }
+            SettingItem {
+                title: i18n::t("lyrics_offset").to_string(),
+                config_key: "lyrics_offset_ms",
+                control: rsx! {
+                    div { class: "flex items-center gap-3 min-w-[220px]",
+                        input {
+                            r#type: "range",
+                            min: "-1000",
+                            max: "1000",
+                            step: "50",
+                            value: "{lyrics_offset}",
+                            class: "w-40",
+                            style: "accent-color: var(--color-indigo-500);",
+                            oninput: move |evt| {
+                                if let Ok(value) = evt.value().parse::<i32>() {
+                                    config.write().lyrics_offset_ms = value.clamp(-1000, 1000);
+                                }
+                            }
+                        }
+                        span {
+                            class: "text-xs font-mono text-white/80 w-20 text-right",
+                            "{lyrics_offset_label}"
+                        }
                     }
                 }
             }
