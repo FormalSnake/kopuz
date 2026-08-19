@@ -416,6 +416,7 @@ auto_fetch_covers = Automatyczne pobieranie okładek albumów
 prefer_local_lyrics = Preferuj lokalne teksty (.lrc / osadzone, bez rezerwy online)
 enable_musixmatch_lyrics = Użyj Musixmatch jako zapasowego źródła tekstów
 lyrics_offset = Przesunięcie tekstu
+lyrics_offset_auto = Automatycznie ustalaj przesunięcie tekstu
 cover_fetch_strategy = Strategia pobierania okładek
 musicbrainz_first = MusicBrainz najpierw
 lastfm_first = Last.fm najpierw

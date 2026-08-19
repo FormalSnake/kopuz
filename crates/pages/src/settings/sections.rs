@@ -123,11 +123,23 @@ pub(super) fn DownloadsSection(mut config: Signal<AppConfig>) -> Element {
 
 #[component]
 pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
+    let ctrl = use_context::<PlayerController>();
     let lyrics_offset = config.read().lyrics_offset_ms;
-    let lyrics_offset_label = if lyrics_offset == 0 {
+    let lyrics_offset_auto = config.read().lyrics_offset_auto;
+    let lyrics_offset_label = if lyrics_offset_auto {
+        format!(
+            "{} ms",
+            (ctrl.output_latency_secs() * 1000.0).round() as i32
+        )
+    } else if lyrics_offset == 0 {
         "0 ms".to_string()
     } else {
         format!("{lyrics_offset:+} ms")
+    };
+    let lyrics_offset_class = if lyrics_offset_auto {
+        "flex items-center gap-3 min-w-[220px] opacity-40"
+    } else {
+        "flex items-center gap-3 min-w-[220px]"
     };
 
     rsx! {
@@ -163,16 +175,27 @@ pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
                 }
             }
             SettingItem {
+                title: i18n::t("lyrics_offset_auto").to_string(),
+                config_key: "lyrics_offset_auto",
+                control: rsx! {
+                    ToggleSetting {
+                        enabled: lyrics_offset_auto,
+                        on_change: move |val| config.write().lyrics_offset_auto = val,
+                    }
+                }
+            }
+            SettingItem {
                 title: i18n::t("lyrics_offset").to_string(),
                 config_key: "lyrics_offset_ms",
                 control: rsx! {
-                    div { class: "flex items-center gap-3 min-w-[220px]",
+                    div { class: "{lyrics_offset_class}",
                         input {
                             r#type: "range",
                             min: "-1000",
                             max: "1000",
                             step: "50",
                             value: "{lyrics_offset}",
+                            disabled: lyrics_offset_auto,
                             class: "w-40",
                             style: "accent-color: var(--color-indigo-500);",
                             oninput: move |evt| {

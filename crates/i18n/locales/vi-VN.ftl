@@ -425,6 +425,7 @@ auto_fetch_covers = Tự động tải bìa album
 prefer_local_lyrics = Ưu tiên lời bài hát cục bộ (.lrc / nhúng, không dùng nguồn trực tuyến dự phòng)
 enable_musixmatch_lyrics = Dùng Musixmatch làm nguồn lời bài hát dự phòng
 lyrics_offset = Độ lệch lời bài hát
+lyrics_offset_auto = Tự động xác định độ lệch lời bài hát
 cover_fetch_strategy = Cách tải bìa
 musicbrainz_first = Ưu tiên MusicBrainz
 lastfm_first = Ưu tiên Last.fm

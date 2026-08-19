@@ -795,6 +795,9 @@ pub struct AppConfig {
     /// Milliseconds to hold the lyrics behind the playback clock.
     #[serde(default)]
     pub lyrics_offset_ms: i32,
+    /// Take the offset from the backend's playback timestamp instead.
+    #[serde(default = "default_true")]
+    pub lyrics_offset_auto: bool,
 }
 
 fn default_theme() -> String {
@@ -985,6 +988,7 @@ impl Default for AppConfig {
             prefer_local_lyrics: false,
             enable_musixmatch_lyrics: false,
             lyrics_offset_ms: 0,
+            lyrics_offset_auto: true,
         }
     }
 }

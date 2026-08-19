@@ -644,7 +644,14 @@ pub fn LyricsView(
 
                 loop {
                     // The clock runs ahead of the speakers; hold the lyrics back.
-                    let offset_secs = f64::from(config.peek().lyrics_offset_ms) / 1000.0;
+                    let offset_secs = {
+                        let cfg = config.peek();
+                        if cfg.lyrics_offset_auto {
+                            ctrl.output_latency_secs()
+                        } else {
+                            f64::from(cfg.lyrics_offset_ms) / 1000.0
+                        }
+                    };
                     let current_time = ctrl.displayed_progress_secs_f64() - offset_secs;
                     let playing = *ctrl.is_playing.peek();
                     if let Some(current_line_index) =

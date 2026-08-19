@@ -422,6 +422,7 @@ auto_fetch_covers = الجلب التلقائي لأغلفة الألبومات
 prefer_local_lyrics = تفضيل كلمات الأغاني المحلية (.lrc / مضمّنة، دون رجوع إلى الإنترنت)
 enable_musixmatch_lyrics = استخدام Musixmatch كمصدر احتياطي لكلمات الأغاني
 lyrics_offset = إزاحة كلمات الأغنية
+lyrics_offset_auto = تحديد إزاحة كلمات الأغنية تلقائيًا
 cover_fetch_strategy = استراتيجية جلب الغلاف
 musicbrainz_first = MusicBrainz أولاً
 lastfm_first = Last.fm أولاً

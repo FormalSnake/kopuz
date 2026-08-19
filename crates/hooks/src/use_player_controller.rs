@@ -907,6 +907,14 @@ impl PlayerController {
         self.current_song_progress.set(time.as_secs());
     }
 
+    /// Zero for an external player: its position comes from the service, not us.
+    pub fn output_latency_secs(&self) -> f64 {
+        if *self.external_active.peek() {
+            return 0.0;
+        }
+        self.player.peek().output_latency().as_secs_f64()
+    }
+
     pub fn displayed_progress_secs_f64(&self) -> f64 {
         if *self.external_active.peek() {
             if let Some((ms, at)) = *self.spotify_progress_anchor.peek() {

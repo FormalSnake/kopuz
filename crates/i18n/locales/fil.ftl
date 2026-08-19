@@ -425,6 +425,7 @@ auto_fetch_covers = Awtomatikong kunin ang mga album cover
 prefer_local_lyrics = Unahin ang lokal na lyrics (.lrc / embedded, walang online fallback)
 enable_musixmatch_lyrics = Gamitin ang Musixmatch bilang fallback ng lyrics
 lyrics_offset = Offset ng lirik
+lyrics_offset_auto = Awtomatikong tukuyin ang offset ng lirik
 cover_fetch_strategy = Estratehiya sa pagkuha ng cover
 musicbrainz_first = MusicBrainz muna
 lastfm_first = Last.fm muna

@@ -425,6 +425,7 @@ auto_fetch_covers = ആൽബം കവറുകൾ സ്വയം ലഭ്യ
 prefer_local_lyrics = ലോക്കൽ വരികൾക്ക് മുൻഗണന (.lrc / ഉൾച്ചേർത്തത്, ഓൺലൈൻ ഫാൾബാക്ക് ഇല്ല)
 enable_musixmatch_lyrics = Musixmatch വരികൾ ഫാൾബാക്ക് ഉപയോഗിക്കുക
 lyrics_offset = വരികളുടെ സമയ ക്രമീകരണം
+lyrics_offset_auto = വരികളുടെ സമയ ക്രമീകരണം സ്വയമേവ കണ്ടെത്തുക
 cover_fetch_strategy = കവർ ലഭ്യമാക്കൽ തന്ത്രം
 musicbrainz_first = MusicBrainz ആദ്യം
 lastfm_first = Last.fm ആദ്യം
