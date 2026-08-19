@@ -793,7 +793,7 @@ pub struct AppConfig {
     #[serde(default)]
     pub enable_musixmatch_lyrics: bool,
     /// Milliseconds to hold the lyrics behind the playback clock.
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_lyrics_offset_ms")]
     pub lyrics_offset_ms: i32,
     /// Take the offset from the backend's playback timestamp instead.
     #[serde(default = "default_true")]
@@ -906,6 +906,17 @@ where
         OneOrMany::One(p) => Ok(vec![p]),
         OneOrMany::Many(v) => Ok(v),
     }
+}
+
+/// Slider bound for `lyrics_offset_ms`; also enforced here since config files
+/// and env vars can set it without going through the UI.
+pub const LYRICS_OFFSET_LIMIT_MS: i32 = 1000;
+
+fn deserialize_lyrics_offset_ms<'de, D>(deserializer: D) -> Result<i32, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Ok(i32::deserialize(deserializer)?.clamp(-LYRICS_OFFSET_LIMIT_MS, LYRICS_OFFSET_LIMIT_MS))
 }
 
 impl Default for AppConfig {

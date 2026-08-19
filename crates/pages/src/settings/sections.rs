@@ -3,7 +3,7 @@ use components::settings_items::{
     DiscordPresenceSettings, EqualizerPanel, LastFmSettings, LibreFmSettings, MusicBrainzSettings,
     SampleRateModeSelector, SettingItem, SettingsSection, ToggleSetting,
 };
-use config::{AppConfig, FetchStrategy, OfflineQuality};
+use config::{AppConfig, FetchStrategy, LYRICS_OFFSET_LIMIT_MS, OfflineQuality};
 use dioxus::prelude::*;
 use hooks::use_player_controller::PlayerController;
 
@@ -191,8 +191,8 @@ pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
                     div { class: "{lyrics_offset_class}",
                         input {
                             r#type: "range",
-                            min: "-1000",
-                            max: "1000",
+                            min: "{-LYRICS_OFFSET_LIMIT_MS}",
+                            max: "{LYRICS_OFFSET_LIMIT_MS}",
                             step: "50",
                             value: "{lyrics_offset}",
                             disabled: lyrics_offset_auto,
@@ -200,7 +200,8 @@ pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
                             style: "accent-color: var(--color-indigo-500);",
                             oninput: move |evt| {
                                 if let Ok(value) = evt.value().parse::<i32>() {
-                                    config.write().lyrics_offset_ms = value.clamp(-1000, 1000);
+                                    config.write().lyrics_offset_ms = value
+                                        .clamp(-LYRICS_OFFSET_LIMIT_MS, LYRICS_OFFSET_LIMIT_MS);
                                 }
                             }
                         }
