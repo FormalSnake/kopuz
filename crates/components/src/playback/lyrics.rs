@@ -33,6 +33,8 @@ const FULLSCREEN_OPPOSITE_LYRIC_CLASS: &str = "text-white/40 text-2xl italic fon
 const FULLSCREEN_ACTIVE_OPPOSITE_LYRIC_CLASS: &str = "text-white text-2xl italic font-semibold transition-colors duration-300 whitespace-pre-wrap text-right w-full";
 const RIGHTBAR_OPPOSITE_LYRIC_CLASS: &str = "text-white/40 text-lg italic font-semibold transition-colors duration-300 hover:text-white/60 cursor-pointer whitespace-pre-wrap text-right w-full";
 const RIGHTBAR_ACTIVE_OPPOSITE_LYRIC_CLASS: &str = "text-white text-lg italic font-semibold transition-colors duration-300 whitespace-pre-wrap text-right w-full";
+const LYRIC_COMFORT_OFFSET_PERCENT: u32 = 42;
+const LYRIC_TAIL_SPACER_PERCENT: u32 = 100 - LYRIC_COMFORT_OFFSET_PERCENT;
 const LYRIC_SEAMLESS_GAP_SECONDS: f64 = 3.0;
 const LYRIC_CHUNK_FALLBACK_SECONDS: f64 = 0.35;
 pub use crate::shared::LayoutMode;
@@ -472,16 +474,21 @@ pub fn LyricsView(
                     }}
                 }};
 
+                const comfortScrollTop = (container, lineEl) => {{
+                    const currentOffset = lineEl.getBoundingClientRect().top
+                        - container.getBoundingClientRect().top;
+                    const targetOffset = container.clientHeight * {LYRIC_COMFORT_OFFSET_PERCENT} / 100;
+                    const furthest = Math.max(0, container.scrollHeight - container.clientHeight);
+                    const top = container.scrollTop + currentOffset - targetOffset;
+                    return Math.min(furthest, Math.max(0, top));
+                }};
+
                 const scrollLineIntoComfortView = (lineEl) => {{
                     if (!window.__{layout}_autoSync) return;
                     const container = document.getElementById('{layout}-lyrics-content');
                     if (!container || !lineEl) return;
 
-                    const containerRect = container.getBoundingClientRect();
-                    const lineRect = lineEl.getBoundingClientRect();
-                    const currentOffset = lineRect.top - containerRect.top;
-                    const targetOffset = container.clientHeight * 0.42;
-                    const nextTop = container.scrollTop + currentOffset - targetOffset;
+                    const nextTop = comfortScrollTop(container, lineEl);
 
                     if (scrollAnimationFrame) {{
                         cancelAnimationFrame(scrollAnimationFrame);
@@ -504,6 +511,17 @@ pub fn LyricsView(
                     }};
 
                     scrollAnimationFrame = requestAnimationFrame(step);
+                }};
+
+                // A remount measures the list before layout settles and a resize moves
+                // it under us; re-park rather than wait for the next line.
+                const realignIfDrifted = (lineEl) => {{
+                    if (!window.__{layout}_autoSync || scrollAnimationFrame) return;
+                    const container = document.getElementById('{layout}-lyrics-content');
+                    if (!container || !lineEl) return;
+                    if (Math.abs(comfortScrollTop(container, lineEl) - container.scrollTop) > 24) {{
+                        scrollLineIntoComfortView(lineEl);
+                    }}
                 }};
 
                 const fadeLineIn = (lineEl) => {{
@@ -565,6 +583,7 @@ pub fn LyricsView(
 
                     if (nextEl) {{
                         activateLine(nextEl);
+                        realignIfDrifted(nextEl);
                     }}
 
                     for (const idx of nextSecondary) {{
@@ -670,11 +689,11 @@ pub fn LyricsView(
         }
     });
 
-    let show_sync_button = !auto_sync()
-        && matches!(
-            &*lyrics.read(),
-            Some(Some(utils::lyrics::Lyrics::Synced(_)))
-        );
+    let has_synced_lyrics = matches!(
+        &*lyrics.read(),
+        Some(Some(utils::lyrics::Lyrics::Synced(_)))
+    );
+    let show_sync_button = !auto_sync() && has_synced_lyrics;
 
     rsx! {
         div { class: "relative flex flex-col flex-1 min-h-0",
@@ -684,6 +703,10 @@ pub fn LyricsView(
                 LayoutMode::Fullscreen => "flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-1",
                 LayoutMode::Rightbar => "flex-1 overflow-y-auto overflow-x-hidden px-2 py-2 space-y-1",
             },
+
+            if has_synced_lyrics {
+                div { "aria-hidden": "true", style: "height: {LYRIC_COMFORT_OFFSET_PERCENT}%" }
+            }
 
             div {
                 class: match layout {
@@ -739,6 +762,10 @@ pub fn LyricsView(
                     Some(None) => rsx! { "" },
                     None => rsx! { "{i18n::t(\"loading_lyrics\")}" },
                 }
+            }
+
+            if has_synced_lyrics {
+                div { "aria-hidden": "true", style: "height: {LYRIC_TAIL_SPACER_PERCENT}%" }
             }
         }
 
