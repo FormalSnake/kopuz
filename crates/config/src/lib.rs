@@ -1054,6 +1054,8 @@ impl AppConfig {
                     service: server.service,
                     yt_browser: server.yt_browser,
                     yt_anonymous: server.yt_anonymous,
+                    apple_music_storefront: server.apple_music_storefront.clone(),
+                    apple_music_language: server.apple_music_language.clone(),
                 });
             }
         }

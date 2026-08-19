@@ -43,6 +43,7 @@ uuid = { version = "1.20.0", features = [
 ] }
 cpal = "0.18.1"
 symphonia = { version = "0.6", features = ["all"] }
+quick-xml = "0.37"
 rtrb = "0.3"
 reqwest = { version = "0.13", default-features = false, features = [
   "rustls",
