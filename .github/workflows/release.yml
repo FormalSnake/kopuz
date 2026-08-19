@@ -297,7 +297,9 @@ jobs:
           if-no-files-found: error
 
   android:
-    runs-on: ubuntu-22.04
+    # 24.04, not 22.04: the binstall'd dx is built against glibc 2.39, and an
+    # APK has no host-glibc compatibility concerns (unlike the Linux job).
+    runs-on: ubuntu-24.04
 
     # The signing secrets are scoped to the three steps that need them (guard,
     # decode, APK build) instead of the whole job, so the toolchain-install and
