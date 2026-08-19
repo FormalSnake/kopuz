@@ -792,6 +792,12 @@ pub struct AppConfig {
     pub prefer_local_lyrics: bool,
     #[serde(default)]
     pub enable_musixmatch_lyrics: bool,
+    /// Milliseconds to hold the lyrics behind the playback clock.
+    #[serde(default, deserialize_with = "deserialize_lyrics_offset_ms")]
+    pub lyrics_offset_ms: i32,
+    /// Take the offset from the backend's playback timestamp instead.
+    #[serde(default = "default_true")]
+    pub lyrics_offset_auto: bool,
 }
 
 fn default_theme() -> String {
@@ -902,6 +908,17 @@ where
     }
 }
 
+/// Slider bound for `lyrics_offset_ms`; also enforced here since config files
+/// and env vars can set it without going through the UI.
+pub const LYRICS_OFFSET_LIMIT_MS: i32 = 1000;
+
+fn deserialize_lyrics_offset_ms<'de, D>(deserializer: D) -> Result<i32, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Ok(i32::deserialize(deserializer)?.clamp(-LYRICS_OFFSET_LIMIT_MS, LYRICS_OFFSET_LIMIT_MS))
+}
+
 /// The folder a fresh install scans. `directories` resolves the XDG layout
 /// against `$HOME`, which on Android is a private app path with no music in it,
 /// so point at the shared media directory the platform actually uses.
@@ -991,6 +1008,8 @@ impl Default for AppConfig {
             pinned_stations: Vec::new(),
             prefer_local_lyrics: false,
             enable_musixmatch_lyrics: false,
+            lyrics_offset_ms: 0,
+            lyrics_offset_auto: true,
         }
     }
 }
