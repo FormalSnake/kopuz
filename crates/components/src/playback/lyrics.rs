@@ -695,6 +695,15 @@ pub fn LyricsView(
                 const depthBlurPx = (distance, scale) =>
                     Math.min(distance * BLUR_STEP_PX * scale, BLUR_MAX_PX * scale);
 
+                // A filter hands the line its own compositing layer and backing
+                // store, so a whole song's lines meant a whole song's layers. Half
+                // pixels land on a device pixel at 2x and a blur under one is not
+                // visible anyway; past the window the line cannot reach the
+                // viewport. macOS 27 betas paint unpainted backing store as magenta
+                // (WebKit 303157), so the layer count is worth keeping down.
+                const BLUR_QUANTUM_PX = 0.5;
+                const BLUR_DISTANCE_LIMIT = 12;
+
                 const applyDepthBlur = (activeIndex, enabled, strengthPercent) => {{
                     if (activeIndex === lastBlurIndex
                         && enabled === lastBlurEnabled
@@ -709,8 +718,11 @@ pub fn LyricsView(
                         const distance = enabled && activeIndex >= 0
                             ? Math.abs(Number(lineEl.dataset.lyricIndex) - activeIndex)
                             : 0;
-                        const blurPx = distance > 0 ? depthBlurPx(distance, scale) : 0;
-                        const nextFilter = blurPx > 0.01 ? `blur(${{blurPx.toFixed(2)}}px)` : '';
+                        const rawBlurPx = distance > 0 && distance <= BLUR_DISTANCE_LIMIT
+                            ? depthBlurPx(distance, scale)
+                            : 0;
+                        const blurPx = Math.round(rawBlurPx / BLUR_QUANTUM_PX) * BLUR_QUANTUM_PX;
+                        const nextFilter = blurPx > 0 ? `blur(${{blurPx.toFixed(2)}}px)` : '';
                         if (lineEl.__lyricBlur !== nextFilter) {{
                             lineEl.__lyricBlur = nextFilter;
                             lineEl.style.filter = nextFilter;
