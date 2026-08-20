@@ -896,7 +896,7 @@ impl MediaSource for AppleMusicSource {
             sync: true,
             downloads: true,
             discover: false,
-            radio: true,
+            radio: RadioSeeds::ALL,
             playlists: PlaylistOps::AddRemove,
             artist_view: ArtistView::Library,
             albums: AlbumType::Standard,
