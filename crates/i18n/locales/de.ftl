@@ -133,6 +133,7 @@ lyrics = SONGTEXT
 # Player/Media
 loading_lyrics = Songtext wird geladen...
 lyrics_not_found = Songtext nicht gefunden
+instrumental_break = Instrumental
 no_previous_songs = Keine vorherigen Titel
 playlist_track_count = { $count } Titel
 music_playlist_count = Musik • { $count } Titel

@@ -211,6 +211,7 @@ lyrics = LỜI BÀI HÁT
 # Player/Media
 loading_lyrics = Đang tải lời bài hát...
 lyrics_not_found = Không tìm thấy lời bài hát
+instrumental_break = Nhạc dạo
 no_previous_songs = Không có bài hát trước đó
 playlist_track_count = { $count } bài
 music_playlist_count = Nhạc • { $count } bài

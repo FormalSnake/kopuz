@@ -134,6 +134,7 @@ lyrics = ТЕКСТ
 # Player/Media
 loading_lyrics = Загрузка текста...
 lyrics_not_found = Текст не найден
+instrumental_break = Инструментал
 no_previous_songs = Нет предыдущих песен
 playlist_track_count = { $count } треков
 music_playlist_count = Музыка • { $count } треков

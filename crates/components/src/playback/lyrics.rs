@@ -37,6 +37,14 @@ const LYRIC_COMFORT_OFFSET_PERCENT: u32 = 42;
 const LYRIC_TAIL_SPACER_PERCENT: u32 = 100 - LYRIC_COMFORT_OFFSET_PERCENT;
 const LYRIC_SEAMLESS_GAP_SECONDS: f64 = 3.0;
 const LYRIC_CHUNK_FALLBACK_SECONDS: f64 = 0.35;
+/// A silence shorter than this is a breath between lines, not an interlude.
+const LYRIC_INTERLUDE_MIN_SECONDS: f64 = 5.0;
+/// Only paxsenix and Apple Music timestamp a line's end, so the rest need a
+/// guess. A sung line rarely runs longer than this.
+const LYRIC_LINE_ASSUMED_MAX_SECONDS: f64 = 7.0;
+const INTERLUDE_LYRIC_CLASS: &str = "flex w-full items-center py-2 opacity-40 hover:opacity-80 cursor-pointer transition-opacity duration-300";
+const INTERLUDE_ACTIVE_LYRIC_CLASS: &str =
+    "flex w-full items-center py-2 opacity-100 cursor-pointer transition-opacity duration-300";
 pub use crate::shared::LayoutMode;
 
 fn lyric_line_class(
@@ -259,6 +267,102 @@ fn chunk_end_time(line: &utils::lyrics::LyricLine, index: usize) -> f64 {
         .unwrap_or(start + LYRIC_CHUNK_FALLBACK_SECONDS)
 }
 
+fn interlude_line_class(has_opposite_turn: bool, active: bool) -> String {
+    let base = if active {
+        INTERLUDE_ACTIVE_LYRIC_CLASS
+    } else {
+        INTERLUDE_LYRIC_CLASS
+    };
+    let justify = if has_opposite_turn {
+        "justify-start"
+    } else {
+        "justify-center"
+    };
+
+    format!("{base} {justify}")
+}
+
+fn line_end_estimate(line: &utils::lyrics::LyricLine) -> f64 {
+    line.end_time
+        .or_else(|| {
+            line.chunks
+                .last()
+                .map(|chunk| chunk.start_time + LYRIC_CHUNK_FALLBACK_SECONDS)
+        })
+        .unwrap_or(line.start_time + LYRIC_LINE_ASSUMED_MAX_SECONDS)
+}
+
+/// Providers emit nothing for an instrumental stretch, so the view sits blank
+/// through it. Synthesize a line for every long gap; it is a plain foreground
+/// line so the existing activation, scroll and seek paths handle it unchanged.
+/// The returned flags mark which entries are synthesized.
+fn build_display_lines(
+    lines: &[utils::lyrics::LyricLine],
+) -> (Vec<utils::lyrics::LyricLine>, Vec<bool>) {
+    let main = main_line_indices(lines);
+    let mut gaps: Vec<(usize, f64, f64)> = Vec::new();
+
+    if let Some(&first) = main.first()
+        && lines[first].start_time >= LYRIC_INTERLUDE_MIN_SECONDS
+    {
+        gaps.push((first, 0.0, lines[first].start_time));
+    }
+
+    for pair in main.windows(2) {
+        let (current, next) = (pair[0], pair[1]);
+        let next_start = lines[next].start_time;
+        // Background lines sit after their parent in the list and can outlast
+        // it, so the gap starts once every line in the run has finished.
+        let gap_start = lines[current..next]
+            .iter()
+            .map(line_end_estimate)
+            .fold(f64::NEG_INFINITY, f64::max)
+            .clamp(lines[current].start_time, next_start);
+        if next_start - gap_start >= LYRIC_INTERLUDE_MIN_SECONDS {
+            gaps.push((next, gap_start, next_start));
+        }
+    }
+
+    if gaps.is_empty() {
+        return (lines.to_vec(), vec![false; lines.len()]);
+    }
+
+    let mut display = Vec::with_capacity(lines.len() + gaps.len());
+    let mut interludes = Vec::with_capacity(lines.len() + gaps.len());
+    let mut remap = vec![0usize; lines.len()];
+    let mut gaps = gaps.into_iter().peekable();
+
+    for (index, line) in lines.iter().enumerate() {
+        while let Some(&(at, start, end)) = gaps.peek() {
+            if at != index {
+                break;
+            }
+            gaps.next();
+            display.push(utils::lyrics::LyricLine {
+                start_time: start,
+                end_time: Some(end),
+                text: String::new(),
+                chunks: Vec::new(),
+                parent_line_index: None,
+                background: false,
+                opposite_turn: false,
+            });
+            interludes.push(true);
+        }
+        remap[index] = display.len();
+        display.push(line.clone());
+        interludes.push(false);
+    }
+
+    for line in &mut display {
+        if let Some(parent) = line.parent_line_index {
+            line.parent_line_index = remap.get(parent).copied();
+        }
+    }
+
+    (display, interludes)
+}
+
 #[component]
 pub fn LyricsView(
     lyrics: Signal<Option<Option<utils::lyrics::Lyrics>>>,
@@ -371,8 +475,30 @@ pub fn LyricsView(
                     }}
                 }};
 
+                // An instrumental stretch has no words to wipe, so the note itself
+                // fills left to right to show how much of the gap is left.
+                const paintInterlude = (lineEl, time) => {{
+                    const fillEl = lineEl.querySelector('[data-interlude-fill]');
+                    if (!fillEl) return false;
+                    const start = Number(lineEl.dataset.interludeStart);
+                    const end = Number(lineEl.dataset.interludeEnd);
+                    const span = end - start;
+                    let progress = span > 0 ? (time - start) / span : (time >= start ? 1 : 0);
+                    progress = Math.min(1, Math.max(0, progress));
+                    if (reduceMotion) progress = time >= start ? 1 : 0;
+
+                    const nextFill = Math.round(progress * 200) / 200;
+                    if (lineEl.__interludeFill !== nextFill) {{
+                        lineEl.__interludeFill = nextFill;
+                        fillEl.style.clipPath = `inset(0 ${{(100 - nextFill * 100).toFixed(2)}}% 0 0)`;
+                    }}
+
+                    return true;
+                }};
+
                 const paintChunks = (lineEl, time) => {{
                     if (!lineEl?.isConnected) return false;
+                    if (lineEl.dataset.lyricInterlude === 'true') return paintInterlude(lineEl, time);
                     const chunks = lineEl.querySelectorAll('[data-lyric-chunk]');
                     if (!chunks.length) return false;
                     primeChunks(lineEl, chunks);
@@ -448,6 +574,11 @@ pub fn LyricsView(
                         chunk.__lyricFill = undefined;
                         chunk.__lyricGlow = undefined;
                     }});
+                    const interludeFill = lineEl.querySelector('[data-interlude-fill]');
+                    if (interludeFill) {{
+                        interludeFill.style.clipPath = 'inset(0 100% 0 0)';
+                        lineEl.__interludeFill = undefined;
+                    }}
                 }};
 
                 const inactiveFor = (lineEl) => lineEl?.dataset?.inactiveClass || inactiveClass;
@@ -640,6 +771,7 @@ pub fn LyricsView(
             if let Some(Some(utils::lyrics::Lyrics::Synced(lines))) = lyrics {
                 let mut sleep_duration_ms: u64;
 
+                let (lines, _) = build_display_lines(&lines);
                 let main_line_indices = main_line_indices(&lines);
 
                 loop {
@@ -728,39 +860,102 @@ pub fn LyricsView(
                 },
                 match &*lyrics.read() {
                     Some(Some(utils::lyrics::Lyrics::Synced(lines))) => {
+                        let (lines, interludes) = build_display_lines(lines);
                         let has_opposite_turn = lines.iter().any(|line| line.opposite_turn);
+                        let note_class = match layout {
+                            LayoutMode::Fullscreen => "w-7 h-7",
+                            LayoutMode::Rightbar => "w-5 h-5",
+                        };
                         rsx! {
                             for (i, line) in lines.iter().enumerate() {
-                                div {
-                                    key: "{i}-{line.start_time}-{line.text}",
-                                    id: "{layout}-lyrics-{i}",
-                                    "data-lyric-line": "true",
-                                    "data-lyric-index": "{i}",
-                                    "data-background-line": "{line.background}",
-                                    "data-max-line-width": "{lyric_line_max_width(layout, line, has_opposite_turn)}",
-                                    "data-inactive-class": "{lyric_line_class(layout, line, false, has_opposite_turn)}",
-                                    "data-active-class": "{lyric_line_class(layout, line, true, has_opposite_turn)}",
-                                    "data-active-scale": "{lyric_line_active_scale(line, has_opposite_turn)}",
-                                    "data-transform-origin": "{lyric_line_transform_origin(line, has_opposite_turn)}",
-                                    class: "{lyric_line_class(layout, line, false, has_opposite_turn)}",
-                                    style: lyric_line_style(layout, line, has_opposite_turn),
-                                    onclick: {
-                                        let st = line.start_time;
-                                        move |_| {
-                                            ctrl.seek(std::time::Duration::from_secs_f64(st));
+                                if interludes[i] {
+                                    div {
+                                        key: "{i}-interlude-{line.start_time}",
+                                        id: "{layout}-lyrics-{i}",
+                                        "data-lyric-line": "true",
+                                        "data-lyric-index": "{i}",
+                                        "data-lyric-interlude": "true",
+                                        "data-interlude-start": "{line.start_time}",
+                                        "data-interlude-end": "{line.end_time.unwrap_or(line.start_time)}",
+                                        "data-background-line": "false",
+                                        "data-max-line-width": "{lyric_line_max_width(layout, line, has_opposite_turn)}",
+                                        "data-inactive-class": "{interlude_line_class(has_opposite_turn, false)}",
+                                        "data-active-class": "{interlude_line_class(has_opposite_turn, true)}",
+                                        "data-active-scale": "1.06",
+                                        "data-transform-origin": "{lyric_line_transform_origin(line, has_opposite_turn)}",
+                                        "aria-label": "{i18n::t(\"instrumental_break\")}",
+                                        class: "{interlude_line_class(has_opposite_turn, false)}",
+                                        style: lyric_line_style(layout, line, has_opposite_turn),
+                                        onclick: {
+                                            let st = line.start_time;
+                                            move |_| {
+                                                ctrl.seek(std::time::Duration::from_secs_f64(st));
+                                            }
+                                        },
+                                        span { class: "relative inline-flex text-white",
+                                            svg {
+                                                class: "{note_class}",
+                                                "aria-hidden": "true",
+                                                view_box: "0 0 24 24",
+                                                fill: "none",
+                                                stroke: "currentColor",
+                                                stroke_width: "2",
+                                                stroke_linecap: "round",
+                                                stroke_linejoin: "round",
+                                                style: "opacity: 0.35;",
+                                                path { d: "M9 18V5l12-2v13" }
+                                                circle { cx: "6", cy: "18", r: "3" }
+                                                circle { cx: "18", cy: "16", r: "3" }
+                                            }
+                                            svg {
+                                                class: "{note_class} absolute left-0 top-0",
+                                                "aria-hidden": "true",
+                                                "data-interlude-fill": "true",
+                                                view_box: "0 0 24 24",
+                                                fill: "none",
+                                                stroke: "currentColor",
+                                                stroke_width: "2",
+                                                stroke_linecap: "round",
+                                                stroke_linejoin: "round",
+                                                style: "clip-path: inset(0 100% 0 0);",
+                                                path { d: "M9 18V5l12-2v13" }
+                                                circle { cx: "6", cy: "18", r: "3" }
+                                                circle { cx: "18", cy: "16", r: "3" }
+                                            }
                                         }
-                                    },
-                                    if line.chunks.is_empty() {
-                                        "{line.text}"
-                                    } else {
-                                        for (chunk_i, word) in line.chunks.iter().enumerate() {
-                                            span {
-                                                key: "{chunk_i}",
-                                                id: "{layout}-lyrics-{i}-word-{chunk_i}",
-                                                "data-lyric-chunk": "true",
-                                                "data-chunk-start": "{word.start_time}",
-                                                "data-chunk-end": "{chunk_end_time(line, chunk_i)}",
-                                                "{word.text}"
+                                    }
+                                } else {
+                                    div {
+                                        key: "{i}-{line.start_time}-{line.text}",
+                                        id: "{layout}-lyrics-{i}",
+                                        "data-lyric-line": "true",
+                                        "data-lyric-index": "{i}",
+                                        "data-background-line": "{line.background}",
+                                        "data-max-line-width": "{lyric_line_max_width(layout, line, has_opposite_turn)}",
+                                        "data-inactive-class": "{lyric_line_class(layout, line, false, has_opposite_turn)}",
+                                        "data-active-class": "{lyric_line_class(layout, line, true, has_opposite_turn)}",
+                                        "data-active-scale": "{lyric_line_active_scale(line, has_opposite_turn)}",
+                                        "data-transform-origin": "{lyric_line_transform_origin(line, has_opposite_turn)}",
+                                        class: "{lyric_line_class(layout, line, false, has_opposite_turn)}",
+                                        style: lyric_line_style(layout, line, has_opposite_turn),
+                                        onclick: {
+                                            let st = line.start_time;
+                                            move |_| {
+                                                ctrl.seek(std::time::Duration::from_secs_f64(st));
+                                            }
+                                        },
+                                        if line.chunks.is_empty() {
+                                            "{line.text}"
+                                        } else {
+                                            for (chunk_i, word) in line.chunks.iter().enumerate() {
+                                                span {
+                                                    key: "{chunk_i}",
+                                                    id: "{layout}-lyrics-{i}-word-{chunk_i}",
+                                                    "data-lyric-chunk": "true",
+                                                    "data-chunk-start": "{word.start_time}",
+                                                    "data-chunk-end": "{chunk_end_time(line, chunk_i)}",
+                                                    "{word.text}"
+                                                }
                                             }
                                         }
                                     }
@@ -802,5 +997,76 @@ pub fn LyricsView(
             }
         }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use utils::lyrics::LyricLine;
+
+    fn line(start_time: f64, end_time: Option<f64>) -> LyricLine {
+        LyricLine {
+            start_time,
+            end_time,
+            text: "la".into(),
+            chunks: Vec::new(),
+            parent_line_index: None,
+            background: false,
+            opposite_turn: false,
+        }
+    }
+
+    #[test]
+    fn marks_intro_and_instrumental_gaps() {
+        let lines = vec![
+            line(12.0, Some(15.0)),
+            line(40.0, Some(43.0)),
+            line(45.0, Some(48.0)),
+        ];
+
+        let (display, interludes) = build_display_lines(&lines);
+
+        assert_eq!(interludes, vec![true, false, true, false, false]);
+        assert_eq!(display[0].start_time, 0.0);
+        assert_eq!(display[0].end_time, Some(12.0));
+        assert_eq!(display[2].start_time, 15.0);
+        assert_eq!(display[2].end_time, Some(40.0));
+    }
+
+    #[test]
+    fn gap_starts_after_a_background_line_outlasts_its_parent() {
+        let mut background = line(3.0, Some(9.0));
+        background.background = true;
+        background.parent_line_index = Some(0);
+        let lines = vec![line(1.0, Some(4.0)), background, line(30.0, Some(33.0))];
+
+        let (display, interludes) = build_display_lines(&lines);
+
+        assert_eq!(interludes, vec![false, false, true, false]);
+        assert_eq!(display[2].start_time, 9.0);
+        assert_eq!(display[3].parent_line_index, None);
+        assert_eq!(display[1].parent_line_index, Some(0));
+    }
+
+    #[test]
+    fn leaves_lyrics_untouched_without_a_long_gap() {
+        let lines = vec![line(1.0, Some(4.0)), line(5.0, Some(8.0))];
+
+        let (display, interludes) = build_display_lines(&lines);
+
+        assert_eq!(display, lines);
+        assert_eq!(interludes, vec![false, false]);
+    }
+
+    #[test]
+    fn untimed_lines_fall_back_to_an_assumed_tail() {
+        let lines = vec![line(0.0, None), line(60.0, None)];
+
+        let (display, interludes) = build_display_lines(&lines);
+
+        assert_eq!(interludes, vec![false, true, false]);
+        assert_eq!(display[1].start_time, LYRIC_LINE_ASSUMED_MAX_SECONDS);
+        assert_eq!(display[1].end_time, Some(60.0));
     }
 }

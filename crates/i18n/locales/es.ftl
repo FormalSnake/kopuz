@@ -134,6 +134,7 @@ lyrics = Letra
 # Player/Media
 loading_lyrics = Cargando letra...
 lyrics_not_found = Letra no encontrada
+instrumental_break = Instrumental
 no_previous_songs = No hay canciones anteriores
 playlist_track_count = { $count } pistas
 music_playlist_count = Música • { $count } pistas

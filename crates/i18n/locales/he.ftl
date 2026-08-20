@@ -133,6 +133,7 @@ lyrics = מילים
 # Player/Media
 loading_lyrics = טוען מילים...
 lyrics_not_found = לא נמצאו מילים
+instrumental_break = קטע נגינה
 no_previous_songs = אין שירים קודמים
 playlist_track_count = { $count } שירים
 music_playlist_count = מוזיקה • { $count } שירים

@@ -133,6 +133,7 @@ lyrics = VERSURI
 # Player/Media
 loading_lyrics = Se încarcă versurile...
 lyrics_not_found = Versurile nu au fost găsite
+instrumental_break = Instrumental
 no_previous_songs = Nu există piese anterioare
 playlist_track_count = { $count } piese
 music_playlist_count = Muzică • { $count } piese

@@ -133,6 +133,7 @@ lyrics = SITELEN
 # Player/Media
 loading_lyrics = mi kama jo e sitelen...
 lyrics_not_found = sitelen li lon ala
+instrumental_break = kalama musi taso
 no_previous_songs = kalama pini li lon ala
 playlist_track_count = kalama musi { $count }
 music_playlist_count = kalama musi • { $count }

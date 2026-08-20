@@ -211,6 +211,7 @@ lyrics = Låttexter
 # Player/Media
 loading_lyrics = Laddar låttexter...
 lyrics_not_found = Inga låttexter hittades
+instrumental_break = Instrumentalt
 no_previous_songs = Inga tidigare låtar
 playlist_track_count = { $count } låtar
 music_playlist_count = Musik • { $count } låtar

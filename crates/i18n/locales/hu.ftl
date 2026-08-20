@@ -133,6 +133,7 @@ lyrics = DALSZÖVEG
 # Player/Media
 loading_lyrics = Dalszöveg betöltése...
 lyrics_not_found = Dalszöveg nem található
+instrumental_break = Hangszeres rész
 no_previous_songs = Nincsenek előző dalok
 playlist_track_count = { $count } dal
 music_playlist_count = Zene • { $count } dal

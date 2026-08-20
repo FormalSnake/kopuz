@@ -211,6 +211,7 @@ lyrics = LYRICS
 # Player/Media
 loading_lyrics = Nilo-load ang lyrics...
 lyrics_not_found = Hindi natagpuan ang lyrics
+instrumental_break = Instrumental
 no_previous_songs = Walang naunang kanta
 playlist_track_count = { $count } na track
 music_playlist_count = Musika • { $count } na track

@@ -129,6 +129,7 @@ lyrics = 󱥠
 # Player/Media
 loading_lyrics = 󱤴󱤖󱤓󱤉󱥠󱦜󱦜󱦜
 lyrics_not_found = 󱥠󱤧󱤬󱤂
+instrumental_break = kalama musi taso
 no_previous_songs = 󱤕󱥐󱤧󱤬󱤂
 playlist_track_count = 󱤕󱤻 { $count }
 music_playlist_count = 󱤕󱤻 • { $count }

@@ -211,6 +211,7 @@ lyrics = SONGTEKST
 # Player/Media
 loading_lyrics = Songtekst laden...
 lyrics_not_found = Songtekst niet gevonden
+instrumental_break = Instrumentaal
 no_previous_songs = Geen vorige nummers
 playlist_track_count = { $count } nummers
 music_playlist_count = Muziek • { $count } nummers

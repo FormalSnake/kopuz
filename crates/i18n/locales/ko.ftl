@@ -133,6 +133,7 @@ lyrics = 가사
 # Player/Media
 loading_lyrics = 가사 불러오는 중...
 lyrics_not_found = 가사를 찾을 수 없습니다
+instrumental_break = 간주
 no_previous_songs = 이전 곡이 없습니다
 playlist_track_count = { $count }곡
 music_playlist_count = 음악 • { $count }곡

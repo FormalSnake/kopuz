@@ -211,6 +211,7 @@ lyrics = LIRIK
 # Player/Media
 loading_lyrics = Memuat lirik...
 lyrics_not_found = Lirik tidak ditemukan
+instrumental_break = Instrumental
 no_previous_songs = Tidak ada lagu sebelumnya
 playlist_track_count = { $count } trek
 music_playlist_count = Musik • { $count } trek

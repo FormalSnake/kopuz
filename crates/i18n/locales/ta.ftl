@@ -211,6 +211,7 @@ lyrics = வரிகள்
 # Player/Media
 loading_lyrics = வரிகள் ஏற்றப்படுகிறது...
 lyrics_not_found = வரிகள் கண்டுபிடிக்கப்படவில்லை
+instrumental_break = இசைப் பகுதி
 no_previous_songs = முந்தைய பாடல்கள் இல்லை
 playlist_track_count = { $count } தடங்கள்
 music_playlist_count = இசை • { $count } தடங்கள்

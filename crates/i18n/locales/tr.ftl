@@ -133,6 +133,7 @@ lyrics = SÖZLER
 # Player/Media
 loading_lyrics = Sözler yükleniyor...
 lyrics_not_found = Sözler bulunamadı
+instrumental_break = Enstrümantal
 no_previous_songs = Önceki şarkı yok
 playlist_track_count = { $count } parça
 music_playlist_count = Müzik • { $count } parça

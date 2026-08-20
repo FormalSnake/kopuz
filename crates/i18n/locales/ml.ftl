@@ -211,6 +211,7 @@ lyrics = വരികൾ
 # Player/Media
 loading_lyrics = വരികൾ ലോഡ് ചെയ്യുന്നു...
 lyrics_not_found = വരികൾ കണ്ടെത്തിയില്ല
+instrumental_break = ഇൻസ്ട്രുമെന്റൽ
 no_previous_songs = മുൻ പാട്ടുകളൊന്നുമില്ല
 playlist_track_count = { $count } ട്രാക്കുകൾ
 music_playlist_count = സംഗീതം • { $count } ട്രാക്കുകൾ

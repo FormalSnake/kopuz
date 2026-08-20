@@ -133,6 +133,7 @@ lyrics = 歌詞
 # Player/Media
 loading_lyrics = 歌詞を読み込み中...
 lyrics_not_found = 歌詞が見つかりません
+instrumental_break = 間奏
 no_previous_songs = 以前の曲はありません
 playlist_track_count = { $count } トラック
 music_playlist_count = 音楽 • { $count } トラック

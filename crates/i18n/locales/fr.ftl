@@ -129,6 +129,7 @@ lyrics = Paroles
 # Player/Media
 loading_lyrics = Chargement des Paroles...
 lyrics_not_found = Paroles non trouvée
+instrumental_break = Instrumental
 no_previous_songs = Aucun sons ne suit
 playlist_track_count = { $count } tracks
 music_playlist_count = Music • { $count } tracks

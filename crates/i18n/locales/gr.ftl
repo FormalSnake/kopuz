@@ -133,6 +133,7 @@ lyrics = Στίχοι
 # Player/Media
 loading_lyrics = Φόρτωση στίχων...
 lyrics_not_found = Οι στίχοι δεν βρέθηκαν
+instrumental_break = Ορχηστρικό
 no_previous_songs = Δεν υπάρχει προηγούμενο τραγούδι
 playlist_track_count = { $count } κομμάτια
 music_playlist_count = Μουσική • { $count } κομμάτια

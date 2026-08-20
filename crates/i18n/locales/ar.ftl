@@ -133,6 +133,7 @@ lyrics = الكلمات
 # Player/Media
 loading_lyrics = جارٍ تحميل الكلمات...
 lyrics_not_found = لم يتم العثور على الكلمات
+instrumental_break = موسيقى فقط
 no_previous_songs = لا توجد أغانٍ سابقة
 playlist_track_count = { $count } مقطع
 music_playlist_count = موسيقى • { $count } مقطع

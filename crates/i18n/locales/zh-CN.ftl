@@ -133,6 +133,7 @@ lyrics = 歌词
 # Player/Media
 loading_lyrics = 正在加载歌词...
 lyrics_not_found = 未找到歌词
+instrumental_break = 间奏
 no_previous_songs = 没有上一首歌曲
 playlist_track_count = { $count } 首曲目
 music_playlist_count = 音乐 • { $count } 首曲目

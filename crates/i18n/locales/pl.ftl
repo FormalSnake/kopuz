@@ -133,6 +133,7 @@ lyrics = TEKST
 # Player/Media
 loading_lyrics = Ładowanie tekstu...
 lyrics_not_found = Nie znaleziono tekstu utworu
+instrumental_break = Instrumental
 no_previous_songs = Brak poprzednich utworów
 playlist_track_count = { $count } utworów
 music_playlist_count = Muzyka • { $count } utworów
