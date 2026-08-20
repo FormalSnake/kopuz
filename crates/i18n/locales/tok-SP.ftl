@@ -418,6 +418,7 @@ metadata = Metadata
 auto_fetch_covers = Auto-fetch album covers
 prefer_local_lyrics = Prefer local lyrics (.lrc / embedded, no online fallback)
 enable_musixmatch_lyrics = Use Musixmatch lyrics fallback
+lyrics_depth_blur = Blur lyric lines by distance from the active line
 lyrics_offset = Lyrics offset
 lyrics_offset_auto = Determine lyrics offset automatically
 cover_fetch_strategy = Cover fetch strategy

@@ -418,6 +418,7 @@ metadata = Métadonnées
 auto_fetch_covers = Récupérer automatiquement les pochettes
 prefer_local_lyrics = Préférer les paroles locales (.lrc / intégrées, sans repli en ligne)
 enable_musixmatch_lyrics = Utiliser Musixmatch comme source de paroles de secours
+lyrics_depth_blur = Flouter les lignes de paroles selon leur distance par rapport à la ligne active
 lyrics_offset = Décalage des paroles
 lyrics_offset_auto = Déterminer le décalage des paroles automatiquement
 cover_fetch_strategy = Stratégie de récupération des pochettes

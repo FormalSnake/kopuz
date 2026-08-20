@@ -426,6 +426,7 @@ metadata = Siêu dữ liệu
 auto_fetch_covers = Tự động tải bìa album
 prefer_local_lyrics = Ưu tiên lời bài hát cục bộ (.lrc / nhúng, không dùng nguồn trực tuyến dự phòng)
 enable_musixmatch_lyrics = Dùng Musixmatch làm nguồn lời bài hát dự phòng
+lyrics_depth_blur = Làm mờ các dòng lời bài hát theo khoảng cách đến dòng đang hoạt động
 lyrics_offset = Độ lệch lời bài hát
 lyrics_offset_auto = Tự động xác định độ lệch lời bài hát
 cover_fetch_strategy = Cách tải bìa

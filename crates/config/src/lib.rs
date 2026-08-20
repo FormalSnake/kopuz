@@ -798,6 +798,10 @@ pub struct AppConfig {
     /// Take the offset from the backend's playback timestamp instead.
     #[serde(default = "default_true")]
     pub lyrics_offset_auto: bool,
+    /// Apple Music style depth-of-field: blur lines by distance from the
+    /// active one instead of just dimming them.
+    #[serde(default = "default_true")]
+    pub lyrics_depth_blur: bool,
 }
 
 fn default_theme() -> String {
@@ -1010,6 +1014,7 @@ impl Default for AppConfig {
             enable_musixmatch_lyrics: false,
             lyrics_offset_ms: 0,
             lyrics_offset_auto: true,
+            lyrics_depth_blur: true,
         }
     }
 }

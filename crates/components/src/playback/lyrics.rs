@@ -16,7 +16,7 @@ const FULLSCREEN_CENTER_LYRIC_CLASS: &str = "text-white/40 text-2xl font-semibol
 const FULLSCREEN_ACTIVE_CENTER_LYRIC_CLASS: &str = "text-white text-2xl font-semibold transition-colors duration-300 whitespace-pre-wrap text-center w-full";
 const RIGHTBAR_CENTER_LYRIC_CLASS: &str = "text-white/40 text-lg font-semibold transition-colors duration-300 hover:text-white/60 cursor-pointer whitespace-pre-wrap text-center w-full";
 const RIGHTBAR_ACTIVE_CENTER_LYRIC_CLASS: &str = "text-white text-lg font-semibold transition-colors duration-300 whitespace-pre-wrap text-center w-full";
-const LYRIC_STYLE: &str = "box-sizing: border-box; overflow-wrap: normal; word-break: normal; transform: scale(1); transition: color 300ms, transform 300ms, opacity 180ms, max-height 180ms, margin-top 180ms;";
+const LYRIC_STYLE: &str = "box-sizing: border-box; overflow-wrap: normal; word-break: normal; transform: scale(1); filter: blur(0px); transition: color 300ms, transform 300ms, filter 300ms, opacity 180ms, max-height 180ms, margin-top 180ms;";
 const FULLSCREEN_BACKGROUND_LYRIC_CLASS: &str = "text-white/25 text-xl font-medium transition-colors duration-300 whitespace-pre-wrap text-left w-full pl-6 leading-snug";
 const FULLSCREEN_ACTIVE_BACKGROUND_LYRIC_CLASS: &str = "text-white/70 text-xl font-medium transition-colors duration-300 whitespace-pre-wrap text-left w-full pl-6 leading-snug";
 const RIGHTBAR_BACKGROUND_LYRIC_CLASS: &str = "text-white/25 text-sm font-medium transition-colors duration-300 whitespace-pre-wrap text-left w-full pl-4 leading-snug";
@@ -45,6 +45,13 @@ const LYRIC_LINE_ASSUMED_MAX_SECONDS: f64 = 7.0;
 const INTERLUDE_LYRIC_CLASS: &str = "flex w-full items-center py-2 opacity-40 hover:opacity-80 cursor-pointer transition-opacity duration-300";
 const INTERLUDE_ACTIVE_LYRIC_CLASS: &str =
     "flex w-full items-center py-2 opacity-100 cursor-pointer transition-opacity duration-300";
+// Depth-of-field blur, keyed by layout since the rightbar's smaller type
+// turns mushy at the fullscreen step. Roughly a third of the font size at
+// full clamp keeps the farthest lines legible instead of a smear.
+const FULLSCREEN_DEPTH_BLUR_STEP_PX: f64 = 1.5;
+const FULLSCREEN_DEPTH_BLUR_MAX_PX: f64 = 8.0;
+const RIGHTBAR_DEPTH_BLUR_STEP_PX: f64 = 1.1;
+const RIGHTBAR_DEPTH_BLUR_MAX_PX: f64 = 6.0;
 pub use crate::shared::LayoutMode;
 
 fn lyric_line_class(
@@ -137,6 +144,14 @@ fn lyric_line_max_width(
         (LayoutMode::Fullscreen, false) => "min(100%, 38rem)",
         (LayoutMode::Rightbar, true) => "min(90%, 18rem)",
         (LayoutMode::Rightbar, false) => "min(100%, 20rem)",
+    }
+}
+
+/// Per-line-of-distance blur step and the clamp, in px, for a layout's font size.
+fn lyric_depth_blur_ramp(layout: LayoutMode) -> (f64, f64) {
+    match layout {
+        LayoutMode::Fullscreen => (FULLSCREEN_DEPTH_BLUR_STEP_PX, FULLSCREEN_DEPTH_BLUR_MAX_PX),
+        LayoutMode::Rightbar => (RIGHTBAR_DEPTH_BLUR_STEP_PX, RIGHTBAR_DEPTH_BLUR_MAX_PX),
     }
 }
 
@@ -424,6 +439,7 @@ pub fn LyricsView(
             LayoutMode::Fullscreen => (FULLSCREEN_LYRIC_CLASS, FULLSCREEN_ACTIVE_LYRIC_CLASS),
             LayoutMode::Rightbar => (RIGHTBAR_LYRIC_CLASS, RIGHTBAR_ACTIVE_LYRIC_CLASS),
         };
+        let (depth_blur_step_px, depth_blur_max_px) = lyric_depth_blur_ramp(layout);
 
         let _update_func = eval(&format!(
             r#"
@@ -433,6 +449,13 @@ pub fn LyricsView(
                 let activeClass = "{active_class}";
                 let inactiveClass = "{inactive_class}";
                 window.__{layout}_autoSync = true;
+
+                // Depth-of-field state: only re-swept when the active index or the
+                // setting itself changes, not on every clock tick.
+                let lastBlurIndex = null;
+                let lastBlurEnabled = null;
+                const BLUR_STEP_PX = {depth_blur_step_px};
+                const BLUR_MAX_PX = {depth_blur_max_px};
 
                 const UNSUNG_ALPHA = 0.45;
                 const GLOW_DECAY_SECONDS = 0.6;
@@ -665,6 +688,29 @@ pub fn LyricsView(
                     );
                 }};
 
+                // Apple Music style depth-of-field: every rendered line blurs a
+                // little more per line of distance (data-lyric-index, not seconds)
+                // from the active one, clamped so far lines stay legible.
+                const depthBlurPx = (distance) => Math.min(distance * BLUR_STEP_PX, BLUR_MAX_PX);
+
+                const applyDepthBlur = (activeIndex, enabled) => {{
+                    if (activeIndex === lastBlurIndex && enabled === lastBlurEnabled) return;
+                    lastBlurIndex = activeIndex;
+                    lastBlurEnabled = enabled;
+                    const container = document.getElementById('{layout}-lyrics-content');
+                    if (!container) return;
+                    container.querySelectorAll('[data-lyric-line]').forEach((lineEl) => {{
+                        const distance = enabled && activeIndex >= 0
+                            ? Math.abs(Number(lineEl.dataset.lyricIndex) - activeIndex)
+                            : 0;
+                        const nextFilter = distance > 0 ? `blur(${{depthBlurPx(distance).toFixed(2)}}px)` : '';
+                        if (lineEl.__lyricBlur !== nextFilter) {{
+                            lineEl.__lyricBlur = nextFilter;
+                            lineEl.style.filter = nextFilter;
+                        }}
+                    }});
+                }};
+
                 const deactivateLine = (lineEl) => {{
                     if (!lineEl) return;
                     lineEl.className = inactiveFor(lineEl);
@@ -685,10 +731,11 @@ pub fn LyricsView(
                     paintChunks(lineEl, nowSeconds());
                 }};
 
-                window.__{layout}_updateLyrics = (nextIndex, currentTime, playing, activeLinesJson = '[]') => {{
+                window.__{layout}_updateLyrics = (nextIndex, currentTime, playing, activeLinesJson = '[]', depthBlurEnabled = true) => {{
                     clock.time = currentTime;
                     clock.at = performance.now();
                     clock.playing = playing;
+                    applyDepthBlur(nextIndex, depthBlurEnabled);
 
                     let nextEl = document.getElementById(`{layout}-lyrics-${{nextIndex}}`)
                     let nextSecondary = new Set(JSON.parse(activeLinesJson));
@@ -751,6 +798,8 @@ pub fn LyricsView(
                         .forEach((lineEl) => deactivateLine(lineEl));
                     currEl = null;
                     activeSecondaryEls = new Set();
+                    lastBlurIndex = null;
+                    lastBlurEnabled = null;
                     container?.scrollTo({{ top: 0, left: 0 }});
                 }}
             "#,
@@ -776,13 +825,14 @@ pub fn LyricsView(
 
                 loop {
                     // The clock runs ahead of the speakers; hold the lyrics back.
-                    let offset_secs = {
+                    let (offset_secs, depth_blur_enabled) = {
                         let cfg = config.peek();
-                        if cfg.lyrics_offset_auto {
+                        let offset_secs = if cfg.lyrics_offset_auto {
                             ctrl.output_latency_secs()
                         } else {
                             f64::from(cfg.lyrics_offset_ms) / 1000.0
-                        }
+                        };
+                        (offset_secs, cfg.lyrics_depth_blur)
                     };
                     let current_time = ctrl.displayed_progress_secs_f64() - offset_secs;
                     let playing = *ctrl.is_playing.peek();
@@ -796,7 +846,7 @@ pub fn LyricsView(
                             current_line_index,
                         );
                         let _ = eval(&format!(
-                            "window.__{layout}_updateLyrics({current_line_index}, {current_time}, {playing}, '{}')",
+                            "window.__{layout}_updateLyrics({current_line_index}, {current_time}, {playing}, '{}', {depth_blur_enabled})",
                             active_secondary_lines
                         ));
 
@@ -820,7 +870,7 @@ pub fn LyricsView(
                             usize::MAX,
                         );
                         let _ = eval(&format!(
-                            "window.__{layout}_updateLyrics(-1, {current_time}, {playing}, '{}')",
+                            "window.__{layout}_updateLyrics(-1, {current_time}, {playing}, '{}', {depth_blur_enabled})",
                             active_secondary_lines
                         ));
                         sleep_duration_ms = 50;
@@ -1057,6 +1107,18 @@ mod tests {
 
         assert_eq!(display, lines);
         assert_eq!(interludes, vec![false, false]);
+    }
+
+    #[test]
+    fn depth_blur_ramp_scales_down_for_the_smaller_rightbar_type() {
+        let (fullscreen_step, fullscreen_max) = lyric_depth_blur_ramp(LayoutMode::Fullscreen);
+        let (rightbar_step, rightbar_max) = lyric_depth_blur_ramp(LayoutMode::Rightbar);
+
+        assert!(rightbar_step < fullscreen_step);
+        assert!(rightbar_max < fullscreen_max);
+        // At least a couple of lines of headroom before the clamp kicks in.
+        assert!(fullscreen_max > fullscreen_step * 2.0);
+        assert!(rightbar_max > rightbar_step * 2.0);
     }
 
     #[test]

@@ -417,6 +417,7 @@ metadata = Metadaten
 auto_fetch_covers = Albumcover automatisch abrufen
 prefer_local_lyrics = Lokale Liedtexte bevorzugen (.lrc / eingebettet, kein Online-Fallback)
 enable_musixmatch_lyrics = Musixmatch als Liedtext-Fallback verwenden
+lyrics_depth_blur = Songtextzeilen je nach Abstand zur aktiven Zeile weichzeichnen
 lyrics_offset = Songtext-Versatz
 lyrics_offset_auto = Songtext-Versatz automatisch bestimmen
 cover_fetch_strategy = Cover-Abrufstrategie

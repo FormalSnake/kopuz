@@ -175,6 +175,16 @@ pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
                 }
             }
             SettingItem {
+                title: i18n::t("lyrics_depth_blur").to_string(),
+                config_key: "lyrics_depth_blur",
+                control: rsx! {
+                    ToggleSetting {
+                        enabled: config.read().lyrics_depth_blur,
+                        on_change: move |val| config.write().lyrics_depth_blur = val,
+                    }
+                }
+            }
+            SettingItem {
                 title: i18n::t("lyrics_offset_auto").to_string(),
                 config_key: "lyrics_offset_auto",
                 control: rsx! {

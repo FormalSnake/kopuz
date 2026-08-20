@@ -417,6 +417,7 @@ metadata = Metadate
 auto_fetch_covers = Preia automat coperțile albumelor
 prefer_local_lyrics = Preferă versurile locale (.lrc / încorporate, fără rezervă online)
 enable_musixmatch_lyrics = Folosește Musixmatch ca sursă de rezervă pentru versuri
+lyrics_depth_blur = Estompează liniile versurilor în funcție de distanța față de linia activă
 lyrics_offset = Decalaj versuri
 lyrics_offset_auto = Determină automat decalajul versurilor
 cover_fetch_strategy = Strategie de preluare coperți

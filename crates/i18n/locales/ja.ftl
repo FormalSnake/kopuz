@@ -423,6 +423,7 @@ metadata = メタデータ
 auto_fetch_covers = アルバムカバーを自動取得
 prefer_local_lyrics = ローカル歌詞を優先（.lrc / 埋め込み、オンラインフォールバックなし）
 enable_musixmatch_lyrics = Musixmatchを歌詞の予備ソースとして使用
+lyrics_depth_blur = アクティブな行からの距離に応じて歌詞の行をぼかす
 lyrics_offset = 歌詞のオフセット
 lyrics_offset_auto = 歌詞のオフセットを自動で決定
 cover_fetch_strategy = カバー取得戦略

@@ -417,6 +417,7 @@ metadata = 메타데이터
 auto_fetch_covers = 앨범 커버 자동 가져오기
 prefer_local_lyrics = 로컬 가사 우선 (.lrc / 내장, 온라인 대체 없음)
 enable_musixmatch_lyrics = Musixmatch를 가사 예비 소스로 사용
+lyrics_depth_blur = 활성 줄과의 거리에 따라 가사 줄 흐림 처리
 lyrics_offset = 가사 오프셋
 lyrics_offset_auto = 가사 오프셋 자동 결정
 cover_fetch_strategy = 커버 가져오기 전략

@@ -417,6 +417,7 @@ metadata = ijo nanpa
 auto_fetch_covers = o kama e sitelen kulupu pi kalama sama
 prefer_local_lyrics = o wile e nimi kalama lon ilo (.lrc / lon insa, ala lon linja)
 enable_musixmatch_lyrics = o kepeken Musixmatch tan nimi kalama ante
+lyrics_depth_blur = lukin ike pi linja nimi kalama tan weka
 lyrics_offset = tenpo ante pi nimi kalama
 lyrics_offset_auto = ilo o alasa e tenpo ante pi nimi kalama
 cover_fetch_strategy = nasin kama sitelen

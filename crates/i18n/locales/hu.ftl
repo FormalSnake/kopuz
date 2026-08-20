@@ -417,6 +417,7 @@ metadata = Metaadatok
 auto_fetch_covers = Album borítók automatikus letöltése
 prefer_local_lyrics = Helyi dalszöveg előnyben (.lrc / beágyazott, nincs online tartalék)
 enable_musixmatch_lyrics = Musixmatch használata tartalék dalszövegforrásként
+lyrics_depth_blur = Dalszövegsorok elmosása az aktív sortól való távolság alapján
 lyrics_offset = Dalszöveg eltolása
 lyrics_offset_auto = Dalszöveg eltolásának automatikus meghatározása
 cover_fetch_strategy = Borító letöltési stratégia

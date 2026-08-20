@@ -418,6 +418,7 @@ metadata = Metadatos
 auto_fetch_covers = Obtener portadas automáticamente
 prefer_local_lyrics = Preferir letras locales (.lrc / incrustadas, sin recurso en línea)
 enable_musixmatch_lyrics = Usar Musixmatch como fuente de letras de respaldo
+lyrics_depth_blur = Difuminar las líneas de la letra según su distancia a la línea activa
 lyrics_offset = Desfase de la letra
 lyrics_offset_auto = Determinar el desfase de la letra automáticamente
 cover_fetch_strategy = Estrategia de obtención de portadas
