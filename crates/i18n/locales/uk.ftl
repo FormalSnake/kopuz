@@ -418,6 +418,7 @@ auto_fetch_covers = Автоматично завантажувати обкла
 prefer_local_lyrics = Надавати перевагу локальним текстам (.lrc / вбудовані, без онлайн-резерву)
 enable_musixmatch_lyrics = Використовувати Musixmatch як резервне джерело текстів
 lyrics_depth_blur = Розмивати рядки тексту залежно від відстані до активного рядка
+lyrics_depth_blur_strength = Сила розмиття тексту
 lyrics_offset = Зміщення тексту
 lyrics_offset_auto = Визначати зміщення тексту автоматично
 cover_fetch_strategy = Стратегія завантаження обкладинок

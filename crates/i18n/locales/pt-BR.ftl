@@ -417,6 +417,7 @@ auto_fetch_covers = Buscar capas de álbum automaticamente
 prefer_local_lyrics = Preferir letras locais (.lrc / incorporadas, sem recurso online)
 enable_musixmatch_lyrics = Usar Musixmatch como fonte alternativa de letras
 lyrics_depth_blur = Desfocar linhas da letra de acordo com a distância da linha ativa
+lyrics_depth_blur_strength = Intensidade do desfoque da letra
 lyrics_offset = Deslocamento da letra
 lyrics_offset_auto = Determinar o deslocamento da letra automaticamente
 cover_fetch_strategy = Estratégia de busca de capas

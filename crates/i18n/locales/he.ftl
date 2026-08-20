@@ -418,6 +418,7 @@ auto_fetch_covers = הבאה אוטומטית של עטיפות אלבומים
 prefer_local_lyrics = העדפת מילים מקומיות (.lrc / מוטמעות, ללא חלופה מקוונת)
 enable_musixmatch_lyrics = השתמש ב-Musixmatch כמקור גיבוי למילים
 lyrics_depth_blur = טשטוש שורות המילים בהתאם למרחק מהשורה הפעילה
+lyrics_depth_blur_strength = עוצמת טשטוש המילים
 lyrics_offset = היסט מילות השיר
 lyrics_offset_auto = קביעת היסט מילות השיר אוטומטית
 cover_fetch_strategy = אסטרטגיית הבאת עטיפות

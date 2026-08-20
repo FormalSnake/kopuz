@@ -420,6 +420,7 @@ auto_fetch_covers = Cerca in automatico copertine album
 prefer_local_lyrics = Preferisci testi locali (.lrc / incorporati, nessun ripiego online)
 enable_musixmatch_lyrics = Usa Musixmatch come fonte testi di riserva
 lyrics_depth_blur = Sfoca le righe del testo in base alla distanza dalla riga attiva
+lyrics_depth_blur_strength = Intensità sfocatura del testo
 lyrics_offset = Sfasamento del testo
 lyrics_offset_auto = Determina automaticamente lo sfasamento del testo
 cover_fetch_strategy = Strategia di ricerca delle copertine 

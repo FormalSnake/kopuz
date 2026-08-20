@@ -418,6 +418,7 @@ auto_fetch_covers = 自动获取专辑封面
 prefer_local_lyrics = 优先使用本地歌词（.lrc / 内嵌，无在线回退）
 enable_musixmatch_lyrics = 使用 Musixmatch 作为备用歌词来源
 lyrics_depth_blur = 根据与当前行的距离对歌词行进行模糊处理
+lyrics_depth_blur_strength = 歌词模糊强度
 lyrics_offset = 歌词偏移
 lyrics_offset_auto = 自动确定歌词偏移
 cover_fetch_strategy = 获取封面策略

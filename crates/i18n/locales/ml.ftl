@@ -427,6 +427,7 @@ auto_fetch_covers = ആൽബം കവറുകൾ സ്വയം ലഭ്യ
 prefer_local_lyrics = ലോക്കൽ വരികൾക്ക് മുൻഗണന (.lrc / ഉൾച്ചേർത്തത്, ഓൺലൈൻ ഫാൾബാക്ക് ഇല്ല)
 enable_musixmatch_lyrics = Musixmatch വരികൾ ഫാൾബാക്ക് ഉപയോഗിക്കുക
 lyrics_depth_blur = സജീവ വരിയിൽ നിന്നുള്ള ദൂരത്തിന് അനുസരിച്ച് വരികൾ മങ്ങിക്കുക
+lyrics_depth_blur_strength = വരികളുടെ ബ്ലർ ശക്തി
 lyrics_offset = വരികളുടെ സമയ ക്രമീകരണം
 lyrics_offset_auto = വരികളുടെ സമയ ക്രമീകരണം സ്വയമേവ കണ്ടെത്തുക
 cover_fetch_strategy = കവർ ലഭ്യമാക്കൽ തന്ത്രം

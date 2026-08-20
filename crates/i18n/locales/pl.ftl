@@ -418,6 +418,7 @@ auto_fetch_covers = Automatyczne pobieranie okładek albumów
 prefer_local_lyrics = Preferuj lokalne teksty (.lrc / osadzone, bez rezerwy online)
 enable_musixmatch_lyrics = Użyj Musixmatch jako zapasowego źródła tekstów
 lyrics_depth_blur = Rozmywaj wiersze tekstu w zależności od odległości od aktywnego wiersza
+lyrics_depth_blur_strength = Siła rozmycia tekstu
 lyrics_offset = Przesunięcie tekstu
 lyrics_offset_auto = Automatycznie ustalaj przesunięcie tekstu
 cover_fetch_strategy = Strategia pobierania okładek

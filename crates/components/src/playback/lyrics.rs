@@ -454,6 +454,7 @@ pub fn LyricsView(
                 // setting itself changes, not on every clock tick.
                 let lastBlurIndex = null;
                 let lastBlurEnabled = null;
+                let lastBlurStrength = null;
                 const BLUR_STEP_PX = {depth_blur_step_px};
                 const BLUR_MAX_PX = {depth_blur_max_px};
 
@@ -691,19 +692,25 @@ pub fn LyricsView(
                 // Apple Music style depth-of-field: every rendered line blurs a
                 // little more per line of distance (data-lyric-index, not seconds)
                 // from the active one, clamped so far lines stay legible.
-                const depthBlurPx = (distance) => Math.min(distance * BLUR_STEP_PX, BLUR_MAX_PX);
+                const depthBlurPx = (distance, scale) =>
+                    Math.min(distance * BLUR_STEP_PX * scale, BLUR_MAX_PX * scale);
 
-                const applyDepthBlur = (activeIndex, enabled) => {{
-                    if (activeIndex === lastBlurIndex && enabled === lastBlurEnabled) return;
+                const applyDepthBlur = (activeIndex, enabled, strengthPercent) => {{
+                    if (activeIndex === lastBlurIndex
+                        && enabled === lastBlurEnabled
+                        && strengthPercent === lastBlurStrength) return;
                     lastBlurIndex = activeIndex;
                     lastBlurEnabled = enabled;
+                    lastBlurStrength = strengthPercent;
+                    const scale = strengthPercent / 100;
                     const container = document.getElementById('{layout}-lyrics-content');
                     if (!container) return;
                     container.querySelectorAll('[data-lyric-line]').forEach((lineEl) => {{
                         const distance = enabled && activeIndex >= 0
                             ? Math.abs(Number(lineEl.dataset.lyricIndex) - activeIndex)
                             : 0;
-                        const nextFilter = distance > 0 ? `blur(${{depthBlurPx(distance).toFixed(2)}}px)` : '';
+                        const blurPx = distance > 0 ? depthBlurPx(distance, scale) : 0;
+                        const nextFilter = blurPx > 0.01 ? `blur(${{blurPx.toFixed(2)}}px)` : '';
                         if (lineEl.__lyricBlur !== nextFilter) {{
                             lineEl.__lyricBlur = nextFilter;
                             lineEl.style.filter = nextFilter;
@@ -731,11 +738,11 @@ pub fn LyricsView(
                     paintChunks(lineEl, nowSeconds());
                 }};
 
-                window.__{layout}_updateLyrics = (nextIndex, currentTime, playing, activeLinesJson = '[]', depthBlurEnabled = true) => {{
+                window.__{layout}_updateLyrics = (nextIndex, currentTime, playing, activeLinesJson = '[]', depthBlurEnabled = true, depthBlurStrength = 100) => {{
                     clock.time = currentTime;
                     clock.at = performance.now();
                     clock.playing = playing;
-                    applyDepthBlur(nextIndex, depthBlurEnabled);
+                    applyDepthBlur(nextIndex, depthBlurEnabled, depthBlurStrength);
 
                     let nextEl = document.getElementById(`{layout}-lyrics-${{nextIndex}}`)
                     let nextSecondary = new Set(JSON.parse(activeLinesJson));
@@ -800,6 +807,7 @@ pub fn LyricsView(
                     activeSecondaryEls = new Set();
                     lastBlurIndex = null;
                     lastBlurEnabled = null;
+                    lastBlurStrength = null;
                     container?.scrollTo({{ top: 0, left: 0 }});
                 }}
             "#,
@@ -825,14 +833,18 @@ pub fn LyricsView(
 
                 loop {
                     // The clock runs ahead of the speakers; hold the lyrics back.
-                    let (offset_secs, depth_blur_enabled) = {
+                    let (offset_secs, depth_blur_enabled, depth_blur_strength) = {
                         let cfg = config.peek();
                         let offset_secs = if cfg.lyrics_offset_auto {
                             ctrl.output_latency_secs()
                         } else {
                             f64::from(cfg.lyrics_offset_ms) / 1000.0
                         };
-                        (offset_secs, cfg.lyrics_depth_blur)
+                        (
+                            offset_secs,
+                            cfg.lyrics_depth_blur,
+                            cfg.lyrics_depth_blur_strength,
+                        )
                     };
                     let current_time = ctrl.displayed_progress_secs_f64() - offset_secs;
                     let playing = *ctrl.is_playing.peek();
@@ -846,7 +858,7 @@ pub fn LyricsView(
                             current_line_index,
                         );
                         let _ = eval(&format!(
-                            "window.__{layout}_updateLyrics({current_line_index}, {current_time}, {playing}, '{}', {depth_blur_enabled})",
+                            "window.__{layout}_updateLyrics({current_line_index}, {current_time}, {playing}, '{}', {depth_blur_enabled}, {depth_blur_strength})",
                             active_secondary_lines
                         ));
 
@@ -870,7 +882,7 @@ pub fn LyricsView(
                             usize::MAX,
                         );
                         let _ = eval(&format!(
-                            "window.__{layout}_updateLyrics(-1, {current_time}, {playing}, '{}', {depth_blur_enabled})",
+                            "window.__{layout}_updateLyrics(-1, {current_time}, {playing}, '{}', {depth_blur_enabled}, {depth_blur_strength})",
                             active_secondary_lines
                         ));
                         sleep_duration_ms = 50;

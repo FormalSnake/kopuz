@@ -185,6 +185,32 @@ pub(super) fn MetadataSection(mut config: Signal<AppConfig>) -> Element {
                 }
             }
             SettingItem {
+                title: i18n::t("lyrics_depth_blur_strength").to_string(),
+                config_key: "lyrics_depth_blur_strength",
+                control: rsx! {
+                    div { class: "flex items-center gap-3 min-w-[220px]",
+                        input {
+                            r#type: "range",
+                            min: "10",
+                            max: "200",
+                            step: "10",
+                            value: format!("{}", config.read().lyrics_depth_blur_strength),
+                            class: "w-40",
+                            style: "accent-color: var(--color-indigo-500);",
+                            oninput: move |evt| {
+                                if let Ok(value) = evt.value().parse::<u8>() {
+                                    config.write().lyrics_depth_blur_strength = value.clamp(10, 200);
+                                }
+                            }
+                        }
+                        span {
+                            class: "text-xs font-mono text-white/80 w-16 text-right",
+                            "{config.read().lyrics_depth_blur_strength}%"
+                        }
+                    }
+                }
+            }
+            SettingItem {
                 title: i18n::t("lyrics_offset_auto").to_string(),
                 config_key: "lyrics_offset_auto",
                 control: rsx! {

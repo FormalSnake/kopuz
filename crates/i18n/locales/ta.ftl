@@ -427,6 +427,7 @@ auto_fetch_covers = ஆல்பம் கவர்களைத் தானா�
 prefer_local_lyrics = உள்ளூர் வரிகளை விரும்பு (.lrc / உட்பொதிந்த, ஆன்லைன் மாற்று இல்லை)
 enable_musixmatch_lyrics = Musixmatch வரிகள் மாற்றைப் பயன்படுத்து
 lyrics_depth_blur = செயலில் உள்ள வரியிலிருந்து உள்ள தூரத்திற்கு ஏற்ப பாடல் வரிகளை மங்கலாக்கு
+lyrics_depth_blur_strength = பாடல் வரிகள் மங்கல் அளவு
 lyrics_offset = பாடல் வரிகள் நேர மாற்றம்
 lyrics_offset_auto = பாடல் வரிகள் நேர மாற்றத்தை தானாகக் கண்டறி
 cover_fetch_strategy = கவர் பெறும் உத்தி

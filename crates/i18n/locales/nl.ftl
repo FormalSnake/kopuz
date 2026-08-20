@@ -427,6 +427,7 @@ auto_fetch_covers = Albumhoezen automatisch ophalen
 prefer_local_lyrics = Voorkeur voor lokale songteksten (.lrc / ingesloten, geen online terugval)
 enable_musixmatch_lyrics = Musixmatch als terugval voor songteksten gebruiken
 lyrics_depth_blur = Songtekstregels vervagen naar gelang de afstand tot de actieve regel
+lyrics_depth_blur_strength = Sterkte van tekstvervaging
 lyrics_offset = Songtekstverschuiving
 lyrics_offset_auto = Songtekstverschuiving automatisch bepalen
 cover_fetch_strategy = Strategie voor ophalen van hoezen

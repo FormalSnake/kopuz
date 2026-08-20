@@ -427,6 +427,7 @@ auto_fetch_covers = Otomatis mengambil sampul album
 prefer_local_lyrics = Prefer lirik lokal (.lrc / disematkan, bukan daring fallback)
 enable_musixmatch_lyrics = Gunakan lirik Musixmatch fallback
 lyrics_depth_blur = Buramkan baris lirik berdasarkan jarak dari baris aktif
+lyrics_depth_blur_strength = Kekuatan buram lirik
 lyrics_offset = Offset lirik
 lyrics_offset_auto = Tentukan offset lirik secara otomatis
 cover_fetch_strategy = Strategi pengambilan sampul

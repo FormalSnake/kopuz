@@ -418,6 +418,7 @@ auto_fetch_covers = Αυτόματη λήψη εξωφύλλων άλμπουμ
 prefer_local_lyrics = Προτίμηση τοπικών στίχων (.lrc / ενσωματωμένοι, χωρίς διαδικτυακή εναλλακτική)
 enable_musixmatch_lyrics = Χρήση του Musixmatch ως εφεδρική πηγή στίχων
 lyrics_depth_blur = Θόλωμα γραμμών στίχων ανάλογα με την απόσταση από την ενεργή γραμμή
+lyrics_depth_blur_strength = Ένταση θολώματος στίχων
 lyrics_offset = Μετατόπιση στίχων
 lyrics_offset_auto = Αυτόματος υπολογισμός μετατόπισης στίχων
 cover_fetch_strategy = Στρατηγική λήψης εξωφύλλων

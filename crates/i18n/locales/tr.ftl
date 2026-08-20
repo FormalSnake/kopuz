@@ -418,6 +418,7 @@ auto_fetch_covers = Albüm kapaklarını otomatik getir
 prefer_local_lyrics = Yerel şarkı sözlerini tercih et (.lrc / gömülü, çevrimiçi yedek yok)
 enable_musixmatch_lyrics = Musixmatch'i yedek şarkı sözü kaynağı olarak kullan
 lyrics_depth_blur = Şarkı sözü satırlarını etkin satıra olan uzaklığa göre bulanıklaştır
+lyrics_depth_blur_strength = Şarkı sözü bulanıklık gücü
 lyrics_offset = Şarkı sözü kayması
 lyrics_offset_auto = Şarkı sözü kaymasını otomatik belirle
 cover_fetch_strategy = Kapak getirme stratejisi

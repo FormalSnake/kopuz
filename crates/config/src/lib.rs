@@ -121,6 +121,10 @@ impl Default for YtdlpOptions {
     }
 }
 
+fn default_depth_blur_strength() -> u8 {
+    100
+}
+
 fn default_true() -> bool {
     true
 }
@@ -802,6 +806,9 @@ pub struct AppConfig {
     /// active one instead of just dimming them.
     #[serde(default = "default_true")]
     pub lyrics_depth_blur: bool,
+    /// Scales the depth-of-field ramp, in percent (100 = the built-in ramp).
+    #[serde(default = "default_depth_blur_strength")]
+    pub lyrics_depth_blur_strength: u8,
 }
 
 fn default_theme() -> String {
@@ -1015,6 +1022,7 @@ impl Default for AppConfig {
             lyrics_offset_ms: 0,
             lyrics_offset_auto: true,
             lyrics_depth_blur: true,
+            lyrics_depth_blur_strength: default_depth_blur_strength(),
         }
     }
 }
