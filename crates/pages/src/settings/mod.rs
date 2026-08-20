@@ -13,6 +13,7 @@ use components::settings_items::{
 use components::settings_popups::{
     AddLocalSourcePopup, AddRegistryPopup, AddServerPopup, LoginPopup,
 };
+use components::settings_remote_folders::{RemoteCreds, RemoteFolderSettings};
 use config::{AppConfig, MusicService};
 use dioxus::prelude::*;
 use hooks::use_player_controller::PlayerController;
@@ -618,6 +619,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                         on_spotify_prefer_active_device: move |v: bool| {
                                             config.write().spotify_prefer_active_device = v;
                                         },
+                                        remote_folders: remote_folder_settings(config),
                                     }
                                 }
                             }
@@ -918,4 +920,44 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
             }
         }
     }
+}
+
+/// The active server's folder picker, or `None` when it has no folder tree or
+/// no creds. Only the active server carries hydrated creds.
+fn remote_folder_settings(mut config: Signal<AppConfig>) -> Option<RemoteFolderSettings> {
+    let creds = {
+        let cfg = config.read();
+        let server = cfg.server.as_ref()?;
+        let active_id = cfg.active_source.server_id()?;
+        if server.id.as_deref() != Some(active_id) {
+            return None;
+        }
+        if server.service != MusicService::Nextcloud {
+            return None;
+        }
+        RemoteCreds {
+            url: server.url.clone(),
+            user_id: server.user_id.clone()?,
+            token: server.access_token.clone()?,
+        }
+    };
+
+    Some(RemoteFolderSettings {
+        creds,
+        folders: config.read().active_server_folders(),
+        on_add: EventHandler::new(move |path: String| {
+            config.write().edit_active_server_folders(|folders| {
+                if !folders.contains(&path) {
+                    folders.push(path);
+                }
+            });
+        }),
+        on_remove: EventHandler::new(move |index: usize| {
+            config.write().edit_active_server_folders(|folders| {
+                if index < folders.len() {
+                    folders.remove(index);
+                }
+            });
+        }),
+    })
 }
