@@ -12,7 +12,7 @@ use crate::{
 
 use super::{
     AlbumType, ArtistView, AuthOutcome, Capabilities, FavoritesSync, LibrarySnapshot, MediaSource,
-    PlaylistOps, SourceError, StreamInfo,
+    PlaylistOps, RadioSeeds, SourceError, StreamInfo,
 };
 
 /// Item ids are remote paths: oc:fileid survives renames but needs a lookup to
@@ -51,7 +51,7 @@ const CAPABILITIES: Capabilities = Capabilities {
     sync: true,
     downloads: true,
     discover: false,
-    radio: false,
+    radio: RadioSeeds::NONE,
     playlists: PlaylistOps::None, // none over raw WebDAV, the Music app's are Subsonic
     artist_view: ArtistView::Library,
     albums: AlbumType::Standard,
