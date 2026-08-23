@@ -223,7 +223,9 @@ fn main() {
 
     #[cfg(not(target_os = "android"))]
     {
-        let log_dir = directories::ProjectDirs::from("com", "temidaradev", "kopuz")
+        let identity_migration = legacy::migrate_identity();
+
+        let log_dir = directories::ProjectDirs::from("moe", "kopuz", "kopuz")
             .map(|dirs| dirs.cache_dir().join("logs"))
             .unwrap_or_else(|| std::path::PathBuf::from("logs"));
         let _ = std::fs::create_dir_all(&log_dir);
@@ -238,6 +240,10 @@ fn main() {
         // Guards live in a global inside `logging`; flushed by
         // logging::shutdown() after launch returns or on Ctrl+C.
         logging::init(&log_dir, config_tracing_enabled);
+
+        for line in identity_migration {
+            tracing::info!("{line}");
+        }
 
         legacy::migrate_locations();
 
@@ -281,7 +287,7 @@ fn main() {
             window = window.with_decorations(initial_titlebar_mode == config::TitlebarMode::System);
         }
 
-        let webview_data_dir = directories::ProjectDirs::from("com", "temidaradev", "kopuz")
+        let webview_data_dir = directories::ProjectDirs::from("moe", "kopuz", "kopuz")
             .map(|dirs| dirs.cache_dir().join("webview"))
             .unwrap_or_else(|| std::path::PathBuf::from("./cache/webview"));
         let _ = std::fs::create_dir_all(&webview_data_dir);
@@ -533,7 +539,7 @@ fn App() -> Element {
         }
         #[cfg(not(target_os = "android"))]
         {
-            let path = directories::ProjectDirs::from("com", "temidaradev", "kopuz")
+            let path = directories::ProjectDirs::from("moe", "kopuz", "kopuz")
                 .map(|dirs| dirs.cache_dir().to_path_buf())
                 .unwrap_or_else(|| std::path::Path::new("./cache").to_path_buf());
             let _ = std::fs::create_dir_all(&path);

@@ -619,7 +619,7 @@ fn AlbumDetail(
     let cap = caps();
     let aid = album.id.clone();
 
-    let cover_cache = directories::ProjectDirs::from("com", "temidaradev", "kopuz")
+    let cover_cache = directories::ProjectDirs::from("moe", "kopuz", "kopuz")
         .map(|d| d.cache_dir().join("covers"))
         .unwrap_or_else(|| PathBuf::from("./cache/covers"));
 
@@ -735,7 +735,7 @@ fn AlbumDetail(
                         if let Some(file) = file {
                             let path = file.path().to_path_buf();
                             let Ok(data) = tokio::fs::read(&path).await else { return };
-                            let cover_cache = directories::ProjectDirs::from("com", "temidaradev", "kopuz")
+                            let cover_cache = directories::ProjectDirs::from("moe", "kopuz", "kopuz")
                                 .map(|d| d.cache_dir().join("covers"))
                                 .unwrap_or_else(|| PathBuf::from("./cache/covers"));
                             if let Ok(saved) = reader::utils::save_cover(&aid, &data, path.extension().and_then(|e| e.to_str()), &cover_cache) {

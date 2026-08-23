@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 use tokio::io::AsyncWriteExt;
 
 pub(super) fn offline_cache_dir() -> PathBuf {
-    let base = directories::ProjectDirs::from("com", "temidaradev", "kopuz")
+    let base = directories::ProjectDirs::from("moe", "kopuz", "kopuz")
         .map(|dirs| dirs.cache_dir().to_path_buf())
         .unwrap_or_else(|| PathBuf::from("./cache"));
     base.join("offline_tracks")
