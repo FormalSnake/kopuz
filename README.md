@@ -569,8 +569,8 @@ var and the settings file with `KOPUZ_CONFIG_PATH`.)
 On **macOS**:
 
 - `~/Library/Application Support/moe.kopuz.kopuz/settings.toml` - settings
-- `~/Library/Application Support/moe.kopuz.kopuz/kopuz.db` - library,
-  playlists, favorites, runtime state
+- `~/Library/Application Support/moe.kopuz.kopuz/kopuz.db` - library, playlists,
+  favorites, runtime state
 - `~/Library/Caches/moe.kopuz.kopuz/covers/` - cached album art
 - `~/Library/Caches/moe.kopuz.kopuz/offline_tracks/` - downloaded tracks
 
