@@ -157,6 +157,7 @@ struct StartPlan {
     transition: Transition,
     start_at: Option<Duration>,
     album_context: bool,
+    service_replay_gain: ReplayGainInfo,
 }
 
 struct Pending {
@@ -425,6 +426,7 @@ impl Actor {
             transition,
             start_at,
             album_context,
+            service_replay_gain,
             reply,
         } = request;
 
@@ -449,6 +451,7 @@ impl Actor {
                 transition,
                 start_at,
                 album_context,
+                service_replay_gain,
             },
             reply,
         });
@@ -571,6 +574,7 @@ impl Actor {
             transition,
             start_at,
             album_context,
+            service_replay_gain,
         } = plan;
 
         let fade = match transition {
@@ -647,6 +651,9 @@ impl Actor {
             (config, None, false)
         };
 
+        // The stream's own tags describe the exact bytes being decoded, so
+        // they win; the server's values fill in what a transcode stripped.
+        let replay_gain = replay_gain.or(service_replay_gain);
         let gain = Arc::new(AtomicU32::new(
             self.replay_gain_settings
                 .linear_gain(replay_gain, album_context)

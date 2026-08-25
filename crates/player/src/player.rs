@@ -7,7 +7,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use config::{ChannelMode, EqualizerSettings, ReplayGainSettings};
+use config::{ChannelMode, EqualizerSettings, ReplayGainInfo, ReplayGainSettings};
 
 use crate::engine::{
     ActorMsg, AudioSink, Command, CpalSink, EngineHandle, EngineStatus, Event, LoadReply,
@@ -59,6 +59,8 @@ pub struct LoadArgs {
     pub start_at: Option<Duration>,
     /// The queue is walking an album; see [`LoadRequest::album_context`].
     pub album_context: bool,
+    /// See [`LoadRequest::service_replay_gain`].
+    pub service_replay_gain: ReplayGainInfo,
     /// Resolves once the source is playing or failed; dropped on cancellation.
     pub reply: Option<LoadReply>,
 }
@@ -120,6 +122,7 @@ impl Player {
             transition,
             start_at,
             album_context,
+            service_replay_gain,
             reply,
         } = args;
         self.engine.send(Command::Load(LoadRequest {
@@ -129,6 +132,7 @@ impl Player {
             transition,
             start_at,
             album_context,
+            service_replay_gain,
             reply,
         }));
         self.now_playing = Some(meta);
