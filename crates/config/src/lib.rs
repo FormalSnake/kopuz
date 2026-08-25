@@ -511,17 +511,33 @@ impl ReplayGainMode {
 /// ReplayGain values carried by a track, in the units the tags use: gains in
 /// dB relative to the reference loudness, peaks as a linear sample amplitude
 /// where 1.0 is full scale.
-#[derive(Debug, Clone, Copy, Default, PartialEq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct ReplayGainInfo {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub track_gain_db: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub track_peak: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub album_gain_db: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub album_peak: Option<f32>,
 }
 
 impl ReplayGainInfo {
     pub fn is_empty(&self) -> bool {
         self.track_gain_db.is_none() && self.album_gain_db.is_none()
+    }
+
+    /// Fill in whatever this one is missing from `other`, field by field.
+    /// Used to back a stream's own tags with the values the media server
+    /// reported, which is all a transcoded stream has left.
+    pub fn or(self, other: Self) -> Self {
+        Self {
+            track_gain_db: self.track_gain_db.or(other.track_gain_db),
+            track_peak: self.track_peak.or(other.track_peak),
+            album_gain_db: self.album_gain_db.or(other.album_gain_db),
+            album_peak: self.album_peak.or(other.album_peak),
+        }
     }
 }
 
