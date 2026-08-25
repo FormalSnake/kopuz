@@ -24,6 +24,7 @@ impl Session {
             None => {}
         }
         let track_key = track.id.uid();
+        let album_context = self.model.album_context_at(idx, &track.album_id);
         let (restore_seek, clear_pending_resume) = self.pending_resume_seek(&track);
         let use_crossfade = allow_crossfade
             && self.should_crossfade()
@@ -240,6 +241,7 @@ impl Session {
                 Transition::Immediate
             },
             start_at: restore_seek.filter(|position| !position.is_zero()),
+            album_context,
             clear_pending_resume,
             cmd_tx: self.cmd_tx.clone(),
         };
@@ -310,6 +312,7 @@ impl Session {
             },
             transition: prepared.transition,
             start_at: prepared.start_at,
+            album_context: prepared.album_context,
             reply: Some(reply_tx),
         });
         let token = prepared.token;
@@ -501,6 +504,8 @@ pub(super) struct ClassifiedLoad {
     artwork: Option<String>,
     transition: Transition,
     start_at: Option<Duration>,
+    /// The queue is walking an album; see [`player::engine::LoadRequest::album_context`].
+    album_context: bool,
     clear_pending_resume: bool,
     cmd_tx: mpsc::UnboundedSender<SessionCmd>,
 }
@@ -654,6 +659,7 @@ impl ClassifiedLoad {
             artwork: self.artwork,
             transition: self.transition,
             start_at: self.start_at,
+            album_context: self.album_context,
             clear_pending_resume: self.clear_pending_resume,
             duration_secs,
             bitrate,
@@ -669,6 +675,7 @@ pub(super) struct PreparedLoad {
     artwork: Option<String>,
     transition: Transition,
     start_at: Option<Duration>,
+    album_context: bool,
     clear_pending_resume: bool,
     duration_secs: Option<u64>,
     bitrate: Option<u32>,

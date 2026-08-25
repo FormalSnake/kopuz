@@ -221,6 +221,7 @@ fn load_with(
         duration,
         transition,
         start_at: None,
+        album_context: false,
         reply: Some(reply_tx),
     }));
     reply_rx
@@ -264,6 +265,47 @@ fn load_plays_and_position_advances() {
         sink.pull(TEST_CONFIG.sample_rate as usize * TEST_CONFIG.channels / 4);
         engine.status().position() >= before + Duration::from_millis(900)
     });
+
+    engine.shutdown();
+}
+
+#[test]
+fn replay_gain_settings_scale_the_playing_track() {
+    let (sink, engine) = spawn_engine();
+    let (factory, duration) = wav_factory(5.0);
+    load(&engine, 1, factory, duration);
+    wait_until("phase Playing", || engine.status().phase == Phase::Playing);
+
+    let peak = |sink: &FakeSinkHandle| {
+        sink.pull(4410)
+            .into_iter()
+            .fold(0.0_f32, |peak, sample| peak.max(sample.abs()))
+    };
+
+    let mut ungained = 0.0_f32;
+    wait_until("non-silent audio", || {
+        ungained = peak(&sink);
+        ungained > 0.0
+    });
+
+    // The WAV carries no tags, so the fallback gain is what a track without
+    // ReplayGain data gets. -6 dB halves the amplitude.
+    engine.send(Command::SetReplayGain(config::ReplayGainSettings {
+        mode: config::ReplayGainMode::Track,
+        prevent_clipping: false,
+        preamp_db: 0.0,
+        fallback_gain_db: -6.0,
+    }));
+
+    let mut gained = ungained;
+    wait_until("gain applied to the live session", || {
+        gained = peak(&sink);
+        gained > 0.0 && gained < ungained * 0.75
+    });
+    assert!(
+        (gained - ungained * 0.5).abs() < ungained * 0.15,
+        "expected roughly half amplitude, got {gained} from {ungained}"
+    );
 
     engine.shutdown();
 }
@@ -774,6 +816,7 @@ fn status_reports_pending_and_fading() {
         duration: Duration::from_secs(1),
         transition: Transition::Immediate,
         start_at: None,
+        album_context: false,
         reply: None,
     }));
     wait_until("pending token 2 visible", || {
@@ -928,6 +971,7 @@ fn superseding_load_drops_stale_session() {
         duration: Duration::from_secs(1),
         transition: Transition::Immediate,
         start_at: None,
+        album_context: false,
         reply: Some(reply_tx),
     }));
 
@@ -971,6 +1015,7 @@ fn try_load_with(
         duration,
         transition,
         start_at: None,
+        album_context: false,
         reply: Some(reply_tx),
     }));
     reply_rx.blocking_recv().expect("load reply")
@@ -1687,6 +1732,7 @@ fn load_paced_source(
         duration: Duration::from_secs_f64(seconds),
         transition: Transition::Immediate,
         start_at: None,
+        album_context: false,
         reply: Some(reply_tx),
     }));
     reply_rx.blocking_recv().expect("load reply")?;
