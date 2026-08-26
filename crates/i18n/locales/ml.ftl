@@ -186,6 +186,7 @@ more_actions_for = { $name } എന്നതിനുള്ള കൂടുത�
 share_musicbrainz = പങ്കിടുക (MusicBrainz)
 share_link_copied = MusicBrainz ലിങ്ക് പകർത്തി
 delete = ഇല്ലാതാക്കുക
+delete_from_device = ഉപകരണത്തിൽ നിന്ന് ഇല്ലാതാക്കുക
 delete_song = പാട്ട് ഇല്ലാതാക്കുക
 delete_album = ആൽബം ഇല്ലാതാക്കുക
 delete_playlist = പ്ലേലിസ്റ്റ് ഇല്ലാതാക്കുക
