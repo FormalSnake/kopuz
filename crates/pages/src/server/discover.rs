@@ -316,7 +316,6 @@ fn SongListShelf(
                                         key: "{idx}",
                                         track: track.clone(),
                                         cover_url,
-                                        on_start_radio: components::track_row::radio_handler(track.clone()),
                                         row_num: Some(idx + 1),
                                         is_menu_open,
                                         is_currently_playing: is_current,

@@ -37,6 +37,8 @@ pub struct DotsMenuProps {
     pub placement: String,
     #[props(default = "fa-solid fa-ellipsis-vertical".to_string())]
     pub icon: String,
+    /// Accessible name for the icon-only trigger.
+    pub aria_label: String,
 }
 
 /// The panel measures itself pinned to the viewport origin, because `left`/`right`
@@ -64,9 +66,21 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
     rsx! {
         div {
             class: if props.is_open { "relative dots-menu-root" } else { "relative" },
+            // On the root, not the panel: focus stays on the trigger when the
+            // menu opens by click, so a keydown on the panel would never fire.
+            onkeydown: move |evt| {
+                if props.is_open && evt.key() == Key::Escape {
+                    evt.stop_propagation();
+                    props.on_close.call(());
+                }
+            },
 
             button {
+                r#type: "button",
                 class: "{base_button_class}",
+                aria_label: "{props.aria_label}",
+                aria_haspopup: "menu",
+                aria_expanded: if props.is_open { "true" } else { "false" },
                 onmounted: move |evt| trigger_element.set(Some(evt)),
                 onclick: move |evt| {
                     evt.stop_propagation();
@@ -78,12 +92,13 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                         props.on_open.call(());
                     }
                 },
-                i { class: "{props.icon}" }
+                i { class: "{props.icon}", aria_hidden: "true" }
             }
 
             if props.is_open {
                 div {
                     class: "fixed inset-0 dots-menu-backdrop",
+                    aria_hidden: "true",
                     onclick: move |evt| {
                         evt.stop_propagation();
                         props.on_close.call(());
@@ -93,6 +108,7 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                 div {
                     class: "w-auto flex flex-col bg-neutral-900 border border-white/10 rounded-lg dots-menu-panel py-1 shadow-xl",
                     style: "{panel_style}",
+                    role: "menu",
                     onmounted: {
                         let anchor = props.anchor.clone();
                         let placement = props.placement.clone();
@@ -144,12 +160,14 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                             rsx! {
                                 button {
                                     key: "{idx}",
+                                    r#type: "button",
+                                    role: "menuitem",
                                     class: "px-4 py-2 text-sm {text_color} hover:bg-white/10 flex items-center gap-2 transition-colors whitespace-nowrap",
                                     onclick: move |_| {
                                         panel_geometry.set(None);
                                         props.on_action.call(idx);
                                     },
-                                    i { class: "{icon}" }
+                                    i { class: "{icon}", aria_hidden: "true" }
                                     "{label}"
                                 }
                             }

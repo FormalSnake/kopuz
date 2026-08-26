@@ -288,44 +288,6 @@ fn ServerHeroBanner(
     }
 }
 
-/// The overflow menu on a home song card: the subset of the track row's actions
-/// that needs no modal of its own, so home can start a radio (and queue a track)
-/// without the page growing the row's playlist/metadata plumbing.
-#[derive(Clone, Copy)]
-enum SongCardAction {
-    PlayNext,
-    AddToQueue,
-    StartRadio,
-    Share,
-}
-
-fn song_card_actions(can_radio: bool) -> (Vec<MenuAction>, Vec<SongCardAction>) {
-    let mut entries = vec![
-        (
-            MenuAction::new(i18n::t("play_next"), "fa-solid fa-forward-step"),
-            SongCardAction::PlayNext,
-        ),
-        (
-            MenuAction::new(i18n::t("add_to_queue"), "fa-solid fa-list-ul"),
-            SongCardAction::AddToQueue,
-        ),
-    ];
-    if can_radio {
-        entries.push((
-            MenuAction::new(
-                components::radio_actions::radio_label(),
-                components::radio_actions::RADIO_ICON,
-            ),
-            SongCardAction::StartRadio,
-        ));
-    }
-    entries.push((
-        MenuAction::new(i18n::t("share_musicbrainz"), "fa-solid fa-share-nodes"),
-        SongCardAction::Share,
-    ));
-    entries.into_iter().unzip()
-}
-
 fn render_continue_listening(
     is_vaxry: bool,
     tracks: Vec<(Track, Option<Album>, Option<String>)>,
@@ -337,10 +299,6 @@ fn render_continue_listening(
     if tracks.is_empty() {
         return rsx! { div {} };
     }
-    let mut ctrl = consume_context::<hooks::PlayerController>();
-    let active_source = consume_context::<Signal<::server::source::ActiveSource>>();
-    let can_radio = active_source.read().capabilities().radio.track;
-    let (song_actions, song_action_kinds) = song_card_actions(can_radio);
     rsx! {
         section { class: if is_vaxry { "mb-10" } else { "mb-12" },
             div { class: "flex items-center justify-between mb-6",
@@ -379,13 +337,6 @@ fn render_continue_listening(
                         let album_id_click = album_id_opt.clone();
                         let album_id_play = album_id_opt.clone();
                         let key = track.id.uid();
-                        let actions = song_actions.clone();
-                        let action_kinds = song_action_kinds.clone();
-                        // Resolved during render, not in the click closure: the
-                        // handler reads context, which a closure cannot do.
-                        let start_radio = components::radio_actions::track_radio_handler(
-                            track.clone(),
-                        );
                         let open_key = key.clone();
                         let is_menu_open = active_card_menu.read().as_deref() == Some(key.as_str());
                         let menu_track = track.clone();
@@ -416,34 +367,13 @@ fn render_continue_listening(
                                     div {
                                         class: "absolute right-1 top-1",
                                         onclick: move |evt| evt.stop_propagation(),
-                                        DotsMenu {
-                                            actions,
-                                            is_open: is_menu_open,
-                                            on_open: move |_| active_card_menu.set(Some(open_key.clone())),
-                                            on_close: move |_| active_card_menu.set(None),
+                                        components::track_actions::TrackActionsMenu {
+                                            track: menu_track.clone(),
+                                            is_open: Some(is_menu_open),
+                                            on_open: Some(EventHandler::new(move |_| active_card_menu.set(Some(open_key.clone())))),
+                                            on_close: Some(EventHandler::new(move |_| active_card_menu.set(None))),
                                             button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
                                             anchor: "right".to_string(),
-                                            on_action: move |idx: usize| {
-                                                active_card_menu.set(None);
-                                                match action_kinds.get(idx) {
-                                                    Some(SongCardAction::PlayNext) => {
-                                                        ctrl.queue_play_next(vec![menu_track.clone()]);
-                                                    }
-                                                    Some(SongCardAction::AddToQueue) => {
-                                                        ctrl.add_to_queue(vec![menu_track.clone()]);
-                                                    }
-                                                    Some(SongCardAction::StartRadio) => {
-                                                        if let Some(handler) = start_radio {
-                                                            handler.call(());
-                                                        }
-                                                    }
-                                                    Some(SongCardAction::Share) => {
-                                                        let src = active_source.peek().clone();
-                                                        components::track_row::share_track(menu_track.clone(), src);
-                                                    }
-                                                    None => {}
-                                                }
-                                            },
                                         }
                                     }
                                 }
@@ -760,6 +690,7 @@ fn render_playlists(
                                                 is_open: is_menu_open,
                                                 on_open: move |_| active_card_menu.set(Some(open_key.clone())),
                                                 on_close: move |_| active_card_menu.set(None),
+                                                aria_label: i18n::t_with("more_actions_for", &[("name", name.clone())]),
                                                 button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
                                                 anchor: "right".to_string(),
                                                 on_action: move |_: usize| {

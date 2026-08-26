@@ -775,6 +775,7 @@ pub fn Artist(
                                                                 move |_| open_album_menu.set(Some(id.clone()))
                                                             },
                                                             on_close: move |_| open_album_menu.set(None),
+                                                            aria_label: i18n::t_with("more_actions_for", &[("name", album.title.clone())]),
                                                             button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100 bg-black/40".to_string(),
                                                             anchor: "right".to_string(),
                                                             on_action: {
@@ -946,12 +947,6 @@ pub fn Artist(
                                     if let Some(track) = artist_tracks().get(idx) {
                                         selected_track_for_playlist.set(Some(track.id.clone()));
                                         show_playlist_modal.set(true);
-                                        active_menu_track.set(None);
-                                    }
-                                },
-                                on_queue: move |idx: usize| {
-                                    if let Some(track) = artist_tracks().get(idx) {
-                                        ctrl.add_to_queue(vec![track.clone()]);
                                         active_menu_track.set(None);
                                     }
                                 },

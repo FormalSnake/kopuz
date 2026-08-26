@@ -44,6 +44,7 @@ pub fn QueueRow(
         }
         LayoutMode::Rightbar => rightbar_queue_row_class(is_reorder_source),
     };
+    let mut ctrl = use_context::<PlayerController>();
     let row_class = if is_active {
         format!("{base_class} {layout}__active-queue-item")
     } else {
@@ -134,6 +135,24 @@ pub fn QueueRow(
                     can_move_down,
                     on_move_up,
                     on_move_down,
+                }
+            }
+
+            div {
+                class: "shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity",
+                onmousedown: move |evt| evt.stop_propagation(),
+                crate::track_actions::TrackActionsMenu {
+                    track: track.clone(),
+                    // Queueing a track that is already in the queue would just
+                    // duplicate it; reordering is what this surface offers.
+                    show_queue_actions: false,
+                    on_remove_from_queue: (!is_active).then(|| EventHandler::new(move |_| {
+                        ctrl.remove_queue_item(queue_idx);
+                    })),
+                    button_class: match layout {
+                        LayoutMode::Fullscreen => "w-8 h-8".to_string(),
+                        LayoutMode::Rightbar => "w-7 h-7".to_string(),
+                    },
                 }
             }
         }
