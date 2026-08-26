@@ -58,6 +58,8 @@ pub fn Activity(config: Signal<AppConfig>) -> Element {
     const ITEM_HEIGHT: f64 = 60.0;
 
     let mut total_rows = use_signal(|| 0_usize);
+    // One open menu at a time: rows are a loop, so per-row hooks are not an option.
+    let mut active_menu_track = use_signal(|| None::<String>);
     let page = use_memo(move || {
         let info = components::virtual_scroll::use_virtual_scroll(
             *scroll_stat.read(),
@@ -173,10 +175,17 @@ pub fn Activity(config: Signal<AppConfig>) -> Element {
                             {
                                 let track_id = track.uid.clone();
                                 let menu_track = track.clone();
+                                let open_key = track_id.clone();
+                                let ctx_key = track_id.clone();
+                                let is_menu_open = active_menu_track.read().as_deref() == Some(track_id.as_str());
                                 rsx! {
                                     div { key: "{track_id}", style: "height: {ITEM_HEIGHT}px;",
                                         div {
                                             class: "flex items-center h-full px-4 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group",
+                                            oncontextmenu: move |evt| {
+                                                evt.prevent_default();
+                                                active_menu_track.set(Some(ctx_key.clone()));
+                                            },
                                             onclick: move |_| {
                                                 let f = filter.peek().clone();
                                                 let api = hooks::consume_api();
@@ -243,6 +252,9 @@ pub fn Activity(config: Signal<AppConfig>) -> Element {
                                                 onclick: move |evt| evt.stop_propagation(),
                                                 components::track_actions::TrackActionsMenu {
                                                     track: menu_track.clone(),
+                                                    is_open: Some(is_menu_open),
+                                                    on_open: Some(EventHandler::new(move |_| active_menu_track.set(Some(open_key.clone())))),
+                                                    on_close: Some(EventHandler::new(move |_| active_menu_track.set(None))),
                                                     button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
                                                 }
                                             }

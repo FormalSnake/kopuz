@@ -657,10 +657,15 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
     let show_pause = is_this_source && is_playing && !is_loading;
 
     let menu_track = track.clone();
+    let mut menu_open = use_signal(|| false);
 
     rsx! {
         div {
             class: "shrink-0 w-44 text-left cursor-pointer transition-transform duration-200 ease-out hover:scale-[1.03] hover:-translate-y-0.5 group",
+            oncontextmenu: move |evt| {
+                evt.prevent_default();
+                menu_open.set(true);
+            },
             onclick: {
                 let key = key.clone();
                 move |_| {
@@ -709,6 +714,9 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
                     onclick: move |evt| evt.stop_propagation(),
                     components::track_actions::TrackActionsMenu {
                         track: menu_track.clone(),
+                        is_open: Some(menu_open()),
+                        on_open: Some(EventHandler::new(move |_| menu_open.set(true))),
+                        on_close: Some(EventHandler::new(move |_| menu_open.set(false))),
                         button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
                     }
                 }

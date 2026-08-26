@@ -403,11 +403,18 @@ fn PlaylistsGrid(
                         let is_dl = playlist.track_keys.iter().any(|key| downloads.read().is_active(key));
                         let all_downloaded = !playlist.track_keys.is_empty()
                             && playlist.track_keys.iter().all(|key| downloads.read().is_stored(key));
+                        let ctx_pid = playlist.id.clone();
                         rsx! {
                             div {
                                 key: "{playlist.id}",
                                 class: "bg-white/5 border border-white/5 rounded-xl p-6 hover:bg-white/10 transition-all cursor-pointer group relative",
                                 onclick: move |_| selected_playlist_id.set(Some(playlist_id_nav.clone())),
+                                oncontextmenu: move |evt: Event<MouseData>| {
+                                    evt.prevent_default();
+                                    if can_radio {
+                                        active_menu.set(Some(ctx_pid.clone()));
+                                    }
+                                },
                                 div { class: "mb-4 w-full aspect-square rounded-xl flex items-center justify-center overflow-hidden transition-all bg-white/5",
                                     if let Some(url) = cover_url {
                                         img { src: "{url}", class: "w-full h-full object-cover", decoding: "async", loading: "lazy" }
@@ -590,11 +597,16 @@ fn folders_layout(ctx: FoldersCtx<'_>) -> Element {
         // Resolved during render, like the track rows' radio: the handler reads
         // context, which an event closure can't do.
         let start_radio = components::radio_actions::playlist_radio_handler(playlist.id.clone());
+        let pid_ctx = playlist.id.clone();
         rsx! {
             div {
                 key: "{pid}",
                 class: "bg-white/5 border border-white/5 rounded-xl p-4 hover:bg-white/10 transition-all cursor-pointer group relative",
                 onclick: move |_| selected_playlist_id.set(Some(pid_click.clone())),
+                oncontextmenu: move |evt| {
+                    evt.prevent_default();
+                    active_menu.set(Some(pid_ctx.clone()));
+                },
                 div { class: "mb-4 w-full h-32 rounded-xl flex items-center justify-center overflow-hidden transition-all bg-white/5",
                     if let Some(url) = cover_url {
                         img {
@@ -764,11 +776,16 @@ fn folders_layout(ctx: FoldersCtx<'_>) -> Element {
                                         .and_then(|pid| all_playlists.iter().find(|p| p.id == *pid))
                                         .and_then(cover_for);
                                     let folder_actions = folder_actions.clone();
+                                    let fid_ctx = folder.id.clone();
                                     rsx! {
                                         div {
                                             key: "{fid}",
                                             class: "bg-white/5 border border-white/5 rounded-xl p-4 hover:bg-white/10 transition-all cursor-pointer group relative",
                                             onclick: move |_| open_folder_id.set(Some(fid_open.clone())),
+                                            oncontextmenu: move |evt| {
+                                                evt.prevent_default();
+                                                active_menu.set(Some(fid_ctx.clone()));
+                                            },
                                             div { class: "mb-4 w-full h-32 rounded-xl flex items-center justify-center overflow-hidden transition-all bg-white/5",
                                                 if let Some(url) = cover_url {
                                                     img {

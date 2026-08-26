@@ -45,6 +45,7 @@ pub fn QueueRow(
         LayoutMode::Rightbar => rightbar_queue_row_class(is_reorder_source),
     };
     let mut ctrl = use_context::<PlayerController>();
+    let mut menu_open = use_signal(|| false);
     let row_class = if is_active {
         format!("{base_class} {layout}__active-queue-item")
     } else {
@@ -69,6 +70,10 @@ pub fn QueueRow(
             onmousedown: move |evt| on_row_mouse_down.call(evt),
             onmousemove: move |evt| on_row_mouse_move.call(evt),
             ondoubleclick: move |_| on_play.call(()),
+            oncontextmenu: move |evt| {
+                evt.prevent_default();
+                menu_open.set(true);
+            },
 
             div { class: "w-4 flex justify-center items-end shrink-0",
 
@@ -142,6 +147,9 @@ pub fn QueueRow(
                 class: "shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity",
                 crate::track_actions::TrackActionsMenu {
                     track: track.clone(),
+                    is_open: Some(menu_open()),
+                    on_open: Some(EventHandler::new(move |_| menu_open.set(true))),
+                    on_close: Some(EventHandler::new(move |_| menu_open.set(false))),
                     // Queueing a track that is already in the queue would just
                     // duplicate it; reordering is what this surface offers.
                     show_queue_actions: false,
