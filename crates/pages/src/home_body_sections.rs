@@ -112,6 +112,7 @@ fn ServerHeroBanner(
     on_play_album: EventHandler<String>,
 ) -> Element {
     let mut is_resizing = use_signal(|| false);
+    let mut hero_menu_open = use_signal(|| false);
     let mut start_y = use_signal(|| 0.0_f64);
     let mut start_h = use_signal(|| 0_u32);
 
@@ -194,7 +195,15 @@ fn ServerHeroBanner(
         .unwrap_or_default();
 
     rsx! {
-        section { class: "{section_class}", style: "{section_style}",
+        section {
+            class: "{section_class}",
+            style: "{section_style}",
+            oncontextmenu: move |evt| {
+                evt.prevent_default();
+                if hero_track.is_some() {
+                    hero_menu_open.set(true);
+                }
+            },
             if !show_empty_state {
                 if let Some((_, _album_opt, entry_cover)) = hero_entry.as_ref() {
                     div { class: "absolute inset-0 overflow-hidden",
@@ -274,6 +283,9 @@ fn ServerHeroBanner(
                         if let Some(track) = hero_track.clone() {
                             components::track_actions::TrackActionsMenu {
                                 track,
+                                is_open: Some(hero_menu_open()),
+                                on_open: Some(EventHandler::new(move |_| hero_menu_open.set(true))),
+                                on_close: Some(EventHandler::new(move |_| hero_menu_open.set(false))),
                                 button_class: "w-11 h-11 bg-white/10 border border-white/20 text-white hover:bg-white/20".to_string(),
                                 // The banner's controls sit at its left edge, so
                                 // the panel has to open towards the middle.
@@ -351,6 +363,7 @@ fn render_continue_listening(
                         let album_id_play = album_id_opt.clone();
                         let key = track.id.uid();
                         let open_key = key.clone();
+                        let ctx_key = key.clone();
                         let is_menu_open = active_card_menu.read().as_deref() == Some(key.as_str());
                         let menu_track = track.clone();
                         rsx! {
@@ -361,6 +374,10 @@ fn render_continue_listening(
                                     if let Some(id) = album_id_click.clone() {
                                         on_select_album.call(id);
                                     }
+                                },
+                                oncontextmenu: move |evt| {
+                                    evt.prevent_default();
+                                    active_card_menu.set(Some(ctx_key.clone()));
                                 },
                                 div { class: "aspect-square rounded-xl bg-stone-800 mb-3 overflow-hidden relative",
                                     if let Some(url) = cover_url {
@@ -676,6 +693,7 @@ fn render_playlists(
                         let start_radio = components::radio_actions::playlist_radio_handler(id.clone());
                         let is_menu_open = active_card_menu.read().as_deref() == Some(id.as_str());
                         let open_key = id.clone();
+                        let ctx_key = id.clone();
                         let actions = radio_actions.clone();
                         rsx! {
                             div {
@@ -684,6 +702,12 @@ fn render_playlists(
                                 onclick: {
                                     let id = id.clone();
                                     move |_| on_select_playlist.call(id.clone())
+                                },
+                                oncontextmenu: move |evt| {
+                                    evt.prevent_default();
+                                    if can_radio {
+                                        active_card_menu.set(Some(ctx_key.clone()));
+                                    }
                                 },
                                 div { class: "aspect-square rounded-xl bg-white/5 mb-4 overflow-hidden transition-all duration-500 relative",
                                     if let Some(url) = cover_url {

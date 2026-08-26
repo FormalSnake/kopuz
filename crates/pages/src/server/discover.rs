@@ -740,6 +740,7 @@ fn SongCard(track: Track) -> Element {
     let mut hover_armed = use_signal(|| false);
     let prefetch_id = video_id.clone();
     let menu_track = track.clone();
+    let mut menu_open = use_signal(|| false);
 
     rsx! {
         div {
@@ -766,6 +767,10 @@ fn SongCard(track: Track) -> Element {
             },
             onmouseleave: move |_| {
                 hover_armed.set(false);
+            },
+            oncontextmenu: move |evt| {
+                evt.prevent_default();
+                menu_open.set(true);
             },
             onclick: {
                 let track = track.clone();
@@ -818,6 +823,9 @@ fn SongCard(track: Track) -> Element {
                     onclick: move |evt| evt.stop_propagation(),
                     components::track_actions::TrackActionsMenu {
                         track: menu_track.clone(),
+                        is_open: Some(menu_open()),
+                        on_open: Some(EventHandler::new(move |_| menu_open.set(true))),
+                        on_close: Some(EventHandler::new(move |_| menu_open.set(false))),
                         button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
                     }
                 }

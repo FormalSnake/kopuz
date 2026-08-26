@@ -1,5 +1,6 @@
 //! Reusable Dioxus UI components for the Kopuz music player.
 
+pub mod album;
 pub mod common;
 pub mod layout;
 pub mod navigation;
@@ -10,6 +11,7 @@ pub mod search;
 pub mod settings;
 pub mod track;
 
+pub use album::actions as album_actions;
 pub use common::controls::{
     dots_menu, reorder_buttons, selection_bar, sort_control, view_mode_toggle,
 };

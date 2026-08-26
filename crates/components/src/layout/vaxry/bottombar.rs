@@ -28,6 +28,7 @@ pub fn BottombarVaxry(
     is_devices_open: Signal<bool>,
 ) -> Element {
     let mut ctrl = use_context::<PlayerController>();
+    let mut track_menu_open = use_signal(|| false);
     let nav_ctrl = use_context::<NavigationController>();
     let fav_track = use_memo(move || ctrl.current_track_snapshot.read().clone());
     let is_fav = hooks::use_db_queries::use_track_is_favorite(fav_track);
@@ -165,6 +166,12 @@ pub fn BottombarVaxry(
 
             div {
                 class: "flex flex-col flex-1 min-w-0 justify-center gap-0.5",
+                oncontextmenu: move |evt| {
+                    evt.prevent_default();
+                    if ctrl.current_track_snapshot.peek().is_some() {
+                        track_menu_open.set(true);
+                    }
+                },
                 if !bar_as_fullscreen {
                     div {
                         class: "flex items-baseline gap-1.5 min-w-0",
@@ -217,6 +224,9 @@ pub fn BottombarVaxry(
                 if let Some(track) = ctrl.current_track_snapshot.read().clone() {
                     crate::track_actions::TrackActionsMenu {
                         track,
+                        is_open: Some(track_menu_open()),
+                        on_open: Some(EventHandler::new(move |_| track_menu_open.set(true))),
+                        on_close: Some(EventHandler::new(move |_| track_menu_open.set(false))),
                         placement: menu_placement.to_string(),
                         button_class: "w-9 h-9 text-slate-500 hover:bg-white/10 active:scale-95 text-[10px]".to_string(),
                     }
