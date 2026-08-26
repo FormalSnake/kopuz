@@ -28,6 +28,12 @@ const CONTINUATION_WORDS: [&str; 3] = ["the", "a", "an"];
 /// the ID3v2.4 / Vorbis multi-value separator and its CJK equivalents.
 const HARD_DELIMITERS: [char; 3] = [';', '；', '、'];
 
+/// Bullets, which some taggers use to join a whole contributor list. Counted
+/// only when padded with a space on both sides: unpadded, every one of these
+/// turns up inside real names (Catalan "Col·lectiu", Japanese
+/// "マイケル・ジャクソン").
+const BULLETS: [char; 5] = ['•', '∙', '·', '・', '･'];
+
 /// The individual artists a credit string names.
 ///
 /// Returns the input as a single entry when nothing marks it as a join, and
@@ -62,6 +68,12 @@ fn split_part(part: &str, out: &mut Vec<String>) {
     if part.is_empty() {
         return;
     }
+    // Bullets bind loosest of all: they join whole credits, so they have to
+    // be resolved before any marker sitting inside one of those credits.
+    if let Some(segments) = bullet_segments(part) {
+        push_bulleted(&segments, out);
+        return;
+    }
     // Collab markers bind looser than "feat.": each side of an "A x B" can
     // carry its own featured list.
     if let Some((start, end)) = find_marker(part, &COLLAB_MARKERS, true) {
@@ -75,6 +87,62 @@ fn split_part(part: &str, out: &mut Vec<String>) {
             push_guests(&part[end..], out);
         }
         None => push_name(part, out),
+    }
+}
+
+/// The segments of a bullet-joined list, or None when there is no space-padded
+/// bullet to split on.
+fn bullet_segments(part: &str) -> Option<Vec<&str>> {
+    let mut segments = Vec::new();
+    let mut start = 0;
+    for (i, ch) in part.char_indices() {
+        if !BULLETS.contains(&ch) {
+            continue;
+        }
+        let end = i + ch.len_utf8();
+        if !part[..i].ends_with(char::is_whitespace)
+            || !part[end..].starts_with(char::is_whitespace)
+        {
+            continue;
+        }
+        segments.push(&part[start..i]);
+        start = end;
+    }
+    if segments.is_empty() {
+        return None;
+    }
+    segments.push(&part[start..]);
+    Some(segments)
+}
+
+/// A bullet list is usually every contributor a release touched, performers and
+/// songwriters and producers alike, which is more than the artists a track
+/// should be filed under.
+///
+/// One shape gives itself away: "<credit> • <everyone who worked on it>", where
+/// the credit's own artists are repeated in the tail. There the head is the
+/// answer and the rest is personnel, so take only the head. Anything else is
+/// split in full, because a bullet list with no such evidence is more often a
+/// real collaboration than a contributor dump, and a stray songwriter tile is a
+/// smaller wrong than one tile carrying the entire joined string.
+fn push_bulleted(segments: &[&str], out: &mut Vec<String>) {
+    if let Some((head, tail)) = segments.split_first() {
+        let head_names = split_credit(head);
+        if head_names.len() > 1 {
+            let tail_names: Vec<String> = tail.iter().flat_map(|s| split_credit(s)).collect();
+            let repeated = head_names
+                .iter()
+                .all(|name| tail_names.iter().any(|t| same_artist(t, name)));
+            if repeated {
+                for name in head_names {
+                    push_name(&name, out);
+                }
+                return;
+            }
+        }
+    }
+    for segment in segments {
+        split_part(segment, out);
     }
 }
 
@@ -259,6 +327,80 @@ mod tests {
             ["Earth, Wind & Fire", "The Emotions"]
         );
         assert_eq!(split("Jay-Z ft. Alicia Keys"), ["Jay-Z", "Alicia Keys"]);
+    }
+
+    // The shapes below are taken verbatim from a real library.
+    #[test]
+    fn space_padded_bullets_split() {
+        assert_eq!(
+            split("A$AP Rocky • Rakim Mayers"),
+            ["A$AP Rocky", "Rakim Mayers"]
+        );
+        assert_eq!(
+            split(
+                "A$AP Rocky • Bones • Frans Mernick • Hector Delgado • Rakim Mayers • \
+                 Elmo O'Connor"
+            ),
+            [
+                "A$AP Rocky",
+                "Bones",
+                "Frans Mernick",
+                "Hector Delgado",
+                "Rakim Mayers",
+                "Elmo O'Connor"
+            ]
+        );
+        assert_eq!(
+            split("A$AP Rocky • Joe Fox • Rakim Mayers • Brian Burton • Ben Nichols"),
+            [
+                "A$AP Rocky",
+                "Joe Fox",
+                "Rakim Mayers",
+                "Brian Burton",
+                "Ben Nichols"
+            ]
+        );
+    }
+
+    /// "<credit> • <every contributor>" keeps only the credit: the tail repeats
+    /// the credit's own artists and then adds the songwriters and producers.
+    #[test]
+    fn a_credit_followed_by_its_contributor_list_keeps_only_the_credit() {
+        assert_eq!(
+            split(
+                "A$AP Rocky feat. Joe Fox x Future x M.I.A. • A$AP Rocky • Joe Fox • Future • \
+                 M.I.A. • Rakim Mayers • Rameses Magnus-George • Axel Morgan • Ricci Rierra • \
+                 Nayvadius Wilburn"
+            ),
+            ["A$AP Rocky", "Joe Fox", "Future", "M.I.A."]
+        );
+    }
+
+    /// Without that repetition there is no evidence of a personnel dump, so the
+    /// list is taken at face value.
+    #[test]
+    fn a_bulleted_list_that_repeats_nothing_is_split_in_full() {
+        assert_eq!(
+            split("Above & Beyond • Zoë Johnston"),
+            ["Above & Beyond", "Zoë Johnston"]
+        );
+    }
+
+    #[test]
+    fn bullets_inside_a_name_are_left_alone() {
+        // Unpadded, these characters are part of the name itself.
+        for name in ["マイケル・ジャクソン", "Col·lectiu", "A•B"] {
+            assert_eq!(split(name), [name], "must not split {name:?}");
+        }
+    }
+
+    #[test]
+    fn other_bullet_shapes_split() {
+        assert_eq!(
+            split("Ayumi Hamasaki ・ Tetsuya Komuro"),
+            ["Ayumi Hamasaki", "Tetsuya Komuro"]
+        );
+        assert_eq!(split("Nujabes · Shing02"), ["Nujabes", "Shing02"]);
     }
 
     #[test]

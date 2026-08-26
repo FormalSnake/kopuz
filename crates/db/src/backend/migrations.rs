@@ -150,18 +150,24 @@ const LEGACY_FILES: [&str; 5] = [
     "queue_state.json",
 ];
 
+/// The splitter revision a library was last backfilled with. Bump it whenever
+/// the rules change, or a library already carrying the previous pass's results
+/// never sees the new ones.
+const CREDIT_SPLIT_REVISION: &str = "v2-bullets";
+
 /// Re-split the credit lists of an already-scanned library.
 ///
 /// `artists_json` is derived from the credit strings at ingest, so a library
 /// scanned before the splitter existed still carries "A$AP Rocky feat. Drake"
 /// as a single artist. Recomputing it here is what spares the user a full
-/// rescan, and a server library a resync they may not be online for. Gated on a
-/// marker row so it runs once per database.
+/// rescan, and a server library a resync they may not be online for. Runs once
+/// per revision of the rules, gated on a marker row.
 #[tracing::instrument(skip_all)]
 pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbError> {
     let done: Option<String> = sqlx::query_scalar(
-        "SELECT payload FROM metadata_cache WHERE cache_key = 'artist_credits' AND kind = 'split'",
+        "SELECT payload FROM metadata_cache WHERE cache_key = 'artist_credits' AND kind = ?1",
     )
+    .bind(CREDIT_SPLIT_REVISION)
     .fetch_optional(pool)
     .await?;
     if done.is_some() {
@@ -177,7 +183,18 @@ pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbE
     let mut rewritten = 0usize;
     for (pk, artist, stored_json) in rows {
         let stored: Vec<String> = serde_json::from_str(&stored_json).unwrap_or_default();
-        let credited = reader::artist::credited(&artist, &stored);
+        // Work from the credit string rather than from what an earlier pass
+        // stored: that pass has already flattened the structure the newer rules
+        // read (a contributor list only gives itself away while its head and
+        // tail are still intact). The stored list still wins where the source
+        // named more artists than the credit string does, which is the one case
+        // it holds something the string cannot reproduce.
+        let derived = reader::artist::split_credit(&artist);
+        let credited = if stored.len() > derived.len() {
+            reader::artist::credited(&artist, &stored)
+        } else {
+            derived
+        };
         if credited == stored {
             continue;
         }
@@ -189,10 +206,14 @@ pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbE
             .await?;
         rewritten += 1;
     }
+    sqlx::query("DELETE FROM metadata_cache WHERE cache_key = 'artist_credits'")
+        .execute(&mut *tx)
+        .await?;
     sqlx::query(
-        "INSERT OR REPLACE INTO metadata_cache (cache_key, kind, payload) \
-         VALUES ('artist_credits', 'split', '1')",
+        "INSERT INTO metadata_cache (cache_key, kind, payload) \
+         VALUES ('artist_credits', ?1, '1')",
     )
+    .bind(CREDIT_SPLIT_REVISION)
     .execute(&mut *tx)
     .await?;
     tx.commit().await?;

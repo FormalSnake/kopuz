@@ -172,3 +172,113 @@ async fn artists_falls_back_to_the_joined_column_when_no_credits_are_stored() {
     let artists = db.artists(&Source::Local).await.unwrap();
     assert_eq!(artists, [("Solo Artist".to_string(), 1)]);
 }
+
+/// The case a user on the previous build is actually in: the first pass already
+/// ran, stored its partial split, and burned the marker. The new rules have to
+/// reach them anyway, and have to work from the untouched `artist` column,
+/// because the first pass flattened the head/tail shape the contributor-list
+/// rule reads.
+#[tokio::test]
+async fn a_library_backfilled_by_the_previous_revision_is_re_split() {
+    const CREDIT: &str = "A$AP Rocky feat. Joe Fox x Future x M.I.A. \u{2022} A$AP Rocky \u{2022} \
+                          Joe Fox \u{2022} Future \u{2022} M.I.A. \u{2022} Rakim Mayers \u{2022} \
+                          Rameses Magnus-George \u{2022} Axel Morgan \u{2022} Ricci Rierra \u{2022} \
+                          Nayvadius Wilburn";
+
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+
+    let mut conn = SqliteConnectOptions::new()
+        .filename(&db_path)
+        .connect()
+        .await
+        .unwrap();
+    // Exactly what the previous revision left behind: feat/x resolved, the
+    // bullet tail still welded into one entry.
+    let previous = serde_json::to_string(&[
+        "A$AP Rocky",
+        "Joe Fox",
+        "Future",
+        "M.I.A. \u{2022} A$AP Rocky \u{2022} Joe Fox \u{2022} Future \u{2022} M.I.A. \u{2022} \
+         Rakim Mayers \u{2022} Rameses Magnus-George \u{2022} Axel Morgan \u{2022} Ricci Rierra \
+         \u{2022} Nayvadius Wilburn",
+    ])
+    .unwrap();
+    sqlx::query(
+        "INSERT INTO tracks (source, track_key, title, artist, album, artists_json) \
+         VALUES ('local', '/music/1.flac', 'T', ?1, 'Album', ?2)",
+    )
+    .bind(CREDIT)
+    .bind(&previous)
+    .execute(&mut conn)
+    .await
+    .unwrap();
+    // Leave exactly the marker the previous revision wrote, which must not
+    // block the new one.
+    sqlx::query("DELETE FROM metadata_cache WHERE cache_key = 'artist_credits'")
+        .execute(&mut conn)
+        .await
+        .unwrap();
+    sqlx::query(
+        "INSERT INTO metadata_cache (cache_key, kind, payload) \
+         VALUES ('artist_credits', 'split', '1')",
+    )
+    .execute(&mut conn)
+    .await
+    .unwrap();
+    drop(conn);
+
+    drop(db::init(&db_path).await.unwrap());
+
+    assert_eq!(
+        stored_credits(&db_path, "/music/1.flac").await,
+        ["A$AP Rocky", "Joe Fox", "Future", "M.I.A."]
+    );
+
+    // One marker row, at the new revision: the superseded one is cleared out.
+    let mut conn = SqliteConnectOptions::new()
+        .filename(&db_path)
+        .connect()
+        .await
+        .unwrap();
+    let kinds: Vec<String> =
+        sqlx::query_scalar("SELECT kind FROM metadata_cache WHERE cache_key = 'artist_credits'")
+            .fetch_all(&mut conn)
+            .await
+            .unwrap();
+    assert_eq!(kinds, ["v2-bullets"]);
+}
+
+/// A per-artist list richer than the credit string (Jellyfin's `Artists` array
+/// against a joined display name) is not thrown away by re-deriving.
+#[tokio::test]
+async fn a_source_supplied_list_survives_the_backfill() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+
+    let mut conn = SqliteConnectOptions::new()
+        .filename(&db_path)
+        .connect()
+        .await
+        .unwrap();
+    sqlx::query(
+        "INSERT INTO tracks (source, track_key, title, artist, album, artists_json) \
+         VALUES ('local', '/music/1.flac', 'T', 'Gorillaz', 'Album', ?1)",
+    )
+    .bind(serde_json::to_string(&["Gorillaz", "Del The Funky Homosapien"]).unwrap())
+    .execute(&mut conn)
+    .await
+    .unwrap();
+    sqlx::query("DELETE FROM metadata_cache WHERE cache_key = 'artist_credits'")
+        .execute(&mut conn)
+        .await
+        .unwrap();
+    drop(conn);
+
+    drop(db::init(&db_path).await.unwrap());
+
+    assert_eq!(
+        stored_credits(&db_path, "/music/1.flac").await,
+        ["Gorillaz", "Del The Funky Homosapien"]
+    );
+}
