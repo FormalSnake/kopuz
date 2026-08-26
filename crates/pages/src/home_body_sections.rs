@@ -50,6 +50,7 @@ pub(super) fn render_server_section(
             jellyfin_shuffled,
             on_select_album,
             on_play_album,
+            active_card_menu,
         ),
         "top_artists" => render_top_artists(is_vaxry, artists, on_search_artist, scroll_container),
         "new_releases" => render_albums_row(
@@ -60,6 +61,7 @@ pub(super) fn render_server_section(
             new_releases,
             on_select_album,
             on_play_album,
+            active_card_menu,
             scroll_container,
         ),
         "made_for_you" => {
@@ -77,6 +79,7 @@ pub(super) fn render_server_section(
                 albums,
                 on_select_album,
                 on_play_album,
+                active_card_menu,
                 scroll_container,
             )
         }
@@ -88,6 +91,7 @@ pub(super) fn render_server_section(
             recently_added,
             on_select_album,
             on_play_album,
+            active_card_menu,
             scroll_container,
         ),
         "playlists" => render_playlists(
@@ -424,6 +428,7 @@ fn render_listen_now(
     jellyfin_shuffled: Vec<AlbumCard>,
     on_select_album: EventHandler<String>,
     on_play_album: EventHandler<String>,
+    mut active_card_menu: Signal<Option<String>>,
 ) -> Element {
     if jellyfin_shuffled.is_empty() {
         return rsx! { div {} };
@@ -443,11 +448,21 @@ fn render_listen_now(
                 div { class: "flex overflow-x-auto gap-4 pb-4 scrollbar-hide scroll-smooth -mx-2 px-2",
                     ontouchstart: move |evt| evt.stop_propagation(),
                     for (album_id, title, artist, cover_url) in jellyfin_shuffled.iter().skip(1).take(10).cloned() {
+                        {
+                        let open_key = album_id.clone();
+                        let ctx_key = album_id.clone();
+                        let is_menu_open = active_card_menu.read().as_deref() == Some(album_id.as_str());
+                        rsx! {
                         div {
+                            key: "{album_id}",
                             class: "flex-none w-40 group cursor-pointer",
                             onclick: {
                                 let id = album_id.clone();
                                 move |_| on_select_album.call(id.clone())
+                            },
+                            oncontextmenu: move |evt| {
+                                evt.prevent_default();
+                                active_card_menu.set(Some(ctx_key.clone()));
                             },
                             div { class: "aspect-square rounded-xl bg-stone-800 mb-2 overflow-hidden relative",
                                 if let Some(url) = cover_url {
@@ -464,20 +479,45 @@ fn render_listen_now(
                                     style: "background: var(--color-indigo-500);".to_string(),
                                     icon_extra: "text-white text-xs".to_string(),
                                 }
+                                div {
+                                    class: "absolute right-1 top-1",
+                                    onclick: move |evt| evt.stop_propagation(),
+                                    components::album_actions::AlbumActionsMenu {
+                                        album_id: album_id.clone(),
+                                        album_title: title.clone(),
+                                        artist: artist.clone(),
+                                        is_open: Some(is_menu_open),
+                                        on_open: Some(EventHandler::new(move |_| active_card_menu.set(Some(open_key.clone())))),
+                                        on_close: Some(EventHandler::new(move |_| active_card_menu.set(None))),
+                                        button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
+                                    }
+                                }
                             }
                             h3 { class: "text-white font-semibold truncate text-sm", "{title}" }
                             p { class: "text-xs truncate mt-0.5", style: "color: rgba(255,255,255,0.45);", "{artist}" }
+                        }
+                        }
                         }
                     }
                 }
             } else {
                 div { class: "grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-4",
                     for (album_id, title, artist, cover_url) in jellyfin_shuffled.iter().skip(1).take(8).cloned() {
+                        {
+                        let open_key = album_id.clone();
+                        let ctx_key = album_id.clone();
+                        let is_menu_open = active_card_menu.read().as_deref() == Some(album_id.as_str());
+                        rsx! {
                         div {
+                            key: "{album_id}",
                             class: "flex items-center bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl cursor-pointer transition-all duration-300 group overflow-hidden pr-4",
                             onclick: {
                                 let id = album_id.clone();
                                 move |_| on_select_album.call(id.clone())
+                            },
+                            oncontextmenu: move |evt| {
+                                evt.prevent_default();
+                                active_card_menu.set(Some(ctx_key.clone()));
                             },
                             div { class: "w-16 h-16 md:w-20 md:h-20 flex-shrink-0 bg-stone-800/50 relative overflow-hidden",
                                 if let Some(url) = cover_url {
@@ -501,6 +541,21 @@ fn render_listen_now(
                                     icon_extra: "text-white/80 text-xs".to_string(),
                                 }
                             }
+                            div {
+                                class: "shrink-0",
+                                onclick: move |evt| evt.stop_propagation(),
+                                components::album_actions::AlbumActionsMenu {
+                                    album_id: album_id.clone(),
+                                    album_title: title.clone(),
+                                    artist: artist.clone(),
+                                    is_open: Some(is_menu_open),
+                                    on_open: Some(EventHandler::new(move |_| active_card_menu.set(Some(open_key.clone())))),
+                                    on_close: Some(EventHandler::new(move |_| active_card_menu.set(None))),
+                                    button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
+                                }
+                            }
+                        }
+                        }
                         }
                     }
                 }
@@ -569,6 +624,7 @@ fn render_top_artists(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_albums_row(
     scroll_id: &'static str,
     title: String,
@@ -577,6 +633,7 @@ fn render_albums_row(
     albums: Vec<AlbumCard>,
     on_select_album: EventHandler<String>,
     on_play_album: EventHandler<String>,
+    mut active_card_menu: Signal<Option<String>>,
     scroll_container: impl Fn(&str, i32) + Copy + 'static,
 ) -> Element {
     if albums.is_empty() {
@@ -609,11 +666,21 @@ fn render_albums_row(
                 class: "flex overflow-x-auto gap-5 pb-6 pt-2 overflow-y-visible scrollbar-hide scroll-smooth -mx-2 px-2",
                 ontouchstart: move |evt| evt.stop_propagation(),
                 for (album_id, title, artist, cover_url) in albums {
+                    {
+                    let open_key = album_id.clone();
+                    let ctx_key = album_id.clone();
+                    let is_menu_open = active_card_menu.read().as_deref() == Some(album_id.as_str());
+                    rsx! {
                     div {
+                        key: "{album_id}",
                         class: "flex-none w-36 md:w-48 group cursor-pointer",
                         onclick: {
                             let id = album_id.clone();
                             move |_| on_select_album.call(id.clone())
+                        },
+                        oncontextmenu: move |evt| {
+                            evt.prevent_default();
+                            active_card_menu.set(Some(ctx_key.clone()));
                         },
                         div { class: "aspect-square rounded-xl bg-stone-800/80 mb-4 overflow-hidden transition-all duration-300 relative",
                             if let Some(url) = cover_url {
@@ -630,9 +697,24 @@ fn render_albums_row(
                                 class: "absolute right-3 bottom-3 w-10 h-10 bg-white text-black rounded-full flex items-center justify-center translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300".to_string(),
                                 icon_extra: "text-sm".to_string(),
                             }
+                            div {
+                                class: "absolute right-1 top-1",
+                                onclick: move |evt| evt.stop_propagation(),
+                                components::album_actions::AlbumActionsMenu {
+                                    album_id: album_id.clone(),
+                                    album_title: title.clone(),
+                                    artist: artist.clone(),
+                                    is_open: Some(is_menu_open),
+                                    on_open: Some(EventHandler::new(move |_| active_card_menu.set(Some(open_key.clone())))),
+                                    on_close: Some(EventHandler::new(move |_| active_card_menu.set(None))),
+                                    button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
+                                }
+                            }
                         }
                         h3 { class: "text-white font-bold truncate text-sm md:text-base px-1", "{title}" }
                         p { class: "text-xs md:text-sm text-white/50 truncate px-1 font-semibold mt-1", "{artist}" }
+                    }
+                    }
                     }
                 }
             }

@@ -4,7 +4,6 @@
 //! delete-from-disk, downloads, playlist mutation) gate on the resolved source's
 //! [`Capabilities`](server::source::Capabilities) — never on `is_server()`.
 
-use components::dots_menu::{DotsMenu, MenuAction};
 use components::metadata_modal::MetadataModal;
 use components::playlist_modal::PlaylistModal;
 use components::selection_bar::SelectionBar;
@@ -24,16 +23,6 @@ use std::path::PathBuf;
 use utils::artist::{joined_credit_primary, normalize_artist_key};
 
 use crate::server::download_manager::{DownloadQueue, delete_downloads, queue_downloads};
-
-/// One album-card menu entry, tagged so dispatch survives the entry set being
-/// built dynamically from capabilities (indices shift as entries are gated in).
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum AlbumAction {
-    Queue,
-    Playlist,
-    DeleteAlbum,
-    Download { downloaded: bool },
-}
 
 #[component]
 pub fn Artist(
@@ -146,8 +135,6 @@ pub fn Artist(
     let mut selected_tracks = use_signal(HashSet::<reader::TrackId>::new);
 
     let mut open_album_menu = use_signal(|| None::<String>);
-    let mut show_album_playlist_modal = use_signal(|| false);
-    let mut pending_album_id_for_playlist = use_signal(|| None::<String>);
 
     // The artist grid: one uniform, source-agnostic image chain per tile
     // (override → photo → pending-placeholder → own album cover → placeholder),
@@ -616,63 +603,6 @@ pub fn Artist(
                         }
 
                         if *sort_order.read() == ArtistViewOrder::Albums {
-                            if *show_album_playlist_modal.read() {
-                                PlaylistModal {
-                                    overlay_class: Some("absolute inset-0 bg-black/80 flex items-center justify-center z-50".to_string()),
-                                    on_close: move |_| show_album_playlist_modal.set(false),
-                                    on_add_to_playlist: move |playlist_id: String| {
-                                        if let Some(album_id) = pending_album_id_for_playlist.read().clone() {
-                                            let s = active_source.peek().clone();
-                                            spawn(async move {
-                                                let refs: Vec<String> = s
-                                                    .album_tracks(&album_id)
-                                                    .await
-                                                    .unwrap_or_default()
-                                                    .iter()
-                                                    .filter_map(|t| {
-                                                        let k = t.id.key();
-                                                        (!k.is_empty()).then(|| k.into_owned())
-                                                    })
-                                                    .collect();
-                                                if !refs.is_empty()
-                                                    && s.add_to_playlist(&playlist_id, &refs).await.is_ok()
-                                                {
-                                                    gens.bump(Table::Playlists);
-                                                }
-                                            });
-                                        }
-                                        show_album_playlist_modal.set(false);
-                                        pending_album_id_for_playlist.set(None);
-                                    },
-                                    on_create_playlist: move |playlist_name: String| {
-                                        let album_id = pending_album_id_for_playlist.read().clone();
-                                        let s = active_source.peek().clone();
-                                        spawn(async move {
-                                            let refs: Vec<String> = match album_id {
-                                                Some(id) => s
-                                                    .album_tracks(&id)
-                                                    .await
-                                                    .unwrap_or_default()
-                                                    .iter()
-                                                    .filter_map(|t| {
-                                                        let k = t.id.key();
-                                                        (!k.is_empty()).then(|| k.into_owned())
-                                                    })
-                                                    .collect(),
-                                                None => Vec::new(),
-                                            };
-                                            if !refs.is_empty()
-                                                && s.create_playlist(&playlist_name, &refs).await.is_ok()
-                                            {
-                                                gens.bump(Table::Playlists);
-                                            }
-                                        });
-                                        show_album_playlist_modal.set(false);
-                                        pending_album_id_for_playlist.set(None);
-                                    },
-                                }
-                            }
-
                             div { class: "flex items-center justify-between mb-4",
                                 SortOrderToggle { sort_order }
                                 div { class: "flex items-center gap-2",
@@ -707,24 +637,6 @@ pub fn Artist(
                                                         .unwrap_or(false)
                                                 })
                                             };
-                                            // Build the menu from capabilities — entries are tagged so
-                                            // dispatch survives the gating.
-                                            let mut entries: Vec<(MenuAction, AlbumAction)> = vec![
-                                                (MenuAction::new(i18n::t("add_all_to_queue").as_str(), "fa-solid fa-list-ul"), AlbumAction::Queue),
-                                            ];
-                                            if cap.playlists != ::server::source::PlaylistOps::None {
-                                                entries.push((MenuAction::new(i18n::t("add_all_to_playlist").as_str(), "fa-solid fa-plus"), AlbumAction::Playlist));
-                                            }
-                                            if cap.delete_from_disk {
-                                                entries.push((MenuAction::new(i18n::t("delete_album").as_str(), "fa-solid fa-trash").destructive(), AlbumAction::DeleteAlbum));
-                                            }
-                                            if cap.downloads {
-                                                let label = if downloaded { "Remove downloads" } else { "Download Album" };
-                                                let icon = if downloaded { "fa-solid fa-trash" } else { "fa-solid fa-download" };
-                                                entries.push((MenuAction::new(label, icon), AlbumAction::Download { downloaded }));
-                                            }
-                                            let menu_actions: Vec<MenuAction> = entries.iter().map(|(m, _)| m.clone()).collect();
-                                            let action_tags: Vec<AlbumAction> = entries.iter().map(|(_, a)| *a).collect();
                                             rsx! {
                                                 div {
                                                     key: "{album.id}",
@@ -767,82 +679,65 @@ pub fn Artist(
                                                     }
 
                                                     div { class: "vcard-menu absolute bottom-3 right-3",
-                                                        DotsMenu {
-                                                            actions: menu_actions,
-                                                            is_open,
+                                                        components::album_actions::AlbumActionsMenu {
+                                                            album_id: id_for_menu.clone(),
+                                                            album_title: album.title.clone(),
+                                                            artist: album.artist.clone(),
+                                                            is_open: Some(is_open),
                                                             on_open: {
                                                                 let id = id_for_menu.clone();
-                                                                move |_| open_album_menu.set(Some(id.clone()))
+                                                                Some(EventHandler::new(move |_| open_album_menu.set(Some(id.clone()))))
                                                             },
-                                                            on_close: move |_| open_album_menu.set(None),
-                                                            aria_label: i18n::t_with("more_actions_for", &[("name", album.title.clone())]),
+                                                            on_close: Some(EventHandler::new(move |_| open_album_menu.set(None))),
                                                             button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100 bg-black/40".to_string(),
                                                             anchor: "right".to_string(),
-                                                            on_action: {
+                                                            is_downloaded: downloaded,
+                                                            on_delete: cap.delete_from_disk.then(|| {
                                                                 let id = id_for_menu.clone();
-                                                                let tags = action_tags.clone();
-                                                                move |idx: usize| {
+                                                                EventHandler::new(move |_| {
                                                                     open_album_menu.set(None);
-                                                                    let Some(tag) = tags.get(idx).copied() else { return };
-                                                                    match tag {
-                                                                        AlbumAction::Queue => {
-                                                                            let album_src = active_source.peek().clone();
-                                                                            let album_id = id.clone();
-                                                                            spawn(async move {
-                                                                                let mut tracks = album_src.album_tracks(&album_id).await.unwrap_or_default();
-                                                                                tracks.sort_by(|a, b| {
-                                                                                    a.track_number.cmp(&b.track_number)
-                                                                                        .then_with(|| a.title.cmp(&b.title))
-                                                                                });
-                                                                                let mut ctrl = ctrl;
-                                                                                ctrl.add_to_queue(tracks);
-                                                                            });
+                                                                    let s = active_source.peek().clone();
+                                                                    let album_id = id.clone();
+                                                                    let delete_config = config.read().clone();
+                                                                    let delete_source = source();
+                                                                    spawn(async move {
+                                                                        let to_delete = s.album_tracks(&album_id).await.unwrap_or_default();
+                                                                        for track in &to_delete {
+                                                                            if let Some(path) = track.id.local_path() {
+                                                                                let _ = crate::local_files::remove(&delete_config, &delete_source, path);
+                                                                            }
                                                                         }
-                                                                        AlbumAction::Playlist => {
-                                                                            pending_album_id_for_playlist.set(Some(id.clone()));
-                                                                            show_album_playlist_modal.set(true);
+                                                                        if s.delete_album(&album_id).await.is_ok() {
+                                                                            gens.bump(Table::Tracks);
+                                                                            gens.bump(Table::Albums);
                                                                         }
-                                                                        AlbumAction::DeleteAlbum => {
-                                                                            let s = active_source.peek().clone();
-                                                                            let album_id = id.clone();
-                                                                            let delete_config = config.read().clone();
-                                                                            let delete_source = source();
-                                                                            spawn(async move {
-                                                                                let to_delete = s.album_tracks(&album_id).await.unwrap_or_default();
-                                                                                for track in &to_delete {
-                                                                                    if let Some(path) = track.id.local_path() {
-                                                                                        let _ = crate::local_files::remove(&delete_config, &delete_source, path);
-                                                                                    }
-                                                                                }
-                                                                                if s.delete_album(&album_id).await.is_ok() {
-                                                                                    gens.bump(Table::Tracks);
-                                                                                    gens.bump(Table::Albums);
-                                                                                }
-                                                                            });
+                                                                    });
+                                                                })
+                                                            }),
+                                                            on_download: cap.downloads.then(|| {
+                                                                let id = id_for_menu.clone();
+                                                                EventHandler::new(move |_| {
+                                                                    open_album_menu.set(None);
+                                                                    let album_src = active_source.peek().clone();
+                                                                    let album_id = id.clone();
+                                                                    spawn(async move {
+                                                                        let tracks = album_src.album_tracks(&album_id).await.unwrap_or_default();
+                                                                        if downloaded {
+                                                                            let ids: Vec<String> = tracks.iter().filter_map(|t| {
+                                                                                let k = t.id.key();
+                                                                                (!k.is_empty()).then(|| k.into_owned())
+                                                                            }).collect();
+                                                                            delete_downloads(ids, config, download_queue);
+                                                                        } else {
+                                                                            let requests: Vec<(String, String, String)> = tracks.iter().filter_map(|t| {
+                                                                                let k = t.id.key();
+                                                                                (!k.is_empty()).then(|| (k.into_owned(), t.title.clone(), t.artist.clone()))
+                                                                            }).collect();
+                                                                            queue_downloads(requests, config, download_queue);
                                                                         }
-                                                                        AlbumAction::Download { downloaded } => {
-                                                                            let album_src = active_source.peek().clone();
-                                                                            let album_id = id.clone();
-                                                                            spawn(async move {
-                                                                                let tracks = album_src.album_tracks(&album_id).await.unwrap_or_default();
-                                                                                if downloaded {
-                                                                                    let ids: Vec<String> = tracks.iter().filter_map(|t| {
-                                                                                        let k = t.id.key();
-                                                                                        (!k.is_empty()).then(|| k.into_owned())
-                                                                                    }).collect();
-                                                                                    delete_downloads(ids, config, download_queue);
-                                                                                } else {
-                                                                                    let requests: Vec<(String, String, String)> = tracks.iter().filter_map(|t| {
-                                                                                        let k = t.id.key();
-                                                                                        (!k.is_empty()).then(|| (k.into_owned(), t.title.clone(), t.artist.clone()))
-                                                                                    }).collect();
-                                                                                    queue_downloads(requests, config, download_queue);
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
+                                                                    });
+                                                                })
+                                                            }),
                                                         }
                                                     }
                                                 }

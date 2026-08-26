@@ -19,6 +19,8 @@ enum Action {
     AddToQueue,
     AddToPlaylist,
     GoToArtist,
+    Download,
+    Delete,
 }
 
 /// Album order as the album page shows it. A source is free to hand back its
@@ -65,6 +67,20 @@ pub struct AlbumActionsMenuProps {
     pub anchor: String,
     #[props(default = "bottom".to_string())]
     pub placement: String,
+
+    /// Deleting an album means different things per page (files and rows
+    /// locally, a cache drop on a server), so the page keeps that handler and
+    /// the label that goes with it.
+    #[props(default)]
+    pub on_delete: Option<EventHandler<()>>,
+    #[props(default)]
+    pub delete_label: Option<String>,
+    #[props(default)]
+    pub on_download: Option<EventHandler<()>>,
+    #[props(default = false)]
+    pub is_downloaded: bool,
+    #[props(default = false)]
+    pub is_downloading: bool,
 }
 
 #[component]
@@ -81,6 +97,8 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
 
     let on_open = props.on_open;
     let on_close = props.on_close;
+    let on_delete = props.on_delete;
+    let on_download = props.on_download;
     let mut close = move || match on_close {
         Some(handler) => handler.call(()),
         None => local_open.set(false),
@@ -93,14 +111,14 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
         ),
         (
             Action::AddToQueue,
-            MenuAction::new(i18n::t("add_to_queue"), "fa-solid fa-list-ul"),
+            MenuAction::new(i18n::t("add_all_to_queue"), "fa-solid fa-list-ul"),
         ),
     ];
 
     if capabilities.playlists != ::server::source::PlaylistOps::None {
         entries.push((
             Action::AddToPlaylist,
-            MenuAction::new(i18n::t("add_to_playlist"), "fa-solid fa-plus"),
+            MenuAction::new(i18n::t("add_all_to_playlist"), "fa-solid fa-plus"),
         ));
     }
 
@@ -108,6 +126,28 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
         entries.push((
             Action::GoToArtist,
             MenuAction::new(i18n::t("go_to_artist"), "fa-solid fa-user"),
+        ));
+    }
+
+    if on_download.is_some() {
+        let action = if props.is_downloading {
+            MenuAction::new(i18n::t("downloading"), "fa-solid fa-spinner fa-spin")
+        } else if props.is_downloaded {
+            MenuAction::new(i18n::t("remove_download"), "fa-solid fa-trash-can").destructive()
+        } else {
+            MenuAction::new(i18n::t("download_offline"), "fa-solid fa-download")
+        };
+        entries.push((Action::Download, action));
+    }
+
+    if on_delete.is_some() {
+        let label = props
+            .delete_label
+            .clone()
+            .unwrap_or_else(|| i18n::t("delete_album").to_string());
+        entries.push((
+            Action::Delete,
+            MenuAction::new(label, "fa-solid fa-trash").destructive(),
         ));
     }
 
@@ -156,6 +196,16 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
                     }
                     Action::AddToPlaylist => show_playlist_modal.set(true),
                     Action::GoToArtist => nav_ctrl.navigate_to_artist(dispatch_artist.clone()),
+                    Action::Download => {
+                        if let Some(handler) = on_download {
+                            handler.call(());
+                        }
+                    }
+                    Action::Delete => {
+                        if let Some(handler) = on_delete {
+                            handler.call(());
+                        }
+                    }
                 }
                 close();
             },
