@@ -289,6 +289,7 @@ pub fn TrackRow(
                 ontouchend: move |_| cancel_long_press(),
                 oncontextmenu: move |evt| {
                     evt.prevent_default();
+                    crate::dots_menu::open_at_pointer(&evt);
                     if !is_selection_mode { on_click_menu.call(()); }
                 },
 
@@ -548,6 +549,7 @@ pub fn TrackRow(
             ontouchend: move |_| cancel_long_press(),
             oncontextmenu: move |evt| {
                 evt.prevent_default();
+                crate::dots_menu::open_at_pointer(&evt);
                 if !is_selection_mode {
                     on_click_menu.call(());
                 }

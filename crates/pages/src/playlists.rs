@@ -699,6 +699,7 @@ fn PlaylistsGrid(
                                 oncontextmenu: move |evt: Event<MouseData>| {
                                     evt.prevent_default();
                                     if can_radio {
+                                        components::dots_menu::open_at_pointer(&evt);
                                         active_menu.set(Some(ctx_pid.clone()));
                                     }
                                 },
@@ -909,6 +910,7 @@ fn folders_layout(ctx: FoldersCtx<'_>) -> Element {
                 onclick: move |_| selected_playlist_id.set(Some(pid_click.clone())),
                 oncontextmenu: move |evt| {
                     evt.prevent_default();
+                    components::dots_menu::open_at_pointer(&evt);
                     active_menu.set(Some(pid_ctx.clone()));
                 },
                 div { class: "mb-4 w-full h-32 rounded-xl flex items-center justify-center overflow-hidden transition-all bg-white/5",
@@ -1130,6 +1132,7 @@ fn folders_layout(ctx: FoldersCtx<'_>) -> Element {
                                             onclick: move |_| open_folder_id.set(Some(fid_open.clone())),
                                             oncontextmenu: move |evt| {
                                                 evt.prevent_default();
+                                                components::dots_menu::open_at_pointer(&evt);
                                                 active_menu.set(Some(fid_ctx.clone()));
                                             },
                                             div { class: "mb-4 w-full h-32 rounded-xl flex items-center justify-center overflow-hidden transition-all bg-white/5",

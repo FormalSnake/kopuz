@@ -180,6 +180,7 @@ pub fn Activity(config: Signal<AppConfig>) -> Element {
                                             class: "flex items-center h-full px-4 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group",
                                             oncontextmenu: move |evt| {
                                                 evt.prevent_default();
+                                                components::dots_menu::open_at_pointer(&evt);
                                                 active_menu_track.set(Some(ctx_key.clone()));
                                             },
                                             onclick: move |_| {

@@ -168,6 +168,7 @@ pub fn BottombarVaxry(
                 class: "flex flex-col flex-1 min-w-0 justify-center gap-0.5",
                 oncontextmenu: move |evt| {
                     evt.prevent_default();
+                    crate::dots_menu::open_at_pointer(&evt);
                     if ctrl.current_track_snapshot.peek().is_some() {
                         track_menu_open.set(true);
                     }

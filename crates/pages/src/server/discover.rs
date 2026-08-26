@@ -770,6 +770,7 @@ fn SongCard(track: Track) -> Element {
             },
             oncontextmenu: move |evt| {
                 evt.prevent_default();
+                components::dots_menu::open_at_pointer(&evt);
                 menu_open.set(true);
             },
             onclick: {

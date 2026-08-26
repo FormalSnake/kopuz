@@ -144,6 +144,7 @@ pub fn BottombarNormal(
                 class: "flex items-center gap-4 w-1/4",
                 oncontextmenu: move |evt| {
                     evt.prevent_default();
+                    crate::dots_menu::open_at_pointer(&evt);
                     if ctrl.current_track_snapshot.peek().is_some() {
                         track_menu_open.set(true);
                     }
