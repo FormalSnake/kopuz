@@ -517,6 +517,7 @@ pub fn Artist(
                                                         let id = id_for_menu.clone();
                                                         move |evt| {
                                                             evt.prevent_default();
+                                                            components::dots_menu::open_at_pointer(&evt);
                                                             open_album_menu.set(Some(id.clone()));
                                                         }
                                                     },
