@@ -65,7 +65,13 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
 
     rsx! {
         div {
-            class: if props.is_open { "relative dots-menu-root" } else { "relative" },
+            // `cursor-default` because rows that own a menu are often drag
+            // handles carrying `cursor-grab`, and `cursor` inherits.
+            class: if props.is_open {
+                "relative dots-menu-root cursor-default"
+            } else {
+                "relative cursor-default"
+            },
             // On the root, not the panel: focus stays on the trigger when the
             // menu opens by click, so a keydown on the panel would never fire.
             onkeydown: move |evt| {
@@ -74,10 +80,15 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                     props.on_close.call(());
                 }
             },
+            // A press inside the menu must never reach the row behind it: the
+            // draggable rows arm a drag on mousedown and a long-press on
+            // touchstart, and either one swallows the click on a menu entry.
+            onmousedown: move |evt| evt.stop_propagation(),
+            ontouchstart: move |evt| evt.stop_propagation(),
 
             button {
                 r#type: "button",
-                class: "{base_button_class}",
+                class: "cursor-pointer {base_button_class}",
                 aria_label: "{props.aria_label}",
                 aria_haspopup: "menu",
                 aria_expanded: if props.is_open { "true" } else { "false" },
@@ -162,7 +173,7 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                                     key: "{idx}",
                                     r#type: "button",
                                     role: "menuitem",
-                                    class: "px-4 py-2 text-sm {text_color} hover:bg-white/10 flex items-center gap-2 transition-colors whitespace-nowrap",
+                                    class: "px-4 py-2 text-sm cursor-pointer {text_color} hover:bg-white/10 flex items-center gap-2 transition-colors whitespace-nowrap",
                                     onclick: move |_| {
                                         panel_geometry.set(None);
                                         props.on_action.call(idx);
