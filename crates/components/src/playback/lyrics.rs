@@ -755,7 +755,12 @@ pub fn LyricsView(
                             : 0;
                         const rawBlurPx = distance > 0 ? depthBlurPx(distance, scale) : 0;
                         const blurPx = Math.round(rawBlurPx / BLUR_QUANTUM_PX) * BLUR_QUANTUM_PX;
-                        const nextFilter = blurPx > 0 ? `blur(${{blurPx.toFixed(2)}}px)` : '';
+                        // Always an explicit length, never ''. Clearing the
+                        // declaration drops the line back to the computed `none`,
+                        // and `transition: filter` has to interpolate a blur list
+                        // against a keyword; WebKit does that badly and the whole
+                        // ramp reads as unblurred for the length of the switch.
+                        const nextFilter = `blur(${{blurPx.toFixed(2)}}px)`;
                         if (lineEl.__lyricBlur !== nextFilter) {{
                             lineEl.__lyricBlur = nextFilter;
                             lineEl.style.filter = nextFilter;
