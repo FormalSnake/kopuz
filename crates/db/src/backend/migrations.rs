@@ -150,6 +150,59 @@ const LEGACY_FILES: [&str; 5] = [
     "queue_state.json",
 ];
 
+/// Re-split the credit lists of an already-scanned library.
+///
+/// `artists_json` is derived from the credit strings at ingest, so a library
+/// scanned before the splitter existed still carries "A$AP Rocky feat. Drake"
+/// as a single artist. Recomputing it here is what spares the user a full
+/// rescan, and a server library a resync they may not be online for. Gated on a
+/// marker row so it runs once per database.
+#[tracing::instrument(skip_all)]
+pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbError> {
+    let done: Option<String> = sqlx::query_scalar(
+        "SELECT payload FROM metadata_cache WHERE cache_key = 'artist_credits' AND kind = 'split'",
+    )
+    .fetch_optional(pool)
+    .await?;
+    if done.is_some() {
+        return Ok(());
+    }
+
+    let rows: Vec<(i64, String, String)> =
+        sqlx::query_as("SELECT rowid_pk, artist, artists_json FROM tracks")
+            .fetch_all(pool)
+            .await?;
+
+    let mut tx = pool.begin().await?;
+    let mut rewritten = 0usize;
+    for (pk, artist, stored_json) in rows {
+        let stored: Vec<String> = serde_json::from_str(&stored_json).unwrap_or_default();
+        let credited = reader::artist::credited(&artist, &stored);
+        if credited == stored {
+            continue;
+        }
+        let payload = serde_json::to_string(&credited)?;
+        sqlx::query("UPDATE tracks SET artists_json = ?1 WHERE rowid_pk = ?2")
+            .bind(&payload)
+            .bind(pk)
+            .execute(&mut *tx)
+            .await?;
+        rewritten += 1;
+    }
+    sqlx::query(
+        "INSERT OR REPLACE INTO metadata_cache (cache_key, kind, payload) \
+         VALUES ('artist_credits', 'split', '1')",
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+
+    if rewritten > 0 {
+        tracing::info!(tracks = rewritten, "re-split joined artist credits");
+    }
+    Ok(())
+}
+
 /// The on-disk source for one legacy store: the plain `X.json` if it's still
 /// there, else the `X.json.bak` a previous finalize moved it to. The fallback
 /// matters because debug (`kopuz-debug.db`) and release (`kopuz.db`) are

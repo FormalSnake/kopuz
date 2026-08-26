@@ -307,18 +307,34 @@ pub async fn tracks_by_keys(
     Ok(keys.iter().filter_map(|k| by_key.get(k).cloned()).collect())
 }
 
+/// Distinct credited artists for a source with their track counts, A to Z.
+///
+/// Counts run over `artists_json`, the split credit list, so a featured artist
+/// is counted on every track that credits them rather than only on the ones
+/// where they happen to be first. A row whose credit list is empty (nothing was
+/// ever split out of it) still falls back to the joined `artist` column.
 pub async fn artists(pool: &SqlitePool, source: &Source) -> Result<Vec<(String, u32)>, DbError> {
-    let src = source.as_str();
-    let rows = sqlx::query!(
-        r#"SELECT artist, COUNT(*) AS "cnt!: i64" FROM tracks WHERE source = ?1 AND artist != ''
-         GROUP BY artist ORDER BY artist COLLATE NOCASE"#,
-        src
+    let rows: Vec<(String, i64)> = sqlx::query_as(
+        "SELECT name, COUNT(*) AS cnt FROM ( \
+             SELECT t.rowid_pk AS pk, TRIM(j.value) AS name \
+               FROM tracks t, \
+                    json_each(CASE WHEN json_valid(t.artists_json) \
+                                   THEN t.artists_json ELSE '[]' END) j \
+              WHERE t.source = ?1 AND TRIM(j.value) != '' \
+             UNION \
+             SELECT t.rowid_pk, t.artist \
+               FROM tracks t \
+              WHERE t.source = ?1 AND t.artist != '' \
+                AND (NOT json_valid(t.artists_json) \
+                     OR json_array_length(t.artists_json) = 0) \
+         ) GROUP BY name ORDER BY name COLLATE NOCASE",
     )
+    .bind(source.as_str())
     .fetch_all(pool)
     .await?;
     Ok(rows
         .into_iter()
-        .map(|r| (r.artist, r.cnt.max(0) as u32))
+        .map(|(name, cnt)| (name, cnt.max(0) as u32))
         .collect())
 }
 

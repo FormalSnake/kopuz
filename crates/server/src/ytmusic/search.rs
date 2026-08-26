@@ -278,16 +278,14 @@ pub(super) fn fold_artist_name(s: &str) -> String {
 /// (space-prefixed, any case) and commas separate; a bare "&" does NOT —
 /// "MYTH & ROID" is one artist. Leading "&"s left by a ", & C" tail are
 /// stripped. A plain single name passes through unchanged.
+/// An unlinked artist run is YT's own comma-joined credit list, so unlike a
+/// free-form tag a comma here really is a separator; the marker rules come from
+/// the shared credit splitter.
 fn split_unlinked_artists(text: &str) -> Vec<String> {
-    let mut joined = text.to_string();
-    for sep in [" feat.", " Feat.", " FEAT.", " ft.", " Ft.", " FT."] {
-        joined = joined.replace(sep, ",");
-    }
-    joined
-        .split([',', '、'])
+    text.split([',', '、'])
         .map(|part| part.trim().trim_start_matches('&').trim())
         .filter(|part| !part.is_empty())
-        .map(|part| part.to_string())
+        .flat_map(reader::artist::split_credit)
         .collect()
 }
 
@@ -446,11 +444,7 @@ fn parse_card_shelf(card: &Value) -> Option<ParsedRow> {
     Some(ParsedRow {
         video_id,
         title,
-        artists: if artist.is_empty() {
-            Vec::new()
-        } else {
-            vec![artist]
-        },
+        artists: reader::artist::split_credit(&artist),
         album,
         album_browse_id,
         duration: 0,
@@ -493,11 +487,7 @@ fn parse_playlist_track(
     thumbnail_url: Option<String>,
 ) -> ParsedRow {
     let primary_artist = pick_run(row, 1, 0);
-    let artists = if primary_artist.is_empty() {
-        Vec::new()
-    } else {
-        vec![primary_artist]
-    };
+    let artists = reader::artist::split_credit(&primary_artist);
     let album = if mvt.has_album() {
         let s = pick_run(row, 2, 0);
         if s.is_empty() { None } else { Some(s) }

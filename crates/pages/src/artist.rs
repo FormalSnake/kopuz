@@ -166,9 +166,14 @@ pub fn Artist(
         // track cover can't dupe across credited artists there.
         let mut artist_map: HashMap<String, (String, Option<PathBuf>)> = HashMap::new();
         for album in &albums {
-            artist_map
-                .entry(normalize_artist_key(&album.artist))
-                .or_insert_with(|| (album.artist.clone(), album.cover_path.clone()));
+            // Album artist is a display credit like any other, so a collab
+            // release would otherwise seed a tile for the whole credit string.
+            for artist in reader::artist::split_credit(&album.artist) {
+                let key = normalize_artist_key(&artist);
+                artist_map
+                    .entry(key)
+                    .or_insert_with(|| (artist, album.cover_path.clone()));
+            }
         }
         for track in &sample {
             let cover = albums
@@ -197,7 +202,7 @@ pub fn Artist(
                 .clone()
                 .unwrap_or_default()
                 .iter()
-                .map(|t| t.artist.to_lowercase())
+                .flat_map(|t| t.artists.iter().map(|a| normalize_artist_key(a)))
                 .collect()
         } else {
             HashSet::new()
@@ -211,14 +216,16 @@ pub fn Artist(
         }
         let mut album_counts: HashMap<String, u32> = HashMap::new();
         for album in &albums {
-            *album_counts
-                .entry(normalize_artist_key(&album.artist))
-                .or_default() += 1;
+            for artist in reader::artist::split_credit(&album.artist) {
+                *album_counts
+                    .entry(normalize_artist_key(&artist))
+                    .or_default() += 1;
+            }
         }
 
         let out: Vec<(String, Option<utils::CoverUrl>)> = artist_map
             .into_iter()
-            .filter(|(_, (display, _))| !offline || downloaded.contains(&display.to_lowercase()))
+            .filter(|(norm, _)| !offline || downloaded.contains(norm))
             .map(|(norm, (display, album_cover))| {
                 let art = ::server::cover::ArtistArt::from_caches(
                     &images,
