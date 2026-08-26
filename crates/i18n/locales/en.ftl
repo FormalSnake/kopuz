@@ -182,6 +182,7 @@ go_to_album = Go to album
 download_offline = Download Offline
 remove_download = Remove Download
 delete = Delete
+delete_from_device = Delete from device
 delete_song = Delete Song
 delete_album = Delete Album
 delete_playlist = Delete Playlist
