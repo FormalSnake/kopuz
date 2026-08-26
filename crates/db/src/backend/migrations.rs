@@ -19,7 +19,7 @@
 //! parse it here (the one place, via [`TrackId::from_legacy_path`]) into the
 //! typed id, lifting the smuggled cover out of the 3rd segment.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::Path;
 
 use serde::Deserialize;
@@ -153,85 +153,85 @@ const LEGACY_FILES: [&str; 5] = [
 /// The splitter revision a library was last backfilled with. Bump it whenever
 /// the rules change, or a library already carrying the previous pass's results
 /// never sees the new ones.
-const CREDIT_SPLIT_REVISION: &str = "v3-comma-evidence";
+const CREDIT_SPLIT_REVISION: &str = "v4-whole-credit";
+
+/// How many tracks may carry a comma credit as their entire artist field before
+/// it is read as one artist's name. An artist whose name holds a comma releases
+/// their whole catalogue under it; a collaboration credit belongs to a single
+/// release.
+const JOIN_MAX_WHOLE_TRACKS: usize = 2;
 
 /// Which comma credits the library itself proves are joins.
 ///
 /// A comma cannot be judged from one string: "Tyler, The Creator" and "Earth,
-/// Wind & Fire" are single artists, and "49th & Main, SHEE" is two, with
-/// nothing inside them to tell the cases apart. What does tell them apart is
-/// the rest of the library. "SHEE" and "49th & Main" turn up on their own
-/// elsewhere; "The Creator" and "Wind & Fire" never do.
+/// Wind & Fire" are one artist, "49th & Main, SHEE" is two, and nothing inside
+/// them tells the cases apart. Only one kind of evidence is trusted here: a
+/// credit standing alone as some track's entire artist field. "Calvin Harris"
+/// and "49th & Main" do that on their own releases; "The Creator" and "Wind &
+/// Fire" never do anywhere.
+///
+/// A piece merely turning up inside other joined strings proves nothing, and
+/// reading it as proof is what once split "Tyler, The Creator" across 140
+/// tracks: the strings "Tyler" recurred in were all the same artist's name.
 #[derive(Default)]
 struct CommaEvidence {
-    /// Names the library attests without leaning on any comma.
-    solo: HashSet<String>,
-    /// For each comma-separated piece, the distinct credits it appeared in.
-    /// A piece recurring across several different credits is a collaborator,
-    /// not a word that happens to open one longer name.
-    piece_credits: HashMap<String, HashSet<String>>,
+    /// How many tracks carry each credit as their entire artist field.
+    whole_credit: HashMap<String, usize>,
 }
 
 impl CommaEvidence {
-    fn observe(&mut self, name: &str) {
-        match reader::artist::comma_candidates(name) {
-            None => {
-                self.solo.insert(reader::artist::name_key(name));
-            }
-            Some(pieces) => {
-                for piece in pieces {
-                    self.piece_credits
-                        .entry(reader::artist::name_key(piece))
-                        .or_default()
-                        .insert(name.to_string());
-                }
-            }
+    fn observe(&mut self, credits: &[String]) {
+        if let [whole] = credits {
+            *self
+                .whole_credit
+                .entry(reader::artist::name_key(whole))
+                .or_default() += 1;
         }
     }
 
-    fn recurs(&self, key: &str) -> bool {
-        self.piece_credits.get(key).is_some_and(|c| c.len() > 1)
-    }
-
-    fn attested(&self, key: &str) -> bool {
-        self.solo.contains(key) || self.recurs(key)
+    fn tracks_credited_solely_to(&self, name: &str) -> usize {
+        self.whole_credit
+            .get(&reader::artist::name_key(name))
+            .copied()
+            .unwrap_or(0)
     }
 
     /// What a comma credit should become, or None to leave it whole.
     fn resolve(&self, credit: &str) -> Option<Vec<String>> {
         let pieces = reader::artist::comma_candidates(credit)?;
-        let keep: Vec<&str> = pieces
-            .iter()
-            .copied()
-            .filter(|piece| self.attested(&reader::artist::name_key(piece)))
-            .collect();
-        if keep.is_empty() {
+        // The credit is its own best witness. Carrying whole tracks on its own,
+        // repeatedly, is what an artist's name does and what a one-off
+        // collaboration credit does not.
+        if self.tracks_credited_solely_to(credit) > JOIN_MAX_WHOLE_TRACKS {
             return None;
         }
-        // Every piece attested is proof enough on its own. A partial match is
-        // only trusted when one of the kept pieces recurs across different
-        // credits: that is what separates "49th & Main", which collaborates
-        // under three different credits, from a library that merely happens to
-        // hold an artist called "Tyler".
-        let confident = keep.len() == pieces.len()
-            || keep
-                .iter()
-                .any(|piece| self.recurs(&reader::artist::name_key(piece)));
-        confident.then(|| keep.into_iter().map(str::to_string).collect())
+        let keep: Vec<String> = pieces
+            .into_iter()
+            .filter(|piece| self.tracks_credited_solely_to(piece) > 0)
+            .map(str::to_string)
+            .collect();
+        (!keep.is_empty()).then_some(keep)
     }
 }
 
 /// The credit list for one track before the comma rule, which needs the whole
 /// library and so cannot run until every row has been read.
 fn credits_from_strings(artist: &str, stored: &[String]) -> Vec<String> {
-    // Work from the credit string rather than from what an earlier pass stored:
-    // that pass has already flattened the structure the newer rules read (a
-    // contributor list only gives itself away while its head and tail are still
-    // intact). The stored list still wins where the source named more artists
-    // than the credit string does, which is the one case it holds something the
-    // string cannot reproduce.
+    let artist = artist.trim();
     let derived = reader::artist::split_credit(artist);
-    if stored.len() > derived.len() {
+    // The credit string wins wherever it says anything at all. A stored list is
+    // as likely to be a personnel dump, or an earlier pass's split of one, and
+    // deferring to whichever list was longer is exactly how "Rakim Mayers"
+    // outlived the rule that was meant to drop it.
+    //
+    // It is consulted only where the string offers nothing: no separator the
+    // splitter recognises, and no comma, since a comma is the library's call to
+    // make and not a stored list's. That leaves the one case where a source's
+    // per-artist array is genuinely the only place a second artist is named.
+    let says_nothing = derived.len() == 1
+        && derived[0] == artist
+        && reader::artist::comma_candidates(artist).is_none();
+    if derived.is_empty() || (says_nothing && stored.len() > 1) {
         reader::artist::credited(artist, stored)
     } else {
         derived
@@ -277,9 +277,7 @@ pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbE
 
     let mut evidence = CommaEvidence::default();
     for (_, _, credits) in &derived {
-        for name in credits {
-            evidence.observe(name);
-        }
+        evidence.observe(credits);
     }
 
     let mut tx = pool.begin().await?;
