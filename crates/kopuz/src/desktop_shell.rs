@@ -79,10 +79,16 @@ pub fn show_tray_missing_popup() {
 #[cfg(not(target_os = "android"))]
 pub const UNGATE_EDITS_FROM_FRAME_CLOCK: &str = r#"<script>
 (function () {
+  var attempts = 0;
   function patch() {
     var interpreter = window.interpreter;
     if (!interpreter) {
-      setTimeout(patch, 0);
+      attempts += 1;
+      if (attempts > 600) {
+        console.warn('kopuz: interpreter never appeared; edits are still gated on requestAnimationFrame');
+        return;
+      }
+      setTimeout(patch, 50);
       return;
     }
     if (typeof interpreter.run_from_bytes !== 'function'
