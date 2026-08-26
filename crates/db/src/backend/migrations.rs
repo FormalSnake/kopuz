@@ -153,33 +153,36 @@ const LEGACY_FILES: [&str; 5] = [
 /// The splitter revision a library was last backfilled with. Bump it whenever
 /// the rules change, or a library already carrying the previous pass's results
 /// never sees the new ones.
-const CREDIT_SPLIT_REVISION: &str = "v4-whole-credit";
+const CREDIT_SPLIT_REVISION: &str = "v5-joins-by-evidence";
 
-/// How many tracks may carry a comma credit as their entire artist field before
-/// it is read as one artist's name. An artist whose name holds a comma releases
-/// their whole catalogue under it; a collaboration credit belongs to a single
-/// release.
+/// How many tracks may carry a joined-looking credit as their entire artist
+/// field before it is read as one artist's name. An artist whose name holds a
+/// comma, a semicolon or a slash releases their whole catalogue under it; a
+/// collaboration credit belongs to a single release.
 const JOIN_MAX_WHOLE_TRACKS: usize = 2;
 
-/// Which comma credits the library itself proves are joins.
+/// Which joined-looking credits the library itself proves are joins.
 ///
-/// A comma cannot be judged from one string: "Tyler, The Creator" and "Earth,
-/// Wind & Fire" are one artist, "49th & Main, SHEE" is two, and nothing inside
-/// them tells the cases apart. Only one kind of evidence is trusted here: a
-/// credit standing alone as some track's entire artist field. "Calvin Harris"
-/// and "49th & Main" do that on their own releases; "The Creator" and "Wind &
-/// Fire" never do anywhere.
+/// A comma, a semicolon and a space-padded slash cannot be judged from one
+/// string. "Tyler, The Creator", "We;Na", "Kairon; IRSE!", "R!N / Gemie" and
+/// "LOONA / ODD EYE CIRCLE" are each one artist; "49th & Main, SHEE" and "A$AP
+/// Rocky/ Joe Fox" are two; nothing inside them tells the cases apart.
+///
+/// Only one kind of evidence is trusted: a credit standing alone as some
+/// track's entire artist field. "Calvin Harris" and "49th & Main" do that on
+/// their own releases; "The Creator", "Wind & Fire", "Gemie" and "ODD EYE
+/// CIRCLE" never do anywhere.
 ///
 /// A piece merely turning up inside other joined strings proves nothing, and
 /// reading it as proof is what once split "Tyler, The Creator" across 140
 /// tracks: the strings "Tyler" recurred in were all the same artist's name.
 #[derive(Default)]
-struct CommaEvidence {
+struct JoinEvidence {
     /// How many tracks carry each credit as their entire artist field.
     whole_credit: HashMap<String, usize>,
 }
 
-impl CommaEvidence {
+impl JoinEvidence {
     fn observe(&mut self, credits: &[String]) {
         if let [whole] = credits {
             *self
@@ -196,9 +199,9 @@ impl CommaEvidence {
             .unwrap_or(0)
     }
 
-    /// What a comma credit should become, or None to leave it whole.
+    /// What a joined-looking credit should become, or None to leave it whole.
     fn resolve(&self, credit: &str) -> Option<Vec<String>> {
-        let pieces = reader::artist::comma_candidates(credit)?;
+        let pieces = reader::artist::join_candidates(credit)?;
         // The credit is its own best witness. Carrying whole tracks on its own,
         // repeatedly, is what an artist's name does and what a one-off
         // collaboration credit does not.
@@ -225,12 +228,13 @@ fn credits_from_strings(artist: &str, stored: &[String]) -> Vec<String> {
     // outlived the rule that was meant to drop it.
     //
     // It is consulted only where the string offers nothing: no separator the
-    // splitter recognises, and no comma, since a comma is the library's call to
-    // make and not a stored list's. That leaves the one case where a source's
-    // per-artist array is genuinely the only place a second artist is named.
+    // splitter recognises, and nothing the library has to rule on either, since
+    // a comma, a semicolon and a padded slash are its call and not a stored
+    // list's. That leaves the one case where a source's per-artist array is
+    // genuinely the only place a second artist is named.
     let says_nothing = derived.len() == 1
         && derived[0] == artist
-        && reader::artist::comma_candidates(artist).is_none();
+        && reader::artist::join_candidates(artist).is_none();
     if derived.is_empty() || (says_nothing && stored.len() > 1) {
         reader::artist::credited(artist, stored)
     } else {
@@ -275,7 +279,7 @@ pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbE
         })
         .collect();
 
-    let mut evidence = CommaEvidence::default();
+    let mut evidence = JoinEvidence::default();
     for (_, _, credits) in &derived {
         evidence.observe(credits);
     }

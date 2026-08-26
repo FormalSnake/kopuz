@@ -246,7 +246,7 @@ async fn a_library_backfilled_by_the_previous_revision_is_re_split() {
             .fetch_all(&mut conn)
             .await
             .unwrap();
-    assert_eq!(kinds, ["v4-whole-credit"]);
+    assert_eq!(kinds, ["v5-joins-by-evidence"]);
 }
 
 /// A per-artist list richer than the credit string (Jellyfin's `Artists` array
@@ -391,12 +391,12 @@ async fn the_reported_library_shapes_resolve_to_one_tile_each() {
     .await;
     let db = db::init(&db_path).await.unwrap();
 
-    // No "Rakim Mayers", no "Hector Delgado", no "Bones": all of it was the
-    // tail of a bullet list. The slash lists keep both sides and dedupe.
-    assert_eq!(
-        artist_names(&db).await,
-        ["A$AP Rocky", "James Fauntleroy", "Joe Fox", "ScHoolboy Q"]
-    );
+    // No "Rakim Mayers", "Hector Delgado" or "Bones": the tail of a bullet
+    // list. No "James Fauntleroy" or "Joe Fox" either, because neither carries
+    // a track on its own anywhere here, so the slash credits hand back only
+    // the piece the library attests. "ScHoolboy Q" stays: a featured artist is
+    // named by the string itself and needs no corroboration.
+    assert_eq!(artist_names(&db).await, ["A$AP Rocky", "ScHoolboy Q"]);
 
     let counts = db.artists(&Source::Local).await.unwrap();
     let rocky = counts.iter().find(|(n, _)| n == "A$AP Rocky").unwrap().1;
@@ -585,4 +585,113 @@ async fn real_names_survive_the_whole_pipeline() {
             "Tyler, The Creator"
         ]
     );
+}
+
+/// The five names Jellyfin protects with a hardcoded table. None of them is
+/// listed here: each survives because it is the whole artist field on its own
+/// tracks and no piece of it stands alone anywhere, which is the same reason
+/// "Tyler, The Creator" survives.
+#[tokio::test]
+async fn real_names_holding_a_separator_survive_without_a_name_table() {
+    const NAMES: [&str; 5] = [
+        "We;Na",
+        "Kairon; IRSE!",
+        "R!N / Gemie",
+        "LOONA / yyxy",
+        "LOONA / ODD EYE CIRCLE",
+    ];
+
+    // Three tracks each, so every one clears the whole-credit threshold the
+    // way a real artist's catalogue does.
+    let credits: Vec<&str> = NAMES.iter().flat_map(|n| [*n, *n, *n]).collect();
+
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(&db_path, &credits).await;
+    let db = db::init(&db_path).await.unwrap();
+
+    let names = artist_names(&db).await;
+    for name in NAMES {
+        assert!(
+            names.iter().any(|n| n == name),
+            "{name:?} lost, got {names:?}"
+        );
+    }
+    // No fragment became a tile of its own.
+    for fragment in [
+        "We",
+        "Na",
+        "Kairon",
+        "IRSE!",
+        "R!N",
+        "Gemie",
+        "LOONA",
+        "yyxy",
+        "ODD EYE CIRCLE",
+    ] {
+        assert!(
+            !names.iter().any(|n| n == fragment),
+            "{fragment:?} should not be a tile, got {names:?}"
+        );
+    }
+}
+
+/// The opposite direction, and the reason a name table is not enough: the same
+/// shapes DO split when the library shows the pieces standing on their own.
+#[tokio::test]
+async fn a_joined_credit_splits_when_its_pieces_stand_alone() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(
+        &db_path,
+        &[
+            "A$AP Rocky",
+            "Joe Fox",
+            "Daft Punk",
+            "Pharrell Williams",
+            "A$AP Rocky/ Joe Fox",
+            "Daft Punk;Pharrell Williams",
+        ],
+    )
+    .await;
+    let db = db::init(&db_path).await.unwrap();
+
+    assert_eq!(
+        artist_names(&db).await,
+        ["A$AP Rocky", "Daft Punk", "Joe Fox", "Pharrell Williams"]
+    );
+
+    let counts = db.artists(&Source::Local).await.unwrap();
+    let of = |name: &str| counts.iter().find(|(n, _)| n == name).unwrap().1;
+    assert_eq!(of("A$AP Rocky"), 2);
+    assert_eq!(of("Joe Fox"), 2);
+    assert_eq!(of("Daft Punk"), 2);
+    assert_eq!(of("Pharrell Williams"), 2);
+}
+
+/// A padded slash on few tracks whose pieces never stand alone stays whole:
+/// with no evidence either way, the join is not assumed.
+#[tokio::test]
+async fn a_rare_slash_credit_with_no_evidence_is_left_whole() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(&db_path, &["R!N / Gemie"]).await;
+    let db = db::init(&db_path).await.unwrap();
+
+    assert_eq!(artist_names(&db).await, ["R!N / Gemie"]);
+}
+
+/// "AC/DC" never even reaches the evidence test, so a library that happens to
+/// hold a solo "AC" and a solo "DC" still cannot break it.
+#[tokio::test]
+async fn an_unpadded_slash_is_never_a_candidate() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(&db_path, &["AC/DC", "AC", "DC"]).await;
+    let db = db::init(&db_path).await.unwrap();
+
+    let names = artist_names(&db).await;
+    assert!(names.iter().any(|n| n == "AC/DC"), "got {names:?}");
+    let counts = db.artists(&Source::Local).await.unwrap();
+    assert_eq!(counts.iter().find(|(n, _)| n == "AC/DC").unwrap().1, 1);
 }

@@ -6,12 +6,17 @@
 //!
 //! The rule is deliberately narrow. A wrong split invents phantom artists *and*
 //! can lose the real one, which is worse than the duplicate it set out to fix,
-//! so only markers that never sit inside a single name are separators. In
-//! particular `&`, `+`, `/`, ` - ` and a bare comma are NOT separators at the
-//! top level: "&ME", "Simon & Garfunkel", "AC/DC", "Jay-Z", "Tyler, The
-//! Creator" and "Earth, Wind & Fire" all have to survive intact. Comma-joined
-//! credits are instead collapsed downstream by `utils::artist`, which only
-//! drops one when its primary artist independently has a tile.
+//! so only markers that never sit inside a single name are separators here.
+//! `&`, `+`, ` - ` and an unpadded slash never are: "&ME", "Simon &
+//! Garfunkel", "AC/DC", "Jay-Z" and "Florence + the Machine" survive intact.
+//!
+//! Three more shapes look like joins but cannot be judged from the string at
+//! all, because real names use them too: a comma ("Tyler, The Creator"), a
+//! semicolon ("We;Na", "Kairon; IRSE!") and a space-padded slash ("R!N /
+//! Gemie", "LOONA / ODD EYE CIRCLE"). Padding does not settle the slash case,
+//! so none of them is split here. [`join_candidates`] offers them up instead,
+//! and the caller decides with evidence this module cannot see: whether the
+//! pieces stand alone as whole credits elsewhere in the library.
 
 /// Featuring markers, longest first so "featuring" wins over its own "feat"
 /// prefix.
@@ -24,9 +29,11 @@ const COLLAB_MARKERS: [&str; 3] = ["vs.", "vs", "x"];
 /// next entry in a guest list.
 const CONTINUATION_WORDS: [&str; 3] = ["the", "a", "an"];
 
-/// Delimiters a tagger writes between values it already considers separate:
-/// the ID3v2.4 / Vorbis multi-value separator and its CJK equivalents.
-const HARD_DELIMITERS: [char; 3] = [';', '；', '、'];
+/// The ID3v2.4 / Vorbis multi-value separator and its CJK equivalents. A
+/// tagger writes these between values it considers separate, but "We;Na" and
+/// "Kairon; IRSE!" are each one artist, so they are candidates rather than
+/// separators.
+const LIST_DELIMITERS: [char; 3] = [';', '；', '、'];
 
 /// Bullets, which some taggers use to join a whole contributor list. Counted
 /// only when padded with a space on both sides: unpadded, every one of these
@@ -34,8 +41,9 @@ const HARD_DELIMITERS: [char; 3] = [';', '；', '、'];
 /// "マイケル・ジャクソン").
 const BULLETS: [char; 5] = ['•', '∙', '·', '・', '･'];
 
-/// A slash separates co-equal credits, but only with a space against it:
-/// "AC/DC" has none, "A$AP Rocky/ Joe Fox" does.
+/// A slash can separate co-equal credits, but only with a space against it.
+/// "AC/DC" has none and is never a candidate; "A$AP Rocky/ Joe Fox" and "R!N /
+/// Gemie" both are, and only the library can say which is a join.
 const SLASHES: [char; 1] = ['/'];
 
 /// The individual artists a credit string names.
@@ -44,9 +52,7 @@ const SLASHES: [char; 1] = ['/'];
 /// de-duplicates case-insensitively while keeping the first spelling seen.
 pub fn split_credit(credit: &str) -> Vec<String> {
     let mut out = Vec::new();
-    for part in credit.split(HARD_DELIMITERS) {
-        split_part(part, &mut out);
-    }
+    split_part(credit, &mut out);
     out
 }
 
@@ -57,9 +63,7 @@ pub fn split_credit(credit: &str) -> Vec<String> {
 pub fn credited(primary: &str, structured: &[String]) -> Vec<String> {
     let mut out = Vec::new();
     for value in structured {
-        for part in value.split(HARD_DELIMITERS) {
-            split_part(part, &mut out);
-        }
+        split_part(value, &mut out);
     }
     if out.is_empty() {
         split_part(primary, &mut out);
@@ -72,24 +76,47 @@ pub fn name_key(name: &str) -> String {
     name.trim().to_lowercase()
 }
 
-/// The comma-separated pieces a credit could be split into, or None when it
-/// holds no comma to split on.
+/// The pieces a credit could be split into, or None when nothing in it even
+/// looks like a join.
 ///
-/// A comma is never enough on its own: "Tyler, The Creator" and "Earth, Wind &
-/// Fire" are single artists, and nothing inside the string distinguishes them
-/// from "49th & Main, SHEE". So this only offers the candidates, and the caller
-/// decides with evidence the splitter cannot see, such as whether each piece
-/// turns up as an artist elsewhere in the library.
-pub fn comma_candidates(credit: &str) -> Option<Vec<&str>> {
-    if !credit.contains(',') {
+/// A comma, a semicolon and a space-padded slash all join credits and all sit
+/// inside real names, and nothing in the string tells the cases apart:
+/// "Tyler, The Creator" against "49th & Main, SHEE", "We;Na" against "Daft
+/// Punk;Pharrell Williams", "R!N / Gemie" against "A$AP Rocky/ Joe Fox". So
+/// this only offers the candidates; the caller decides with evidence this
+/// module cannot see, namely whether each piece stands alone as a whole credit
+/// elsewhere in the library.
+///
+/// An unpadded slash is not a candidate at all, which is what keeps "AC/DC"
+/// away from the question entirely.
+pub fn join_candidates(credit: &str) -> Option<Vec<&str>> {
+    let mut pieces = Vec::new();
+    let mut start = 0;
+    for (i, ch) in credit.char_indices() {
+        let end = i + ch.len_utf8();
+        let is_boundary = if ch == ',' || LIST_DELIMITERS.contains(&ch) {
+            true
+        } else if SLASHES.contains(&ch) {
+            credit[..i].ends_with(char::is_whitespace)
+                || credit[end..].starts_with(char::is_whitespace)
+        } else {
+            false
+        };
+        if is_boundary {
+            pieces.push(&credit[start..i]);
+            start = end;
+        }
+    }
+    if pieces.is_empty() {
         return None;
     }
-    let parts: Vec<&str> = credit
-        .split(',')
+    pieces.push(&credit[start..]);
+    let pieces: Vec<&str> = pieces
+        .into_iter()
         .map(str::trim)
         .filter(|piece| !piece.is_empty())
         .collect();
-    (parts.len() > 1).then_some(parts)
+    (pieces.len() > 1).then_some(pieces)
 }
 
 fn split_part(part: &str, out: &mut Vec<String>) {
@@ -99,15 +126,8 @@ fn split_part(part: &str, out: &mut Vec<String>) {
     }
     // Bullets bind loosest of all: they join whole credits, so they have to
     // be resolved before any marker sitting inside one of those credits.
-    if let Some(segments) = padded_segments(part, &BULLETS, false) {
+    if let Some(segments) = bullet_segments(part) {
         push_bulleted(&segments, out);
-        return;
-    }
-    // A slash list is co-equal credits, not personnel, so all of it counts.
-    if let Some(segments) = padded_segments(part, &SLASHES, true) {
-        for segment in segments {
-            split_part(segment, out);
-        }
         return;
     }
     // Collab markers bind looser than "feat.": each side of an "A x B" can
@@ -126,29 +146,20 @@ fn split_part(part: &str, out: &mut Vec<String>) {
     }
 }
 
-/// The segments of a list joined by one of `separators`, or None when none of
-/// them carries the whitespace that tells a separator apart from a character
-/// inside a name. `either_side` accepts a space against just one edge, which a
-/// slash needs ("A$AP Rocky/ Joe Fox") and a bullet does not.
-fn padded_segments<'a>(
-    part: &'a str,
-    separators: &[char],
-    either_side: bool,
-) -> Option<Vec<&'a str>> {
+/// The segments of a bullet-joined list, or None when no bullet carries the
+/// space on both sides that tells a separator apart from a character inside a
+/// name.
+fn bullet_segments(part: &str) -> Option<Vec<&str>> {
     let mut segments = Vec::new();
     let mut start = 0;
     for (i, ch) in part.char_indices() {
-        if !separators.contains(&ch) {
+        if !BULLETS.contains(&ch) {
             continue;
         }
         let end = i + ch.len_utf8();
-        let before = part[..i].ends_with(char::is_whitespace);
-        let after = part[end..].starts_with(char::is_whitespace);
-        if !(if either_side {
-            before || after
-        } else {
-            before && after
-        }) {
+        if !part[..i].ends_with(char::is_whitespace)
+            || !part[end..].starts_with(char::is_whitespace)
+        {
             continue;
         }
         segments.push(&part[start..i]);
@@ -169,6 +180,15 @@ fn padded_segments<'a>(
 /// join two of them. That is the cheaper mistake. The tail is where "A$AP
 /// Rocky" acquires a permanent twin tile reading "Rakim Mayers", and a twin for
 /// the same human is the duplicate this whole rule set exists to remove.
+///
+/// Unlike a comma, a semicolon or a padded slash, this stays a decision the
+/// string makes on its own. Handing it to the library would ask the opposite
+/// question: not "do the pieces stand alone" but "does the head", and an
+/// artist whose every track carries a personnel list answers no, which would
+/// hand the whole dump back as the tile. The padding requirement already
+/// excludes the shapes that put one of these characters inside a name
+/// ("Col·lectiu", "マイケル・ジャクソン"), and a space-padded bullet is not
+/// something a real name does.
 fn push_bulleted(segments: &[&str], out: &mut Vec<String>) {
     if let Some(head) = segments.first() {
         split_part(head, out);
@@ -315,12 +335,50 @@ mod tests {
     }
 
     #[test]
-    fn hard_delimiters_split() {
+    /// Semicolons and space-padded slashes are left for the library to rule on,
+    /// because real names use both. The splitter hands them over whole.
+    fn list_delimiters_are_left_to_the_library() {
+        for credit in [
+            "Daft Punk;Pharrell Williams",
+            "初音ミク、鏡音リン",
+            "We;Na",
+            "Kairon; IRSE!",
+            "R!N / Gemie",
+            "A$AP Rocky/ Joe Fox",
+        ] {
+            assert_eq!(
+                split(credit),
+                [credit],
+                "{credit:?} is not the splitter's call"
+            );
+        }
+    }
+
+    #[test]
+    /// What the splitter offers the library, and what it refuses to offer.
+    fn join_candidates_offers_every_ambiguous_shape() {
+        assert_eq!(join_candidates("We;Na"), Some(vec!["We", "Na"]));
         assert_eq!(
-            split("Daft Punk;Pharrell Williams"),
-            ["Daft Punk", "Pharrell Williams"]
+            join_candidates("Kairon; IRSE!"),
+            Some(vec!["Kairon", "IRSE!"])
         );
-        assert_eq!(split("初音ミク、鏡音リン"), ["初音ミク", "鏡音リン"]);
+        assert_eq!(join_candidates("R!N / Gemie"), Some(vec!["R!N", "Gemie"]));
+        assert_eq!(
+            join_candidates("LOONA / ODD EYE CIRCLE"),
+            Some(vec!["LOONA", "ODD EYE CIRCLE"])
+        );
+        assert_eq!(
+            join_candidates("A$AP Rocky/ Joe Fox"),
+            Some(vec!["A$AP Rocky", "Joe Fox"])
+        );
+        assert_eq!(
+            join_candidates("Tyler, The Creator"),
+            Some(vec!["Tyler", "The Creator"])
+        );
+        // An unpadded slash never becomes a question in the first place.
+        assert_eq!(join_candidates("AC/DC"), None);
+        assert_eq!(join_candidates("Jay-Z"), None);
+        assert_eq!(join_candidates("&ME"), None);
     }
 
     // The names a split must never shatter. Each is a single real artist whose
@@ -345,6 +403,11 @@ mod tests {
             "Crosby, Stills & Nash",
             "塞壬唱片-MSR",
             "AC/DC",
+            "We;Na",
+            "Kairon; IRSE!",
+            "R!N / Gemie",
+            "LOONA / yyxy",
+            "LOONA / ODD EYE CIRCLE",
             "Hall & Oates",
             "Godspeed You! Black Emperor",
         ] {
@@ -403,20 +466,22 @@ mod tests {
         assert_eq!(split("Above & Beyond • Zoë Johnston"), ["Above & Beyond"]);
     }
 
-    // Verbatim from the same library. The slash carries a space on one side
-    // only, and the first repeats a name.
+    /// A padded slash is a candidate wherever the space falls, and a repeated
+    /// piece is offered once.
     #[test]
-    fn space_padded_slashes_split() {
+    fn a_padded_slash_is_a_candidate_from_either_side() {
         assert_eq!(
-            split("A$AP Rocky/ James Fauntleroy/ James Fauntleroy"),
-            ["A$AP Rocky", "James Fauntleroy"]
+            join_candidates("A$AP Rocky/ James Fauntleroy/ James Fauntleroy"),
+            Some(vec!["A$AP Rocky", "James Fauntleroy", "James Fauntleroy"])
         );
-        assert_eq!(split("A$AP Rocky/ Joe Fox"), ["A$AP Rocky", "Joe Fox"]);
         assert_eq!(
-            split("Above & Beyond / Justine Suissa"),
-            ["Above & Beyond", "Justine Suissa"]
+            join_candidates("Above & Beyond / Justine Suissa"),
+            Some(vec!["Above & Beyond", "Justine Suissa"])
         );
-        assert_eq!(split("Zeds Dead /Diplo"), ["Zeds Dead", "Diplo"]);
+        assert_eq!(
+            join_candidates("Zeds Dead /Diplo"),
+            Some(vec!["Zeds Dead", "Diplo"])
+        );
     }
 
     #[test]
@@ -442,7 +507,7 @@ mod tests {
     #[test]
     fn duplicates_collapse_case_insensitively() {
         assert_eq!(split("Drake feat. drake"), ["Drake"]);
-        assert_eq!(split("Drake;Drake ft. Future"), ["Drake", "Future"]);
+        assert_eq!(split("Drake ft. Future x drake"), ["Drake", "Future"]);
     }
 
     #[test]
