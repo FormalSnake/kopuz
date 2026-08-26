@@ -176,6 +176,10 @@ fn ServerHeroBanner(
         .as_ref()
         .map(|(track, _, _)| track.title.clone())
         .unwrap_or_default();
+    // The banner's headline is the track's own title and artist, so its
+    // overflow menu acts on that track even though the play button and the
+    // heart cover the whole album.
+    let hero_track = hero_entry.as_ref().map(|(track, _, _)| track.clone());
     let hero_artist = hero_entry
         .as_ref()
         .map(|(track, album_opt, _)| {
@@ -265,6 +269,15 @@ fn ServerHeroBanner(
                                     },
                                     i { class: "{hero_heart_icon}" }
                                 }
+                            }
+                        }
+                        if let Some(track) = hero_track.clone() {
+                            components::track_actions::TrackActionsMenu {
+                                track,
+                                button_class: "w-11 h-11 bg-white/10 border border-white/20 text-white hover:bg-white/20".to_string(),
+                                // The banner's controls sit at its left edge, so
+                                // the panel has to open towards the middle.
+                                anchor: "left".to_string(),
                             }
                         }
                     }
