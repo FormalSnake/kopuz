@@ -327,7 +327,9 @@ pub async fn tracks_by_keys(
 /// Counts run over `artists_json`, the split credit list, so a featured artist
 /// is counted on every track that credits them rather than only on the ones
 /// where they happen to be first. A row whose credit list is empty (nothing was
-/// ever split out of it) falls back to the joined `artist` column.
+/// ever split out of it) still falls back to the joined `artist` column,
+/// trimmed the same way the credit list is so a padded legacy value lands in
+/// the same bucket as its clean spelling rather than becoming its own artist.
 ///
 /// Album artists are enumerated too: [`artist_tracks`] answers for them and the
 /// UI gives them a tile, so the listing has to name the same credits that one

@@ -695,3 +695,43 @@ async fn an_unpadded_slash_is_never_a_candidate() {
     let counts = db.artists(&Source::Local).await.unwrap();
     assert_eq!(counts.iter().find(|(n, _)| n == "AC/DC").unwrap().1, 1);
 }
+
+/// The fallback branch reads `artist` straight from a legacy row, so it has to
+/// trim it the way the credit list is trimmed. Otherwise a padded value becomes
+/// an artist of its own next to the clean spelling, and a whitespace-only value
+/// becomes a blank tile.
+#[tokio::test]
+async fn the_fallback_branch_trims_the_joined_column() {
+    let db_path = unique_db();
+    let db = db::init(&db_path).await.unwrap();
+
+    let mut conn = SqliteConnectOptions::new()
+        .filename(&db_path)
+        .connect()
+        .await
+        .unwrap();
+    for (key, artist) in [
+        ("/music/1.flac", "Drake"),
+        ("/music/2.flac", "  Drake  "),
+        ("/music/3.flac", "\t\n "),
+        ("/music/4.flac", ""),
+    ] {
+        sqlx::query(
+            "INSERT INTO tracks (source, track_key, title, artist, album, artists_json) \
+             VALUES ('local', ?1, 'T', ?2, 'Album', '[]')",
+        )
+        .bind(key)
+        .bind(artist)
+        .execute(&mut conn)
+        .await
+        .unwrap();
+    }
+    drop(conn);
+
+    // One Drake carrying both rows, and no blank tile from the whitespace-only
+    // value that "artist != ''" would have let through.
+    assert_eq!(
+        db.artists(&Source::Local).await.unwrap(),
+        [("Drake".to_string(), 2)]
+    );
+}

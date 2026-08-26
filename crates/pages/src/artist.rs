@@ -20,6 +20,21 @@ use hooks::use_db_queries::{
 use std::collections::{HashMap, HashSet};
 use utils::artist::{joined_credit_primary, normalize_artist_key};
 
+/// Whether an album's own credit names this artist.
+///
+/// The credit is a display string like any other, so it goes through the same
+/// split the grid used to seed the tile. Without that, a tile split out of
+/// "A$AP Rocky feat. Drake" lands on a page whose Albums view is empty.
+///
+/// Only the unambiguous string rules apply here. A comma, semicolon or padded
+/// slash credit is left whole, because deciding those needs the whole-library
+/// evidence the backfill gathers and an album credit never goes through it.
+fn album_credits_artist(album: &api::AlbumInfo, artist_norm: &str) -> bool {
+    utils::artist::split_credit(&album.artist)
+        .iter()
+        .any(|name| normalize_artist_key(name) == artist_norm)
+}
+
 #[component]
 pub fn Artist(
     config: Signal<AppConfig>,
@@ -300,7 +315,7 @@ pub fn Artist(
         if artist.is_empty() {
             return Vec::new();
         }
-        let artist_lc = artist.to_lowercase();
+        let artist_norm = normalize_artist_key(&artist);
         let all_albums = albums_res.read().clone().unwrap_or_default();
         let offline = caps().downloads && *is_offline.read();
         let downloaded_ids: HashSet<String> = if offline {
@@ -316,7 +331,7 @@ pub fn Artist(
         };
         let mut albums: Vec<_> = all_albums
             .iter()
-            .filter(|a| a.artist.to_lowercase() == artist_lc)
+            .filter(|a| album_credits_artist(a, &artist_norm))
             .filter(|a| !offline || downloaded_ids.contains(&a.id))
             .cloned()
             .collect();
