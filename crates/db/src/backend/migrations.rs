@@ -19,7 +19,7 @@
 //! parse it here (the one place, via [`TrackId::from_legacy_path`]) into the
 //! typed id, lifting the smuggled cover out of the 3rd segment.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use serde::Deserialize;
@@ -153,7 +153,90 @@ const LEGACY_FILES: [&str; 5] = [
 /// The splitter revision a library was last backfilled with. Bump it whenever
 /// the rules change, or a library already carrying the previous pass's results
 /// never sees the new ones.
-const CREDIT_SPLIT_REVISION: &str = "v2-bullets";
+const CREDIT_SPLIT_REVISION: &str = "v3-comma-evidence";
+
+/// Which comma credits the library itself proves are joins.
+///
+/// A comma cannot be judged from one string: "Tyler, The Creator" and "Earth,
+/// Wind & Fire" are single artists, and "49th & Main, SHEE" is two, with
+/// nothing inside them to tell the cases apart. What does tell them apart is
+/// the rest of the library. "SHEE" and "49th & Main" turn up on their own
+/// elsewhere; "The Creator" and "Wind & Fire" never do.
+#[derive(Default)]
+struct CommaEvidence {
+    /// Names the library attests without leaning on any comma.
+    solo: HashSet<String>,
+    /// For each comma-separated piece, the distinct credits it appeared in.
+    /// A piece recurring across several different credits is a collaborator,
+    /// not a word that happens to open one longer name.
+    piece_credits: HashMap<String, HashSet<String>>,
+}
+
+impl CommaEvidence {
+    fn observe(&mut self, name: &str) {
+        match reader::artist::comma_candidates(name) {
+            None => {
+                self.solo.insert(reader::artist::name_key(name));
+            }
+            Some(pieces) => {
+                for piece in pieces {
+                    self.piece_credits
+                        .entry(reader::artist::name_key(piece))
+                        .or_default()
+                        .insert(name.to_string());
+                }
+            }
+        }
+    }
+
+    fn recurs(&self, key: &str) -> bool {
+        self.piece_credits.get(key).is_some_and(|c| c.len() > 1)
+    }
+
+    fn attested(&self, key: &str) -> bool {
+        self.solo.contains(key) || self.recurs(key)
+    }
+
+    /// What a comma credit should become, or None to leave it whole.
+    fn resolve(&self, credit: &str) -> Option<Vec<String>> {
+        let pieces = reader::artist::comma_candidates(credit)?;
+        let keep: Vec<&str> = pieces
+            .iter()
+            .copied()
+            .filter(|piece| self.attested(&reader::artist::name_key(piece)))
+            .collect();
+        if keep.is_empty() {
+            return None;
+        }
+        // Every piece attested is proof enough on its own. A partial match is
+        // only trusted when one of the kept pieces recurs across different
+        // credits: that is what separates "49th & Main", which collaborates
+        // under three different credits, from a library that merely happens to
+        // hold an artist called "Tyler".
+        let confident = keep.len() == pieces.len()
+            || keep
+                .iter()
+                .any(|piece| self.recurs(&reader::artist::name_key(piece)));
+        confident.then(|| keep.into_iter().map(str::to_string).collect())
+    }
+}
+
+/// The credit list for one track before the comma rule, which needs the whole
+/// library and so cannot run until every row has been read.
+fn credits_from_strings(artist: &str, stored: &[String]) -> Vec<String> {
+    // Work from the credit string rather than from what an earlier pass stored:
+    // that pass has already flattened the structure the newer rules read (a
+    // contributor list only gives itself away while its head and tail are still
+    // intact). The stored list still wins where the source named more artists
+    // than the credit string does, which is the one case it holds something the
+    // string cannot reproduce.
+    let derived = reader::artist::split_credit(artist);
+    if stored.len() > derived.len() {
+        reader::artist::credited(artist, stored)
+    } else {
+        derived
+    }
+}
 
 /// Re-split the credit lists of an already-scanned library.
 ///
@@ -162,6 +245,10 @@ const CREDIT_SPLIT_REVISION: &str = "v2-bullets";
 /// as a single artist. Recomputing it here is what spares the user a full
 /// rescan, and a server library a resync they may not be online for. Runs once
 /// per revision of the rules, gated on a marker row.
+///
+/// Three passes, because the comma rule is the only one that needs to see the
+/// library rather than a single string: derive what the string rules give,
+/// gather the evidence from all of it, then resolve the commas.
 #[tracing::instrument(skip_all)]
 pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbError> {
     let done: Option<String> = sqlx::query_scalar(
@@ -179,26 +266,42 @@ pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbE
             .fetch_all(pool)
             .await?;
 
+    let derived: Vec<(i64, Vec<String>, Vec<String>)> = rows
+        .into_iter()
+        .map(|(pk, artist, stored_json)| {
+            let stored: Vec<String> = serde_json::from_str(&stored_json).unwrap_or_default();
+            let credits = credits_from_strings(&artist, &stored);
+            (pk, stored, credits)
+        })
+        .collect();
+
+    let mut evidence = CommaEvidence::default();
+    for (_, _, credits) in &derived {
+        for name in credits {
+            evidence.observe(name);
+        }
+    }
+
     let mut tx = pool.begin().await?;
     let mut rewritten = 0usize;
-    for (pk, artist, stored_json) in rows {
-        let stored: Vec<String> = serde_json::from_str(&stored_json).unwrap_or_default();
-        // Work from the credit string rather than from what an earlier pass
-        // stored: that pass has already flattened the structure the newer rules
-        // read (a contributor list only gives itself away while its head and
-        // tail are still intact). The stored list still wins where the source
-        // named more artists than the credit string does, which is the one case
-        // it holds something the string cannot reproduce.
-        let derived = reader::artist::split_credit(&artist);
-        let credited = if stored.len() > derived.len() {
-            reader::artist::credited(&artist, &stored)
-        } else {
-            derived
-        };
-        if credited == stored {
+    let mut split_by_evidence = 0usize;
+    for (pk, stored, credits) in derived {
+        let mut resolved: Vec<String> = Vec::new();
+        for name in credits {
+            match evidence.resolve(&name) {
+                Some(pieces) => {
+                    split_by_evidence += 1;
+                    for piece in pieces {
+                        push_unique(&mut resolved, piece);
+                    }
+                }
+                None => push_unique(&mut resolved, name),
+            }
+        }
+        if resolved == stored {
             continue;
         }
-        let payload = serde_json::to_string(&credited)?;
+        let payload = serde_json::to_string(&resolved)?;
         sqlx::query("UPDATE tracks SET artists_json = ?1 WHERE rowid_pk = ?2")
             .bind(&payload)
             .bind(pk)
@@ -219,9 +322,23 @@ pub(super) async fn backfill_artist_credits(pool: &SqlitePool) -> Result<(), DbE
     tx.commit().await?;
 
     if rewritten > 0 {
-        tracing::info!(tracks = rewritten, "re-split joined artist credits");
+        tracing::info!(
+            tracks = rewritten,
+            comma_credits = split_by_evidence,
+            "re-split joined artist credits"
+        );
     }
     Ok(())
+}
+
+fn push_unique(out: &mut Vec<String>, name: String) {
+    let key = reader::artist::name_key(&name);
+    if key.is_empty() {
+        return;
+    }
+    if !out.iter().any(|seen| reader::artist::name_key(seen) == key) {
+        out.push(name);
+    }
 }
 
 /// The on-disk source for one legacy store: the plain `X.json` if it's still

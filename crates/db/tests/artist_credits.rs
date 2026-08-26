@@ -246,7 +246,7 @@ async fn a_library_backfilled_by_the_previous_revision_is_re_split() {
             .fetch_all(&mut conn)
             .await
             .unwrap();
-    assert_eq!(kinds, ["v2-bullets"]);
+    assert_eq!(kinds, ["v3-comma-evidence"]);
 }
 
 /// A per-artist list richer than the credit string (Jellyfin's `Artists` array
@@ -281,4 +281,157 @@ async fn a_source_supplied_list_survives_the_backfill() {
         stored_credits(&db_path, "/music/1.flac").await,
         ["Gorillaz", "Del The Funky Homosapien"]
     );
+}
+
+/// Seed a library from bare credit strings, leaving no marker behind so the
+/// next open backfills it.
+async fn seed_credits(db_path: &std::path::Path, credits: &[&str]) {
+    let mut conn = SqliteConnectOptions::new()
+        .filename(db_path)
+        .connect()
+        .await
+        .unwrap();
+    conn.execute("BEGIN").await.unwrap();
+    for (i, credit) in credits.iter().enumerate() {
+        sqlx::query(
+            "INSERT INTO tracks (source, track_key, title, artist, album, artists_json) \
+             VALUES ('local', ?1, ?2, ?3, 'Album', '[]')",
+        )
+        .bind(format!("/music/{i}.flac"))
+        .bind(format!("Track {i}"))
+        .bind(credit)
+        .execute(&mut conn)
+        .await
+        .unwrap();
+    }
+    conn.execute("DELETE FROM metadata_cache WHERE cache_key = 'artist_credits'")
+        .await
+        .unwrap();
+    conn.execute("COMMIT").await.unwrap();
+}
+
+async fn artist_names(db: &db::Db) -> Vec<String> {
+    db.artists(&Source::Local)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|(n, _)| n)
+        .collect()
+}
+
+/// The three phantom tiles from the user's grid collapse into one, because
+/// "49th & Main" recurs across three different credits while each partner is
+/// seen once.
+#[tokio::test]
+async fn a_recurring_comma_piece_is_split_out() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(
+        &db_path,
+        &[
+            "49th & Main, A Little Sound",
+            "49th & Main, Brandon Nembhard",
+            "49th & Main, SHEE",
+        ],
+    )
+    .await;
+    let db = db::init(&db_path).await.unwrap();
+
+    assert_eq!(artist_names(&db).await, ["49th & Main"]);
+}
+
+/// Every piece attested on its own is proof enough, so all of them are kept.
+#[tokio::test]
+async fn a_fully_attested_comma_credit_splits_into_every_piece() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(
+        &db_path,
+        &[
+            "12th Planet, Kill The Noise, Skrillex",
+            "12th Planet",
+            "Kill The Noise",
+            "Skrillex",
+        ],
+    )
+    .await;
+    let db = db::init(&db_path).await.unwrap();
+
+    assert_eq!(
+        artist_names(&db).await,
+        ["12th Planet", "Kill The Noise", "Skrillex"]
+    );
+}
+
+/// The names the evidence rule has to leave alone. Neither "The Creator" nor
+/// "Wind" nor "Stills & Nash" is an artist anywhere in the library, so nothing
+/// licenses a split.
+#[tokio::test]
+async fn a_comma_inside_a_real_name_is_left_whole() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(
+        &db_path,
+        &[
+            "Tyler, The Creator",
+            "Earth, Wind & Fire",
+            "Crosby, Stills & Nash",
+            "Emerson, Lake & Palmer",
+        ],
+    )
+    .await;
+    let db = db::init(&db_path).await.unwrap();
+
+    assert_eq!(
+        artist_names(&db).await,
+        [
+            "Crosby, Stills & Nash",
+            "Earth, Wind & Fire",
+            "Emerson, Lake & Palmer",
+            "Tyler, The Creator"
+        ]
+    );
+}
+
+/// A library that also holds a solo "Tyler" is the trap: one piece attested is
+/// not enough on its own, because it never recurs across different credits.
+#[tokio::test]
+async fn one_attested_piece_that_never_recurs_does_not_license_a_split() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(&db_path, &["Tyler, The Creator", "Tyler"]).await;
+    let db = db::init(&db_path).await.unwrap();
+
+    assert_eq!(artist_names(&db).await, ["Tyler", "Tyler, The Creator"]);
+}
+
+/// End to end over the shapes the user's library actually contains.
+#[tokio::test]
+async fn the_reported_library_shapes_resolve_to_one_tile_each() {
+    let db_path = unique_db();
+    drop(db::init(&db_path).await.unwrap());
+    seed_credits(
+        &db_path,
+        &[
+            "A$AP Rocky",
+            "A$AP Rocky • Rakim Mayers",
+            "A$AP Rocky • Bones • Frans Mernick • Hector Delgado • Rakim Mayers",
+            "A$AP Rocky/ James Fauntleroy/ James Fauntleroy",
+            "A$AP Rocky/ Joe Fox",
+            "A$AP Rocky feat. ScHoolboy Q",
+        ],
+    )
+    .await;
+    let db = db::init(&db_path).await.unwrap();
+
+    // No "Rakim Mayers", no "Hector Delgado", no "Bones": all of it was the
+    // tail of a bullet list. The slash lists keep both sides and dedupe.
+    assert_eq!(
+        artist_names(&db).await,
+        ["A$AP Rocky", "James Fauntleroy", "Joe Fox", "ScHoolboy Q"]
+    );
+
+    let counts = db.artists(&Source::Local).await.unwrap();
+    let rocky = counts.iter().find(|(n, _)| n == "A$AP Rocky").unwrap().1;
+    assert_eq!(rocky, 6, "every credit files under A$AP Rocky");
 }
