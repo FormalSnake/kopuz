@@ -199,7 +199,9 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
         ));
     }
 
-    if on_delete.is_some() {
+    // Only the local source can delete a file, so on every remote source this
+    // entry could be shown but never do anything.
+    if on_delete.is_some() && capabilities.delete_from_disk {
         entries.push((
             Action::Delete,
             MenuAction::new(i18n::t("delete"), "fa-solid fa-trash").destructive(),
