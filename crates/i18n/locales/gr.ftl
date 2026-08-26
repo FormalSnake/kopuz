@@ -114,6 +114,7 @@ share_musicbrainz = Κοινοποίηση (MusicBrainz)
 share_link_copied = Ο σύνδεσμος MusicBrainz αντιγράφηκε
 delete = Διαγραφή
 delete_from_device = Διαγραφή από τη συσκευή
+delete_incomplete = Η διαγραφή δεν ολοκληρώθηκε. Δοκίμασε ξανά.
 delete_song = Διαγραφή Τραγουδιού
 delete_album = Διαγραφή Άλμπουμ
 delete_playlist = Διαγραφή Λίστας Αναπαραγωγής

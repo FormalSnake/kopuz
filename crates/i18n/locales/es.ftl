@@ -114,6 +114,7 @@ share_musicbrainz = Compartir (MusicBrainz)
 share_link_copied = Enlace de MusicBrainz copiado
 delete = Borrar
 delete_from_device = Borrar del dispositivo
+delete_incomplete = No se pudo completar el borrado. Inténtalo de nuevo.
 delete_song = Eliminar canción
 delete_album = Eliminar álbum
 delete_playlist = Eliminar lista de reproducción

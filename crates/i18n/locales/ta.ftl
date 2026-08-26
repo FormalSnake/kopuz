@@ -187,6 +187,7 @@ share_musicbrainz = பகிர் (MusicBrainz)
 share_link_copied = MusicBrainz இணைப்பு நகலெடுக்கப்பட்டது
 delete = நீக்கு
 delete_from_device = சாதனத்திலிருந்து நீக்கு
+delete_incomplete = நீக்குதலை முடிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.
 delete_song = பாடலை நீக்கு
 delete_album = ஆல்பத்தை நீக்கு
 delete_playlist = பிளேலிஸ்ட்டை நீக்கு

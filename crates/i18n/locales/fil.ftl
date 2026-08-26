@@ -187,6 +187,7 @@ share_musicbrainz = Ibahagi (MusicBrainz)
 share_link_copied = Nakopya ang link ng MusicBrainz
 delete = Burahin
 delete_from_device = Burahin sa Device
+delete_incomplete = Hindi natapos ang pagbura. Subukan ulit.
 delete_song = Burahin ang Kanta
 delete_album = Burahin ang Album
 delete_playlist = Burahin ang Playlist

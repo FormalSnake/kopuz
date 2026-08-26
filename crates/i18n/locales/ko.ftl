@@ -114,6 +114,7 @@ share_musicbrainz = 공유 (MusicBrainz)
 share_link_copied = MusicBrainz 링크가 복사됨
 delete = 삭제
 delete_from_device = 기기에서 삭제
+delete_incomplete = 삭제를 완료하지 못했습니다. 다시 시도하세요.
 delete_song = 곡 삭제
 delete_album = 앨범 삭제
 delete_playlist = 재생 목록 삭제

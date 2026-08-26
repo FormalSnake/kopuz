@@ -114,6 +114,7 @@ share_musicbrainz = 󱥄 (MusicBrainz)
 share_link_copied = linja MusicBrainz li kama jo
 delete = 󱥄󱥶
 delete_from_device = o weka tan ilo
+delete_incomplete = weka li pini ala. o weka sin.
 delete_song = 󱥄󱥶󱤉󱤕󱤻
 delete_album = 󱥄󱥶󱤉󱤟󱥍󱤕󱥖
 add_all_to_queue = 󱥄󱥌󱤉󱤄󱥩󱤾󱤕

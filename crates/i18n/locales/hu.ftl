@@ -114,6 +114,7 @@ share_musicbrainz = Megosztás (MusicBrainz)
 share_link_copied = MusicBrainz-link másolva
 delete = Törlés
 delete_from_device = Törlés az eszközről
+delete_incomplete = A törlés nem fejeződött be. Próbáld újra.
 delete_song = Dal törlése
 delete_album = Album törlése
 delete_playlist = Lejátszási lista törlése

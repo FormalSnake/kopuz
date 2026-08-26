@@ -114,6 +114,7 @@ share_musicbrainz = 共有 (MusicBrainz)
 share_link_copied = MusicBrainzのリンクをコピーしました
 delete = 削除
 delete_from_device = 端末から削除
+delete_incomplete = 削除を完了できませんでした。もう一度お試しください。
 delete_song = 曲を削除
 delete_album = アルバムを削除
 delete_playlist = プレイリストを削除

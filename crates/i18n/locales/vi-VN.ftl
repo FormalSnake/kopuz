@@ -187,6 +187,7 @@ share_musicbrainz = Chia sẻ (MusicBrainz)
 share_link_copied = Đã sao chép liên kết MusicBrainz
 delete = Xóa
 delete_from_device = Xóa khỏi thiết bị
+delete_incomplete = Không thể hoàn tất việc xóa. Hãy thử lại.
 delete_song = Xóa bài hát
 delete_album = Xóa album
 delete_playlist = Xóa danh sách phát

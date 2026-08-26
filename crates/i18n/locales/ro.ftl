@@ -114,6 +114,7 @@ share_musicbrainz = Distribuie (MusicBrainz)
 share_link_copied = Link MusicBrainz copiat
 delete = Șterge
 delete_from_device = Șterge de pe dispozitiv
+delete_incomplete = Ștergerea nu s-a finalizat. Încearcă din nou.
 delete_song = Șterge Piesa
 delete_album = Șterge Albumul
 delete_playlist = Șterge Lista de Redare

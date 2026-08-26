@@ -187,6 +187,7 @@ share_musicbrainz = Delen (MusicBrainz)
 share_link_copied = MusicBrainz-link gekopieerd
 delete = Verwijderen
 delete_from_device = Van apparaat verwijderen
+delete_incomplete = Verwijderen niet voltooid. Probeer het opnieuw.
 delete_song = Nummer verwijderen
 delete_album = Album verwijderen
 delete_playlist = Afspeellijst verwijderen

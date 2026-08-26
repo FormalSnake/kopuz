@@ -167,6 +167,7 @@ share_musicbrainz = Compartilhar (MusicBrainz)
 share_link_copied = Link do MusicBrainz copiado
 delete = Excluir
 delete_from_device = Excluir do dispositivo
+delete_incomplete = Não foi possível concluir a exclusão. Tente novamente.
 delete_song = Excluir música
 delete_album = Excluir álbum
 delete_playlist = Excluir playlist

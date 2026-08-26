@@ -187,6 +187,7 @@ share_musicbrainz = Share (MusicBrainz)
 share_link_copied = MusicBrainz link copied
 delete = Delete
 delete_from_device = Delete from device
+delete_incomplete = Couldn't finish deleting. Try again.
 delete_song = Delete Song
 delete_album = Delete Album
 delete_playlist = Delete Playlist

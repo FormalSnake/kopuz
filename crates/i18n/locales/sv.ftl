@@ -187,6 +187,7 @@ share_musicbrainz = Dela (MusicBrainz)
 share_link_copied = MusicBrainz länk kopierad
 delete = Ta bort
 delete_from_device = Ta bort från enheten
+delete_incomplete = Kunde inte slutföra borttagningen. Försök igen.
 delete_song = Ta bort låt
 delete_album = Ta bort album
 delete_playlist = Ta bort spellista

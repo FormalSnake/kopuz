@@ -148,6 +148,9 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                     class: "w-auto flex flex-col bg-neutral-900 border border-white/10 rounded-lg dots-menu-panel py-1 shadow-xl",
                     style: "{panel_style}",
                     role: "menu",
+                    // Focusable only so a pointer-opened menu can be given
+                    // focus below; it stays out of the tab order.
+                    tabindex: "-1",
                     onmounted: {
                         let anchor = props.anchor.clone();
                         let placement = props.placement.clone();
@@ -194,6 +197,14 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                                     panel_rect.width(),
                                     panel_rect.height(),
                                 )));
+                                if pointer.is_some() {
+                                    // A right-click leaves focus wherever it
+                                    // was, so Escape would never reach the root
+                                    // handler. A click-opened menu keeps focus
+                                    // on the trigger, which is already inside
+                                    // the root, so it is left alone.
+                                    let _ = panel_evt.set_focus(true).await;
+                                }
                             }
                         }
                     },

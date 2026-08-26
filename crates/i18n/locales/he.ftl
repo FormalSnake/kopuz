@@ -114,6 +114,7 @@ share_musicbrainz = שיתוף (MusicBrainz)
 share_link_copied = קישור MusicBrainz הועתק
 delete = מחיקה
 delete_from_device = מחיקה מהמכשיר
+delete_incomplete = המחיקה לא הושלמה. נסה שוב.
 delete_song = מחיקת שיר
 delete_album = מחיקת אלבום
 delete_playlist = מחיקת רשימת השמעה
