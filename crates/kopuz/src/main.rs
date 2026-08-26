@@ -220,7 +220,7 @@ fn main() {
     if let Err(e) = init_android_tls() {
         panic!("android certificate verifier failed to initialize: {e}");
     }
-    
+
     #[cfg(target_os = "linux")]
     if std::env::var_os("WEBKIT_FORCE_VBLANK_TIMER").is_none() {
         // SAFETY: first statement of main, before any thread is spawned.
