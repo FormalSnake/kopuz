@@ -739,6 +739,7 @@ fn SongCard(track: Track) -> Element {
 
     let mut hover_armed = use_signal(|| false);
     let prefetch_id = video_id.clone();
+    let menu_track = track.clone();
 
     rsx! {
         div {
@@ -810,6 +811,14 @@ fn SongCard(track: Track) -> Element {
                         } else {
                             "fa-solid fa-play text-white text-2xl"
                         }
+                    }
+                }
+                div {
+                    class: "absolute right-1 top-1",
+                    onclick: move |evt| evt.stop_propagation(),
+                    components::track_actions::TrackActionsMenu {
+                        track: menu_track.clone(),
+                        button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
                     }
                 }
             }
