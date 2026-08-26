@@ -317,6 +317,7 @@ fn AlbumGrid(
                                                 move |_| open_album_menu.set(Some(id.clone()))
                                             },
                                             on_close: move |_| open_album_menu.set(None),
+                                            aria_label: i18n::t_with("more_actions_for", &[("name", album.title.clone())]),
                                             button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100 bg-black/40".to_string(),
                                             anchor: "right".to_string(),
                                             on_action: {
@@ -912,7 +913,6 @@ fn YtAlbumDetail(
                             let menu_id = track.uid.clone();
                             let pl_id = track.uid.clone();
                             let dl_track = track.clone();
-                            let q_track = track.clone();
                             rsx! {
                                 components::track_row::TrackRow {
                                     key: "{track.uid}",
@@ -928,14 +928,9 @@ fn YtAlbumDetail(
                                     is_menu_open,
                                     is_currently_playing: is_current,
                                     is_downloaded,
-                                    on_start_radio: components::track_row::radio_handler(track.key.clone()),
                                     on_play: move |_| {
                                         ctrl.play_queue_at(row_tracks.clone(), idx);
                                     },
-                                    on_queue: Some(EventHandler::new(move |_| {
-                                        ctrl.add_to_queue(vec![q_track.clone()]);
-                                        active_menu.set(None);
-                                    })),
                                     on_click_menu: move |_| {
                                         let open = active_menu.read().as_ref() == Some(&menu_id);
                                         active_menu.set((!open).then(|| menu_id.clone()));

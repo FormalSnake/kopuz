@@ -118,6 +118,12 @@ pub fn BottombarNormal(
         PlayerBarPosition::Top => "border-b border-white/5",
     };
 
+    // The bar sits against one edge of the window, so the menu has to open
+    // away from it.
+    let menu_placement = match position {
+        PlayerBarPosition::Bottom => "top",
+        PlayerBarPosition::Top => "bottom",
+    };
     let bar_as_fullscreen = *is_fullscreen.read() && config.read().fullscreen_use_player_bar;
     let lift_class = if bar_as_fullscreen {
         "relative z-[60]"
@@ -199,15 +205,12 @@ pub fn BottombarNormal(
                     is_rightbar_open,
                     is_devices_open,
                 }
-                button {
-                    class: "w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95",
-                    title: i18n::t("share_musicbrainz").to_string(),
-                    onclick: move |_| {
-                        if let Some(t) = ctrl.current_track_snapshot.read().clone() {
-                            crate::track_row::share_track(t);
-                        }
-                    },
-                    i { class: "fa-solid fa-share-nodes text-xs" }
+                if let Some(track) = ctrl.current_track_snapshot.read().clone() {
+                    crate::track_actions::TrackActionsMenu {
+                        track,
+                        placement: menu_placement.to_string(),
+                        button_class: "w-9 h-9 hover:bg-white/10 active:scale-95 text-xs".to_string(),
+                    }
                 }
                 if cfg!(not(target_os = "android")) {
                     button {
