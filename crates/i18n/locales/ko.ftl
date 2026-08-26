@@ -113,6 +113,7 @@ more_actions_for = { $name } 추가 작업
 share_musicbrainz = 공유 (MusicBrainz)
 share_link_copied = MusicBrainz 링크가 복사됨
 delete = 삭제
+delete_from_device = 기기에서 삭제
 delete_song = 곡 삭제
 delete_album = 앨범 삭제
 delete_playlist = 재생 목록 삭제

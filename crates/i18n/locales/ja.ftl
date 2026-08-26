@@ -113,6 +113,7 @@ more_actions_for = { $name } のその他の操作
 share_musicbrainz = 共有 (MusicBrainz)
 share_link_copied = MusicBrainzのリンクをコピーしました
 delete = 削除
+delete_from_device = 端末から削除
 delete_song = 曲を削除
 delete_album = アルバムを削除
 delete_playlist = プレイリストを削除

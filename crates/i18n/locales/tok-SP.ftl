@@ -113,6 +113,7 @@ more_actions_for = pali ante pi { $name }
 share_musicbrainz = 󱥄 (MusicBrainz)
 share_link_copied = linja MusicBrainz li kama jo
 delete = 󱥄󱥶
+delete_from_device = o weka tan ilo
 delete_song = 󱥄󱥶󱤉󱤕󱤻
 delete_album = 󱥄󱥶󱤉󱤟󱥍󱤕󱥖
 add_all_to_queue = 󱥄󱥌󱤉󱤄󱥩󱤾󱤕

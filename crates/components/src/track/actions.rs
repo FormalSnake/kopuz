@@ -201,7 +201,7 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
     if on_delete.is_some() && capabilities.delete_from_disk {
         entries.push((
             Action::Delete,
-            MenuAction::new(i18n::t("delete"), "fa-solid fa-trash").destructive(),
+            MenuAction::new(i18n::t("delete_from_device"), "fa-solid fa-trash").destructive(),
         ));
     }
 

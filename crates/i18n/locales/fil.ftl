@@ -186,6 +186,7 @@ more_actions_for = Iba pang aksyon para sa { $name }
 share_musicbrainz = Ibahagi (MusicBrainz)
 share_link_copied = Nakopya ang link ng MusicBrainz
 delete = Burahin
+delete_from_device = Burahin sa Device
 delete_song = Burahin ang Kanta
 delete_album = Burahin ang Album
 delete_playlist = Burahin ang Playlist

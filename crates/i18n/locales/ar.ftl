@@ -113,6 +113,7 @@ more_actions_for = إجراءات أخرى لـ { $name }
 share_musicbrainz = مشاركة (MusicBrainz)
 share_link_copied = تم نسخ رابط MusicBrainz
 delete = حذف
+delete_from_device = حذف من الجهاز
 delete_song = حذف الأغنية
 delete_album = حذف الألبوم
 delete_playlist = حذف قائمة التشغيل

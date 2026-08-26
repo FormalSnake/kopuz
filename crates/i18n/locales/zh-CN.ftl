@@ -113,6 +113,7 @@ more_actions_for = { $name } 的更多操作
 share_musicbrainz = 分享 (MusicBrainz)
 share_link_copied = MusicBrainz 链接已复制
 delete = 删除
+delete_from_device = 从设备中删除
 delete_song = 删除歌曲
 delete_album = 删除专辑
 delete_playlist = 删除播放列表

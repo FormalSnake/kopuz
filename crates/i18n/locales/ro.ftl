@@ -113,6 +113,7 @@ more_actions_for = Mai multe acțiuni pentru { $name }
 share_musicbrainz = Distribuie (MusicBrainz)
 share_link_copied = Link MusicBrainz copiat
 delete = Șterge
+delete_from_device = Șterge de pe dispozitiv
 delete_song = Șterge Piesa
 delete_album = Șterge Albumul
 delete_playlist = Șterge Lista de Redare

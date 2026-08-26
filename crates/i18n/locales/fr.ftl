@@ -113,6 +113,7 @@ more_actions_for = Plus d'actions pour { $name }
 share_musicbrainz = Partager (MusicBrainz)
 share_link_copied = Lien MusicBrainz copié
 delete = Supprimer
+delete_from_device = Supprimer de l'appareil
 delete_song = Supprimer le son
 delete_album = Supprimer L'album
 add_all_to_queue = Ajouter tout à la file d'attente

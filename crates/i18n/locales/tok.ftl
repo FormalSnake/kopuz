@@ -113,6 +113,7 @@ more_actions_for = pali ante pi { $name }
 share_musicbrainz = o pana (MusicBrainz)
 share_link_copied = linja MusicBrainz li kama jo
 delete = o weka
+delete_from_device = o weka tan ilo
 delete_song = o weka e kalama musi
 delete_album = o weka e kulupu pi kalama sama
 delete_playlist = o weka e kulupu musi

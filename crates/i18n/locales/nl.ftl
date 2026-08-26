@@ -186,6 +186,7 @@ more_actions_for = Meer acties voor { $name }
 share_musicbrainz = Delen (MusicBrainz)
 share_link_copied = MusicBrainz-link gekopieerd
 delete = Verwijderen
+delete_from_device = Van apparaat verwijderen
 delete_song = Nummer verwijderen
 delete_album = Album verwijderen
 delete_playlist = Afspeellijst verwijderen

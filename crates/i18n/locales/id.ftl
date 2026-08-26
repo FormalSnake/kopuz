@@ -186,6 +186,7 @@ more_actions_for = Tindakan lainnya untuk { $name }
 share_musicbrainz = Bagikan (MusicBrainz)
 share_link_copied = Tautan MusicBrainz disalin
 delete = Hapus
+delete_from_device = Hapus dari Perangkat
 delete_song = Hapus Lagu
 delete_album = Hapus Album
 delete_playlist = Hapus Daftar Putar

@@ -113,6 +113,7 @@ more_actions_for = { $name } için diğer eylemler
 share_musicbrainz = Paylaş (MusicBrainz)
 share_link_copied = MusicBrainz bağlantısı kopyalandı
 delete = Sil
+delete_from_device = Cihazdan Sil
 delete_song = Şarkıyı Sil
 delete_album = Albümü Sil
 delete_playlist = Çalma Listesini Sil
