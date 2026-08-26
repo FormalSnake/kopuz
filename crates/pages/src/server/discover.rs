@@ -664,6 +664,7 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
             class: "shrink-0 w-44 text-left cursor-pointer transition-transform duration-200 ease-out hover:scale-[1.03] hover:-translate-y-0.5 group",
             oncontextmenu: move |evt| {
                 evt.prevent_default();
+                components::dots_menu::open_at_pointer(&evt);
                 menu_open.set(true);
             },
             onclick: {

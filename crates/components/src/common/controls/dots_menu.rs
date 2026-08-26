@@ -1,4 +1,31 @@
 use dioxus::prelude::*;
+use std::sync::Mutex;
+
+/// Where the next menu should open, when a right-click asked for it.
+///
+/// A right-click and the open it triggers are one gesture, and only one menu is
+/// ever up, so the point rides here instead of through a prop on every surface
+/// that has a context handler.
+static CONTEXT_POINT: Mutex<Option<(f64, f64)>> = Mutex::new(None);
+
+/// Anchor the menu this contextmenu event is about to open at the pointer.
+/// Call it from `oncontextmenu`, before opening the menu.
+pub fn open_at_pointer(evt: &Event<MouseData>) {
+    let point = evt.client_coordinates();
+    if let Ok(mut slot) = CONTEXT_POINT.lock() {
+        *slot = Some((point.x, point.y));
+    }
+}
+
+fn take_context_point() -> Option<(f64, f64)> {
+    CONTEXT_POINT.lock().ok().and_then(|mut slot| slot.take())
+}
+
+fn clear_context_point() {
+    if let Ok(mut slot) = CONTEXT_POINT.lock() {
+        *slot = None;
+    }
+}
 
 #[derive(Clone, PartialEq)]
 pub struct MenuAction {
@@ -97,11 +124,12 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                 onmounted: move |evt| trigger_element.set(Some(evt)),
                 onclick: move |evt| {
                     evt.stop_propagation();
+                    // Anchor to the button, never to a stale right-click point.
+                    clear_context_point();
+                    panel_geometry.set(None);
                     if props.is_open {
-                        panel_geometry.set(None);
                         props.on_close.call(());
                     } else {
-                        panel_geometry.set(None);
                         props.on_open.call(());
                     }
                 },
@@ -130,12 +158,20 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
                             let trigger_evt = trigger_element.peek().clone();
                             let anchor = anchor.clone();
                             let placement = placement.clone();
+                            // Consumed on mount so the next open falls back to
+                            // the trigger unless another right-click sets it.
+                            let pointer = take_context_point();
                             async move {
                                 let Ok(panel_rect) = panel_evt.get_client_rect().await else {
                                     return;
                                 };
-                                let (left, top) = if let Some((left, top)) = position {
-                                    (left, top)
+                                let (left, top) = if let Some((x, y)) = position.or(pointer) {
+                                    // Opened at a point rather than from the
+                                    // trigger: the point is the corner the panel
+                                    // grows away from, mirrored in RTL so it
+                                    // still opens inwards.
+                                    let left = if is_rtl { x - panel_rect.width() } else { x };
+                                    (left, y)
                                 } else {
                                     let Some(trigger_evt) = trigger_evt else {
                                         return;

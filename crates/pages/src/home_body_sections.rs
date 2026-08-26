@@ -205,6 +205,7 @@ fn ServerHeroBanner(
             oncontextmenu: move |evt| {
                 evt.prevent_default();
                 if hero_track.is_some() {
+                    components::dots_menu::open_at_pointer(&evt);
                     hero_menu_open.set(true);
                 }
             },
@@ -387,6 +388,7 @@ fn render_continue_listening(
                                 },
                                 oncontextmenu: move |evt| {
                                     evt.prevent_default();
+                                    components::dots_menu::open_at_pointer(&evt);
                                     active_card_menu.set(Some(ctx_key.clone()));
                                 },
                                 div { class: "aspect-square rounded-xl bg-stone-800 mb-3 overflow-hidden relative",
@@ -468,6 +470,7 @@ fn render_listen_now(
                             },
                             oncontextmenu: move |evt| {
                                 evt.prevent_default();
+                                components::dots_menu::open_at_pointer(&evt);
                                 active_card_menu.set(Some(ctx_key.clone()));
                             },
                             div { class: "aspect-square rounded-xl bg-stone-800 mb-2 overflow-hidden relative",
@@ -523,6 +526,7 @@ fn render_listen_now(
                             },
                             oncontextmenu: move |evt| {
                                 evt.prevent_default();
+                                components::dots_menu::open_at_pointer(&evt);
                                 active_card_menu.set(Some(ctx_key.clone()));
                             },
                             div { class: "w-16 h-16 md:w-20 md:h-20 flex-shrink-0 bg-stone-800/50 relative overflow-hidden",
@@ -686,6 +690,7 @@ fn render_albums_row(
                         },
                         oncontextmenu: move |evt| {
                             evt.prevent_default();
+                            components::dots_menu::open_at_pointer(&evt);
                             active_card_menu.set(Some(ctx_key.clone()));
                         },
                         div { class: "aspect-square rounded-xl bg-stone-800/80 mb-4 overflow-hidden transition-all duration-300 relative",
@@ -792,6 +797,7 @@ fn render_playlists(
                                 oncontextmenu: move |evt| {
                                     evt.prevent_default();
                                     if can_radio {
+                                        components::dots_menu::open_at_pointer(&evt);
                                         active_card_menu.set(Some(ctx_key.clone()));
                                     }
                                 },

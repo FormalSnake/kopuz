@@ -76,6 +76,7 @@ pub fn QueueRow(
             ondoubleclick: move |_| on_play.call(()),
             oncontextmenu: move |evt| {
                 evt.prevent_default();
+                crate::dots_menu::open_at_pointer(&evt);
                 menu_open.set(true);
             },
 

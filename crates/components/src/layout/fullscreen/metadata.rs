@@ -57,6 +57,7 @@ pub(crate) fn TrackMetadata(
             style: "max-width: 640px;",
             oncontextmenu: move |evt| {
                 evt.prevent_default();
+                crate::dots_menu::open_at_pointer(&evt);
                 track_menu_open.set(true);
             },
             div {
