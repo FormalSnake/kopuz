@@ -280,19 +280,23 @@ pub fn PlaylistDetail(
                 }
             },
             on_delete_track: move |idx: usize| {
-                if caps.delete_from_disk
-                    && let Some(t) = tracks.read().get(idx).cloned()
-                    && let Some(del_path) = t.id.local_path()
-                    && std::fs::remove_file(del_path).is_ok()
-                {
-                    let source = consume_context::<Signal<::server::source::ActiveSource>>().peek().clone();
-                    let key = t.id.key().into_owned();
-                    spawn(async move {
-                        if source.delete_tracks(&[key]).await.is_ok() {
-                            gens.bump(Table::Tracks);
-                        }
-                    });
+                let Some(t) = tracks.read().get(idx).cloned() else { return };
+                let Some(del_path) = t.id.local_path().map(|p| p.to_path_buf()) else {
+                    tracing::warn!(track = %t.id.uid(), "delete: track has no local file");
+                    return;
+                };
+                if let Err(error) = std::fs::remove_file(&del_path) {
+                    tracing::warn!(%error, path = %del_path.display(), "delete: removing the file failed");
+                    return;
                 }
+                let source = consume_context::<Signal<::server::source::ActiveSource>>().peek().clone();
+                let key = t.id.key().into_owned();
+                spawn(async move {
+                    match source.delete_tracks(&[key]).await {
+                        Ok(_) => gens.bump(Table::Tracks),
+                        Err(error) => tracing::warn!(%error, "delete: the file went but its rows stayed"),
+                    }
+                });
             },
             on_selection_delete: move |paths: Vec<PathBuf>| {
                 if caps.delete_from_disk {

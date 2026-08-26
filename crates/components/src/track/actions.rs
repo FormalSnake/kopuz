@@ -95,6 +95,7 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
     let mut local_open = use_signal(|| false);
     let mut show_playlist_modal = use_signal(|| false);
 
+    let capabilities = active_source.read().capabilities();
     let on_start_radio = track_radio_handler(props.track.clone());
     let is_open = props.is_open.unwrap_or_else(|| *local_open.read());
 
@@ -135,7 +136,7 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
         ));
     }
 
-    if active_source.read().capabilities().playlists != ::server::source::PlaylistOps::None {
+    if capabilities.playlists != ::server::source::PlaylistOps::None {
         entries.push((
             Action::AddToPlaylist,
             MenuAction::new(i18n::t("add_to_playlist"), "fa-solid fa-plus"),
@@ -195,7 +196,9 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
         ));
     }
 
-    if on_delete.is_some() {
+    // Only the local source can delete a file, so on every remote source this
+    // entry could be shown but never do anything.
+    if on_delete.is_some() && capabilities.delete_from_disk {
         entries.push((
             Action::Delete,
             MenuAction::new(i18n::t("delete"), "fa-solid fa-trash").destructive(),
