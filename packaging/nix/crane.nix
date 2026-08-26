@@ -183,7 +183,7 @@ craneLib.mkCargoDerivation (
     meta = {
       description = "Fast, modern music player with Jellyfin and local library support";
       homepage = "https://github.com/temidaradev/kopuz";
-      license = lib.licenses.mit;
+      license = lib.licenses.eupl12;
       maintainers = with lib.maintainers; [
         temidaradev
         NotAShelf

@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>moe.kopuz.kopuz</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>MIT</project_license>
+  <project_license>EUPL-1.2</project_license>
   <name>Kopuz</name>
   <icon type="stock">moe.kopuz.kopuz</icon>
   <branding>

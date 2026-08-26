@@ -940,6 +940,14 @@ longer than needed.
 - **SQLite / sqlx**: Local storage with compile-time-checked queries
 - **TailwindCSS**: Styling framework based on CSS
 
+## License
+
+Copyright (c) 2026 Temidaradev and the Kopuz contributors
+
+Licensed under the EUPL — see [LICENSE](LICENSE) for the full text of the
+European Union Public Licence v. 1.2. The source code is available at
+<https://github.com/Kopuz-org/kopuz>.
+
 ## Crypto Donation
 
 - **Solana**: "2fapJYRztnTRLpJbmyEUnsuZ36AzLK2JrMmmLEfDqKpN"
