@@ -34,6 +34,10 @@ const HARD_DELIMITERS: [char; 3] = [';', '；', '、'];
 /// "マイケル・ジャクソン").
 const BULLETS: [char; 5] = ['•', '∙', '·', '・', '･'];
 
+/// A slash separates co-equal credits, but only with a space against it:
+/// "AC/DC" has none, "A$AP Rocky/ Joe Fox" does.
+const SLASHES: [char; 1] = ['/'];
+
 /// The individual artists a credit string names.
 ///
 /// Returns the input as a single entry when nothing marks it as a join, and
@@ -63,6 +67,31 @@ pub fn credited(primary: &str, structured: &[String]) -> Vec<String> {
     out
 }
 
+/// The key two spellings of one artist share.
+pub fn name_key(name: &str) -> String {
+    name.trim().to_lowercase()
+}
+
+/// The comma-separated pieces a credit could be split into, or None when it
+/// holds no comma to split on.
+///
+/// A comma is never enough on its own: "Tyler, The Creator" and "Earth, Wind &
+/// Fire" are single artists, and nothing inside the string distinguishes them
+/// from "49th & Main, SHEE". So this only offers the candidates, and the caller
+/// decides with evidence the splitter cannot see, such as whether each piece
+/// turns up as an artist elsewhere in the library.
+pub fn comma_candidates(credit: &str) -> Option<Vec<&str>> {
+    if !credit.contains(',') {
+        return None;
+    }
+    let parts: Vec<&str> = credit
+        .split(',')
+        .map(str::trim)
+        .filter(|piece| !piece.is_empty())
+        .collect();
+    (parts.len() > 1).then_some(parts)
+}
+
 fn split_part(part: &str, out: &mut Vec<String>) {
     let part = part.trim();
     if part.is_empty() {
@@ -70,8 +99,15 @@ fn split_part(part: &str, out: &mut Vec<String>) {
     }
     // Bullets bind loosest of all: they join whole credits, so they have to
     // be resolved before any marker sitting inside one of those credits.
-    if let Some(segments) = bullet_segments(part) {
+    if let Some(segments) = padded_segments(part, &BULLETS, false) {
         push_bulleted(&segments, out);
+        return;
+    }
+    // A slash list is co-equal credits, not personnel, so all of it counts.
+    if let Some(segments) = padded_segments(part, &SLASHES, true) {
+        for segment in segments {
+            split_part(segment, out);
+        }
         return;
     }
     // Collab markers bind looser than "feat.": each side of an "A x B" can
@@ -90,19 +126,29 @@ fn split_part(part: &str, out: &mut Vec<String>) {
     }
 }
 
-/// The segments of a bullet-joined list, or None when there is no space-padded
-/// bullet to split on.
-fn bullet_segments(part: &str) -> Option<Vec<&str>> {
+/// The segments of a list joined by one of `separators`, or None when none of
+/// them carries the whitespace that tells a separator apart from a character
+/// inside a name. `either_side` accepts a space against just one edge, which a
+/// slash needs ("A$AP Rocky/ Joe Fox") and a bullet does not.
+fn padded_segments<'a>(
+    part: &'a str,
+    separators: &[char],
+    either_side: bool,
+) -> Option<Vec<&'a str>> {
     let mut segments = Vec::new();
     let mut start = 0;
     for (i, ch) in part.char_indices() {
-        if !BULLETS.contains(&ch) {
+        if !separators.contains(&ch) {
             continue;
         }
         let end = i + ch.len_utf8();
-        if !part[..i].ends_with(char::is_whitespace)
-            || !part[end..].starts_with(char::is_whitespace)
-        {
+        let before = part[..i].ends_with(char::is_whitespace);
+        let after = part[end..].starts_with(char::is_whitespace);
+        if !(if either_side {
+            before || after
+        } else {
+            before && after
+        }) {
             continue;
         }
         segments.push(&part[start..i]);
@@ -115,34 +161,17 @@ fn bullet_segments(part: &str) -> Option<Vec<&str>> {
     Some(segments)
 }
 
-/// A bullet list is usually every contributor a release touched, performers and
-/// songwriters and producers alike, which is more than the artists a track
-/// should be filed under.
+/// A bullet list is the performing credit followed by everyone who worked on
+/// the release: songwriters, producers, and the performers' own legal names.
+/// Only the head is what the track files under, so the tail is dropped.
 ///
-/// One shape gives itself away: "<credit> • <everyone who worked on it>", where
-/// the credit's own artists are repeated in the tail. There the head is the
-/// answer and the rest is personnel, so take only the head. Anything else is
-/// split in full, because a bullet list with no such evidence is more often a
-/// real collaboration than a contributor dump, and a stray songwriter tile is a
-/// smaller wrong than one tile carrying the entire joined string.
+/// This does lose a genuine second performer where a tagger used a bullet to
+/// join two of them. That is the cheaper mistake. The tail is where "A$AP
+/// Rocky" acquires a permanent twin tile reading "Rakim Mayers", and a twin for
+/// the same human is the duplicate this whole rule set exists to remove.
 fn push_bulleted(segments: &[&str], out: &mut Vec<String>) {
-    if let Some((head, tail)) = segments.split_first() {
-        let head_names = split_credit(head);
-        if head_names.len() > 1 {
-            let tail_names: Vec<String> = tail.iter().flat_map(|s| split_credit(s)).collect();
-            let repeated = head_names
-                .iter()
-                .all(|name| tail_names.iter().any(|t| same_artist(t, name)));
-            if repeated {
-                for name in head_names {
-                    push_name(&name, out);
-                }
-                return;
-            }
-        }
-    }
-    for segment in segments {
-        split_part(segment, out);
+    if let Some(head) = segments.first() {
+        split_part(head, out);
     }
 }
 
@@ -195,7 +224,7 @@ fn push_name(name: &str, out: &mut Vec<String>) {
 }
 
 fn same_artist(a: &str, b: &str) -> bool {
-    a.to_lowercase() == b.to_lowercase()
+    name_key(a) == name_key(b)
 }
 
 /// The byte range of the first separator marker in `part`.
@@ -315,6 +344,9 @@ mod tests {
             "Nothing But Thieves",
             "Crosby, Stills & Nash",
             "塞壬唱片-MSR",
+            "AC/DC",
+            "Hall & Oates",
+            "Godspeed You! Black Emperor",
         ] {
             assert_eq!(split(name), [name], "must not split {name:?}");
         }
@@ -329,41 +361,28 @@ mod tests {
         assert_eq!(split("Jay-Z ft. Alicia Keys"), ["Jay-Z", "Alicia Keys"]);
     }
 
-    // The shapes below are taken verbatim from a real library.
+    // The shapes below are taken verbatim from a real library. The tail of a
+    // bullet list is personnel, so only the head survives: "Rakim Mayers" is
+    // A$AP Rocky's legal name, and "Hector Delgado" and "Joe Fox" are credited
+    // writers. Each was showing up as its own artist tile.
     #[test]
-    fn space_padded_bullets_split() {
-        assert_eq!(
-            split("A$AP Rocky • Rakim Mayers"),
-            ["A$AP Rocky", "Rakim Mayers"]
-        );
+    fn a_bullet_list_keeps_only_its_head() {
+        assert_eq!(split("A$AP Rocky • Rakim Mayers"), ["A$AP Rocky"]);
         assert_eq!(
             split(
                 "A$AP Rocky • Bones • Frans Mernick • Hector Delgado • Rakim Mayers • \
                  Elmo O'Connor"
             ),
-            [
-                "A$AP Rocky",
-                "Bones",
-                "Frans Mernick",
-                "Hector Delgado",
-                "Rakim Mayers",
-                "Elmo O'Connor"
-            ]
+            ["A$AP Rocky"]
         );
         assert_eq!(
             split("A$AP Rocky • Joe Fox • Rakim Mayers • Brian Burton • Ben Nichols"),
-            [
-                "A$AP Rocky",
-                "Joe Fox",
-                "Rakim Mayers",
-                "Brian Burton",
-                "Ben Nichols"
-            ]
+            ["A$AP Rocky"]
         );
     }
 
-    /// "<credit> • <every contributor>" keeps only the credit: the tail repeats
-    /// the credit's own artists and then adds the songwriters and producers.
+    /// The head is split on its own markers, so a genuine collaboration written
+    /// before the personnel list survives it.
     #[test]
     fn a_credit_followed_by_its_contributor_list_keeps_only_the_credit() {
         assert_eq!(
@@ -376,14 +395,28 @@ mod tests {
         );
     }
 
-    /// Without that repetition there is no evidence of a personnel dump, so the
-    /// list is taken at face value.
+    /// The accepted cost of head-only: a bullet genuinely joining two
+    /// performers loses the second. A featured artist on a handful of tracks is
+    /// worth less than never showing one human under two tiles.
     #[test]
-    fn a_bulleted_list_that_repeats_nothing_is_split_in_full() {
+    fn a_bullet_between_two_performers_still_loses_the_second() {
+        assert_eq!(split("Above & Beyond • Zoë Johnston"), ["Above & Beyond"]);
+    }
+
+    // Verbatim from the same library. The slash carries a space on one side
+    // only, and the first repeats a name.
+    #[test]
+    fn space_padded_slashes_split() {
         assert_eq!(
-            split("Above & Beyond • Zoë Johnston"),
-            ["Above & Beyond", "Zoë Johnston"]
+            split("A$AP Rocky/ James Fauntleroy/ James Fauntleroy"),
+            ["A$AP Rocky", "James Fauntleroy"]
         );
+        assert_eq!(split("A$AP Rocky/ Joe Fox"), ["A$AP Rocky", "Joe Fox"]);
+        assert_eq!(
+            split("Above & Beyond / Justine Suissa"),
+            ["Above & Beyond", "Justine Suissa"]
+        );
+        assert_eq!(split("Zeds Dead /Diplo"), ["Zeds Dead", "Diplo"]);
     }
 
     #[test]
@@ -394,13 +427,16 @@ mod tests {
         }
     }
 
+    /// The other bullet characters are recognised too, so their tail is dropped
+    /// rather than surviving as one long tile.
     #[test]
-    fn other_bullet_shapes_split() {
+    fn other_bullet_shapes_are_recognised() {
         assert_eq!(
             split("Ayumi Hamasaki ・ Tetsuya Komuro"),
-            ["Ayumi Hamasaki", "Tetsuya Komuro"]
+            ["Ayumi Hamasaki"]
         );
-        assert_eq!(split("Nujabes · Shing02"), ["Nujabes", "Shing02"]);
+        assert_eq!(split("Nujabes · Shing02"), ["Nujabes"]);
+        assert_eq!(split("Nujabes ∙ Shing02"), ["Nujabes"]);
     }
 
     #[test]
