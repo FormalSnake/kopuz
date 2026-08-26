@@ -140,7 +140,6 @@ pub fn QueueRow(
 
             div {
                 class: "shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity",
-                onmousedown: move |evt| evt.stop_propagation(),
                 crate::track_actions::TrackActionsMenu {
                     track: track.clone(),
                     // Queueing a track that is already in the queue would just
