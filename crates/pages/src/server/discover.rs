@@ -656,6 +656,8 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
     let show_loading = is_this_source && is_loading;
     let show_pause = is_this_source && is_playing && !is_loading;
 
+    let menu_track = track.clone();
+
     rsx! {
         div {
             class: "shrink-0 w-44 text-left cursor-pointer transition-transform duration-200 ease-out hover:scale-[1.03] hover:-translate-y-0.5 group",
@@ -700,6 +702,14 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
                         } else {
                             "fa-solid fa-play text-white text-2xl"
                         }
+                    }
+                }
+                div {
+                    class: "absolute right-1 top-1",
+                    onclick: move |evt| evt.stop_propagation(),
+                    components::track_actions::TrackActionsMenu {
+                        track: menu_track.clone(),
+                        button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
                     }
                 }
             }

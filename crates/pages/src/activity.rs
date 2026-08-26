@@ -172,6 +172,7 @@ pub fn Activity(config: Signal<AppConfig>) -> Element {
                         for (idx, track, plays, genre, cover_url) in visible_tracks {
                             {
                                 let track_id = track.uid.clone();
+                                let menu_track = track.clone();
                                 rsx! {
                                     div { key: "{track_id}", style: "height: {ITEM_HEIGHT}px;",
                                         div {
@@ -235,6 +236,15 @@ pub fn Activity(config: Signal<AppConfig>) -> Element {
                                                     i { class: "fa-solid fa-fire text-orange-500/80 text-[10px]" }
                                                 }
                                                 span { class: if plays > 0 { "text-white font-medium" } else { "" }, "{plays}" }
+                                            }
+
+                                            div {
+                                                class: "w-10 shrink-0 flex items-center justify-end",
+                                                onclick: move |evt| evt.stop_propagation(),
+                                                components::track_actions::TrackActionsMenu {
+                                                    track: menu_track.clone(),
+                                                    button_class: "opacity-0 group-hover:opacity-100 focus:opacity-100".to_string(),
+                                                }
                                             }
                                         }
                                     }
