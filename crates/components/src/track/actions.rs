@@ -107,6 +107,7 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
     let on_remove_from_queue = props.on_remove_from_queue;
     let on_remove_from_playlist = props.on_remove_from_playlist;
     let on_download = props.on_download;
+    let is_downloading = props.is_downloading;
     let on_view_metadata = props.on_view_metadata;
     let on_delete = props.on_delete;
     let playlist_overlay_class = props.playlist_overlay_class.clone();
@@ -265,7 +266,12 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
                     Action::GoToArtist => nav_ctrl.navigate_to_artist(nav_artist.clone()),
                     Action::GoToAlbum => nav_ctrl.navigate_to_album(track.album_id.clone()),
                     Action::Download => {
-                        if let Some(handler) = on_download {
+                        // "Downloading..." is a status row, not an action. The
+                        // queue discards a repeat request, but the menu should
+                        // not be leaning on that to stay correct.
+                        if !is_downloading
+                            && let Some(handler) = on_download
+                        {
                             handler.call(());
                         }
                     }

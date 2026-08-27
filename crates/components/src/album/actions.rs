@@ -99,6 +99,7 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
     let on_close = props.on_close;
     let on_delete = props.on_delete;
     let on_download = props.on_download;
+    let is_downloading = props.is_downloading;
     let mut close = move || match on_close {
         Some(handler) => handler.call(()),
         None => local_open.set(false),
@@ -206,7 +207,12 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
                     Action::AddToPlaylist => show_playlist_modal.set(true),
                     Action::GoToArtist => nav_ctrl.navigate_to_artist(dispatch_artist.clone()),
                     Action::Download => {
-                        if let Some(handler) = on_download {
+                        // "Downloading..." is a status row, not an action. The
+                        // queue discards a repeat request, but the menu should
+                        // not be leaning on that to stay correct.
+                        if !is_downloading
+                            && let Some(handler) = on_download
+                        {
                             handler.call(());
                         }
                     }
