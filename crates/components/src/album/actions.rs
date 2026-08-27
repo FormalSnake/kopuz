@@ -155,7 +155,16 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
     let actions: Vec<MenuAction> = entries.into_iter().map(|(_, item)| item).collect();
 
     let dispatch_album = props.album_id.clone();
-    let dispatch_artist = props.artist.clone();
+    // The card shows the album's whole credit, which can name several artists
+    // ("Alice feat. Bob"). The artist page matches albums by the components a
+    // credit splits into, so navigating to the joined string lands on a page
+    // that matches nothing; go to the first artist the credit names. Splitting
+    // through the same helper the page filters with is what keeps the two ends
+    // agreeing.
+    let dispatch_artist = reader::artist::split_credit(&props.artist)
+        .into_iter()
+        .next()
+        .unwrap_or_else(|| props.artist.clone());
     let add_album = props.album_id.clone();
     let create_album = props.album_id.clone();
 

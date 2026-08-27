@@ -14,6 +14,7 @@ use config::{
 };
 use dioxus::prelude::*;
 use hooks::db_reactivity::Table;
+use hooks::toast::toast_error;
 use hooks::use_db_queries::{
     use_active_source, use_albums, use_artist_images, use_artist_sample_tracks, use_artist_tracks,
     use_artists, use_tracks_by_keys,
@@ -717,15 +718,38 @@ pub fn Artist(
                                                                     let delete_config = config.read().clone();
                                                                     let delete_source = source();
                                                                     spawn(async move {
-                                                                        let to_delete = s.album_tracks(&album_id).await.unwrap_or_default();
-                                                                        for track in &to_delete {
-                                                                            if let Some(path) = track.id.local_path() {
-                                                                                let _ = crate::local_files::remove(&delete_config, &delete_source, path);
+                                                                        // An empty list from a failed lookup is
+                                                                        // indistinguishable from an album with no
+                                                                        // local files, and dropping the rows on
+                                                                        // that reading strands every one of them.
+                                                                        let to_delete = match s.album_tracks(&album_id).await {
+                                                                            Ok(tracks) => tracks,
+                                                                            Err(error) => {
+                                                                                tracing::warn!(%error, album = %album_id, "delete album: could not list its tracks");
+                                                                                toast_error(&i18n::t("delete_incomplete"));
+                                                                                return;
                                                                             }
+                                                                        };
+                                                                        let stranded = to_delete.iter().any(|track| {
+                                                                            track.id.local_path().is_some_and(|path| {
+                                                                                !crate::local_files::cleared(&delete_config, &delete_source, path)
+                                                                            })
+                                                                        });
+                                                                        if stranded {
+                                                                            // The album stays listed, so deleting it
+                                                                            // again retries the files that survived.
+                                                                            toast_error(&i18n::t("delete_incomplete"));
+                                                                            return;
                                                                         }
-                                                                        if s.delete_album(&album_id).await.is_ok() {
-                                                                            gens.bump(Table::Tracks);
-                                                                            gens.bump(Table::Albums);
+                                                                        match s.delete_album(&album_id).await {
+                                                                            Ok(_) => {
+                                                                                gens.bump(Table::Tracks);
+                                                                                gens.bump(Table::Albums);
+                                                                            }
+                                                                            Err(error) => {
+                                                                                tracing::warn!(%error, album = %album_id, "delete album: the files went but the rows stayed");
+                                                                                toast_error(&i18n::t("delete_incomplete"));
+                                                                            }
                                                                         }
                                                                     });
                                                                 })

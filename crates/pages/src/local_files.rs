@@ -42,6 +42,28 @@ pub(crate) fn remove(config: &AppConfig, source: &Source, path: &Path) -> std::i
     }
 }
 
+/// Whether `path` is settled enough that the track's rows can go.
+///
+/// [`remove`] answers `Ok(false)` both for a file that was already gone and for
+/// one it refused to touch because it sits outside the library roots, and those
+/// pull in opposite directions: the first is a half-finished delete the rows
+/// should now follow, the second is a live file the rows must keep pointing at.
+/// Re-checking the path separates them.
+///
+/// Failing closed is the recoverable direction. Rows that outlive their file
+/// leave the item on screen, so deleting it again retries; rows deleted out from
+/// under a surviving file leave it playing from nothing and unreachable.
+pub(crate) fn cleared(config: &AppConfig, source: &Source, path: &Path) -> bool {
+    match remove(config, source, path) {
+        Ok(true) => true,
+        Ok(false) => !path.exists(),
+        Err(error) => {
+            tracing::warn!(%error, path = %path.display(), "delete: removing the file failed");
+            false
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

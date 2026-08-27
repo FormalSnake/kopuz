@@ -209,6 +209,13 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
     let actions: Vec<MenuAction> = entries.into_iter().map(|(_, item)| item).collect();
 
     let dispatch_track = props.track.clone();
+    // The track's credit can name several artists ("Alice feat. Bob"); the
+    // artist page matches on the components a credit splits into, so navigate
+    // to the first artist it names rather than the joined string.
+    let nav_artist = reader::artist::split_credit(&props.track.artist)
+        .into_iter()
+        .next()
+        .unwrap_or_else(|| props.track.artist.clone());
     let add_ref = props.track.id.key().into_owned();
     let create_ref = add_ref.clone();
 
@@ -255,7 +262,7 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
                             handler.call(());
                         }
                     }
-                    Action::GoToArtist => nav_ctrl.navigate_to_artist(track.artist.clone()),
+                    Action::GoToArtist => nav_ctrl.navigate_to_artist(nav_artist.clone()),
                     Action::GoToAlbum => nav_ctrl.navigate_to_album(track.album_id.clone()),
                     Action::Download => {
                         if let Some(handler) = on_download {
