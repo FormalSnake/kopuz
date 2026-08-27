@@ -10,8 +10,9 @@ use crate::dots_menu::{DotsMenu, MenuAction};
 use dioxus::prelude::*;
 use hooks::PlayerController;
 use hooks::db_reactivity::Table;
+use hooks::toast::toast_error;
 use reader::Track;
-use server::source::ActiveSource;
+use server::source::{ActiveSource, SourceError};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Action {
@@ -25,24 +26,49 @@ enum Action {
 
 /// Album order as the album page shows it. A source is free to hand back its
 /// own order, so queueing without this can interleave discs or open at track 7.
-async fn album_tracks_in_order(source: &ActiveSource, album_id: &str) -> Vec<Track> {
-    let mut tracks = source.album_tracks(album_id).await.unwrap_or_default();
+///
+/// The error is carried rather than flattened into an empty list: every caller
+/// treats "no tracks" as nothing to do, so a swallowed failure looks exactly
+/// like an empty album and the click reports nothing at all.
+async fn album_tracks_in_order(
+    source: &ActiveSource,
+    album_id: &str,
+) -> Result<Vec<Track>, SourceError> {
+    let mut tracks = source.album_tracks(album_id).await?;
     tracks.sort_by(|a, b| {
         a.disc_number
             .cmp(&b.disc_number)
             .then_with(|| a.track_number.cmp(&b.track_number))
             .then_with(|| a.title.cmp(&b.title))
     });
-    tracks
+    Ok(tracks)
 }
 
 /// The refs an album contributes to a playlist, in album order.
-async fn album_track_refs(source: &ActiveSource, album_id: &str) -> Vec<String> {
-    album_tracks_in_order(source, album_id)
-        .await
+async fn album_track_refs(
+    source: &ActiveSource,
+    album_id: &str,
+) -> Result<Vec<String>, SourceError> {
+    Ok(album_tracks_in_order(source, album_id)
+        .await?
         .iter()
         .map(|track| track.id.key().into_owned())
-        .collect()
+        .collect())
+}
+
+/// Say so when the album's tracks could not be read, then stand down.
+///
+/// Shown, not just logged: each of these runs off a direct click, so failing
+/// quietly leaves the user watching a menu close over nothing.
+fn report_lookup_failure(album_id: &str, error: &SourceError) {
+    tracing::warn!(%error, album = %album_id, "album menu: could not list its tracks");
+    toast_error(&i18n::t_with(
+        "error_fetch_songs",
+        &[
+            ("album_id", album_id.to_string()),
+            ("error", error.to_string()),
+        ],
+    ));
 }
 
 #[derive(Props, Clone, PartialEq)]
@@ -193,7 +219,14 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
                         let source = active_source.peek().clone();
                         let album_id = dispatch_album.clone();
                         spawn(async move {
-                            let tracks = album_tracks_in_order(&source, &album_id).await;
+                            let tracks = match album_tracks_in_order(&source, &album_id).await {
+                                Ok(tracks) => tracks,
+                                Err(error) => {
+                                    report_lookup_failure(&album_id, &error);
+                                    return;
+                                }
+                            };
+                            // A genuinely empty album is a no-op, not a failure.
                             if tracks.is_empty() {
                                 return;
                             }
@@ -233,7 +266,13 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
                     let source = active_source.peek().clone();
                     let album_id = add_album.clone();
                     spawn(async move {
-                        let refs = album_track_refs(&source, &album_id).await;
+                        let refs = match album_track_refs(&source, &album_id).await {
+                            Ok(refs) => refs,
+                            Err(error) => {
+                                report_lookup_failure(&album_id, &error);
+                                return;
+                            }
+                        };
                         if refs.is_empty() {
                             return;
                         }
@@ -248,7 +287,13 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
                     let source = active_source.peek().clone();
                     let album_id = create_album.clone();
                     spawn(async move {
-                        let refs = album_track_refs(&source, &album_id).await;
+                        let refs = match album_track_refs(&source, &album_id).await {
+                            Ok(refs) => refs,
+                            Err(error) => {
+                                report_lookup_failure(&album_id, &error);
+                                return;
+                            }
+                        };
                         if refs.is_empty() {
                             return;
                         }
