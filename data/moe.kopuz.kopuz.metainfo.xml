@@ -48,6 +48,13 @@
   </screenshots>
 
   <releases>
+    <release version="0.17.0" date="2026-09-17">
+      <description>
+        <p>
+          The library, player and sources now live in a headless core that the app hosts in-process and that also runs on its own as a daemon, reachable over an authenticated gRPC API, so a remote or scripted client talks to the same session the desktop window does. YouTube Music drops the proof-of-origin minter and streams through the visionOS client instead, which no longer needs one.
+        </p>
+      </description>
+    </release>
     <release version="0.16.2" date="2026-09-12">
       <description>
         <p>
