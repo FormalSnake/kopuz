@@ -233,6 +233,7 @@ playlist_name_placeholder = Tên danh sách phát
 playlist_name_input = Tên danh sách phát
 add_media_server = Thêm máy chủ media
 browser_sign_in_needs_host = Browser sign-in needs access to the host. Run the command below and restart kopuz.
+browser_playback_needs_host = Playback runs in a browser on the host, which this Flatpak cannot reach yet. Run the command below and restart kopuz.
 experimental = experimental
 copy = Copy
 media_server = Máy chủ media

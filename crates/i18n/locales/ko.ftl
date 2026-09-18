@@ -163,6 +163,7 @@ playlist_name_placeholder = 재생목록 이름
 playlist_name_input = 재생목록 이름
 add_media_server = 미디어 서버 추가
 browser_sign_in_needs_host = Browser sign-in needs access to the host. Run the command below and restart kopuz.
+browser_playback_needs_host = Playback runs in a browser on the host, which this Flatpak cannot reach yet. Run the command below and restart kopuz.
 experimental = experimental
 copy = Copy
 media_server = 미디어 서버
