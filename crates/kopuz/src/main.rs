@@ -1,8 +1,8 @@
 use components::{
     CoverArtBackground, QuickSearch, bottombar::Bottombar, compact_player::CompactPlayer,
     download_overlay::DownloadOverlay, external_devices::ExternalDevicesPanel,
-    fullscreen::Fullscreen, rightbar::Rightbar, sidebar::Sidebar, titlebar::ResizeHandles,
-    titlebar::Titlebar,
+    fullscreen::Fullscreen, rightbar::Rightbar, sidebar::Sidebar, tabbar::TabBar,
+    titlebar::ResizeHandles, titlebar::Titlebar,
 };
 #[cfg(not(target_os = "android"))]
 use dioxus::desktop::tao::dpi::LogicalSize;
@@ -23,7 +23,8 @@ use webkit2gtk::{SettingsExt, WebViewExt};
 use windows::Win32::Foundation::HWND;
 
 mod app_lifecycle;
-#[cfg(not(target_os = "android"))]
+#[cfg(any(target_os = "android", test))]
+mod artwork_http;
 mod artwork_protocol;
 mod backend;
 #[cfg(not(target_os = "android"))]
@@ -357,81 +358,7 @@ fn main() -> std::process::ExitCode {
 
         let config = dioxus::mobile::Config::new()
             .with_custom_head(APPLY_EDITS_WITHOUT_RAF.to_string())
-            .with_background_color((0, 0, 0, 255))
-            // artwork://local?p=<percent-encoded-absolute-path> — the Android WebView mostly
-            // receives base64 data URLs from utils, but keep a synchronous handler for any
-            // code path that still emits artwork:// URLs.
-            .with_custom_protocol("artwork".to_string(), |_headers, request| {
-                let query = request.uri().query().unwrap_or("");
-                let raw_p = query
-                    .split('&')
-                    .find_map(|kv| {
-                        let mut parts = kv.splitn(2, '=');
-                        if parts.next() == Some("p") {
-                            parts.next()
-                        } else {
-                            None
-                        }
-                    })
-                    .unwrap_or("");
-                let decoded = percent_encoding::percent_decode_str(raw_p).decode_utf8_lossy();
-
-                let mime = if decoded.ends_with(".png") {
-                    "image/png"
-                } else {
-                    "image/jpeg"
-                };
-
-                let mut decoded_path = decoded.to_string();
-                if decoded_path.starts_with("/~") {
-                    if let Ok(home) = std::env::var("HOME") {
-                        decoded_path = decoded_path.replacen("/~", &home, 1);
-                    }
-                } else if decoded_path.starts_with('~') {
-                    if let Ok(home) = std::env::var("HOME") {
-                        decoded_path = decoded_path.replacen('~', &home, 1);
-                    }
-                }
-
-                let read_result =
-                    std::fs::read(std::path::Path::new(&decoded_path)).or_else(|_| {
-                        if decoded_path.strip_prefix('/').is_some() {
-                            std::fs::read(std::path::Path::new(&decoded_path[1..]))
-                        } else {
-                            Err(std::io::Error::from(std::io::ErrorKind::NotFound))
-                        }
-                    });
-
-                fn err_resp(status: u16) -> http::Response<std::borrow::Cow<'static, [u8]>> {
-                    http::Response::builder()
-                        .status(status)
-                        .header("Access-Control-Allow-Origin", "*")
-                        .body(std::borrow::Cow::from(Vec::new()))
-                        .unwrap_or_else(|_| {
-                            http::Response::builder()
-                                .status(500)
-                                .header("Access-Control-Allow-Origin", "*")
-                                .body(std::borrow::Cow::from(Vec::new()))
-                                .expect("static fallback response")
-                        })
-                }
-
-                match read_result {
-                    Ok(bytes) => http::Response::builder()
-                        .header("Content-Type", mime)
-                        .header("Access-Control-Allow-Origin", "*")
-                        .body(std::borrow::Cow::from(bytes))
-                        .unwrap_or_else(|_| err_resp(500)),
-                    Err(e) => {
-                        let status = if e.kind() == std::io::ErrorKind::NotFound {
-                            404
-                        } else {
-                            500
-                        };
-                        err_resp(status)
-                    }
-                }
-            });
+            .with_background_color((0, 0, 0, 255));
 
         dioxus::LaunchBuilder::mobile().with_cfg(config).launch(App);
     }
@@ -1171,12 +1098,15 @@ fn App() -> Element {
     let mut is_sidebar_collapsed = use_signal(|| cfg!(target_os = "android"));
     use_context_provider(|| components::sidebar::SidebarCollapsed(is_sidebar_collapsed));
 
-    // Mirror of the drawer's swipe-left-to-close: a swipe right anywhere on the
-    // page opens it. Horizontal carousels swallow their own touches so scrolling
-    // one back to the start does not pull the drawer out with it.
+    // Only an edge swipe opens the drawer; horizontal scrolling and sliders
+    // elsewhere on the page must not turn into navigation gestures.
     let mut open_swipe = components::gestures::use_swipe();
     let on_open_swipe = move |evt: TouchEvent| {
+        let from_edge = open_swipe
+            .origin()
+            .is_some_and(|(x, _)| (0.0..=24.0).contains(&x));
         if open_swipe.finish(&evt) == Some(components::gestures::SwipeDirection::Right)
+            && from_edge
             && cfg!(target_os = "android")
             && *is_sidebar_collapsed.peek()
         {
@@ -1367,6 +1297,31 @@ fn App() -> Element {
     let switch_source = hooks::source_switch::use_switch_source();
     let all_sources = hooks::sources::use_sources();
     let mut show_quick_search = use_signal(|| false);
+    #[cfg(target_os = "android")]
+    use_future(move || async move {
+        let mut is_devices_open = is_devices_open;
+        let mut is_rightbar_open = is_rightbar_open;
+        loop {
+            player::systemint::wait_back_pressed().await;
+            if *show_quick_search.peek() {
+                show_quick_search.set(false);
+            } else if *is_devices_open.peek() {
+                is_devices_open.set(false);
+            } else if *is_rightbar_open.peek() {
+                is_rightbar_open.set(false);
+            } else if *is_fullscreen.peek() {
+                is_fullscreen.set(false);
+            } else if !*is_sidebar_collapsed.peek() {
+                is_sidebar_collapsed.set(true);
+            } else if !nav_history.peek().is_empty() {
+                nav_ctrl.go_back();
+            } else {
+                // Finishing the activity destroys Wry's native runtime; keep
+                // playback and the existing WebView alive when leaving the root.
+                player::systemint::move_task_to_back();
+            }
+        }
+    });
     let quick_search_source = hooks::use_db_queries::use_active_source();
     use_effect(move || {
         if !*show_quick_search.read() {
@@ -1977,6 +1932,20 @@ fn App() -> Element {
                     persisted_volume: persisted_volume,
                     is_rightbar_open: is_rightbar_open,
                     is_devices_open: is_devices_open,
+                }
+            }
+            if cfg!(target_os = "android") {
+                TabBar {
+                    current_route,
+                    on_navigate: move |route| {
+                        if route == Route::Album {
+                            selected_album_id.set(String::new());
+                        }
+                        if route == Route::Artist {
+                            selected_artist.set(None);
+                        }
+                        current_route.set(route);
+                    },
                 }
             }
         }
