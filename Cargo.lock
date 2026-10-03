@@ -4390,7 +4390,9 @@ dependencies = [
  "async-trait",
  "futures-util",
  "kopuz-config",
+ "serde_json",
  "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]
@@ -4487,6 +4489,7 @@ dependencies = [
  "jni 0.21.1",
  "kopuz-config",
  "kopuz-reader",
+ "kopuz-utils",
  "ndk-context",
  "serde",
  "serde_json",

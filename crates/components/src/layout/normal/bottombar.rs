@@ -97,6 +97,10 @@ pub fn BottombarNormal(
     }
 
     let current_track_snapshot = ctrl.current_track_snapshot.read().clone();
+    let artist = current_track_snapshot
+        .as_ref()
+        .and_then(|track| track.primary_credit())
+        .and_then(|credit| credit.key.clone());
     let cover = ctrl
         .current_cover_url(hooks::artwork::Size::Thumb)
         .unwrap_or_default();
@@ -166,8 +170,9 @@ pub fn BottombarNormal(
                         span {
                             class: "text-xs text-slate-400 truncate hover:text-white/70 hover:underline cursor-pointer",
                             onclick: move |_| {
-                                let artist = current_song_artist.read().clone();
-                                nav_ctrl.navigate_to_artist(artist);
+                                if let Some(artist) = artist.clone() {
+                                    nav_ctrl.open_artist(artist);
+                                }
                             },
                             "{current_song_artist}"
                         }
