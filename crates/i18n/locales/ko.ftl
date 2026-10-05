@@ -491,6 +491,7 @@ edit_metadata = 메타데이터 편집
 edit = 편집
 track_number = 트랙 번호
 disc_number = 디스크 번호
+disc_heading = 디스크 { $number }
 duration = 재생 시간
 sample_rate = 샘플 레이트
 bitrate = 비트레이트

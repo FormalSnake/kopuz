@@ -485,6 +485,7 @@ edit_metadata = மெட்டாடேட்டாவைத் திருத
 edit = திருத்து
 track_number = தடம் #
 disc_number = வட்டு #
+disc_heading = வட்டு { $number }
 duration = கால அளவு
 sample_rate = மாதிரி விகிதம்
 bitrate = பிட்ரேட்

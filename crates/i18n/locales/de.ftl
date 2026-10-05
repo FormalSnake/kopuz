@@ -491,6 +491,7 @@ edit_metadata = Metadaten bearbeiten
 edit = Bearbeiten
 track_number = Titelnr.
 disc_number = CD-Nr.
+disc_heading = CD { $number }
 duration = Dauer
 sample_rate = Abtastrate
 bitrate = Bitrate

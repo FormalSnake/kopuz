@@ -484,6 +484,7 @@ edit_metadata = Modifica metadati
 edit = Modifica
 track_number = N. traccia
 disc_number = N. disco
+disc_heading = Disco { $number }
 duration = Durata
 sample_rate = Frequenza di campionamento
 bitrate = Bitrate

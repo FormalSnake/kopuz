@@ -491,6 +491,7 @@ edit_metadata = Metaadatok szerkesztése
 edit = Szerkesztés
 track_number = Szám sorszáma
 disc_number = Lemez sorszáma
+disc_heading = { $number }. lemez
 duration = Időtartam
 sample_rate = Mintavételezési frekvencia
 bitrate = Bitráta

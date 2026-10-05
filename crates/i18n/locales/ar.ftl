@@ -497,6 +497,7 @@ edit_metadata = تحرير البيانات الوصفية
 edit = تحرير
 track_number = رقم المقطع
 disc_number = رقم القرص
+disc_heading = القرص { $number }
 duration = المدة
 sample_rate = معدل العينات
 bitrate = معدل البت

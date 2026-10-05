@@ -485,6 +485,7 @@ edit_metadata = Metadata bewerken
 edit = Bewerken
 track_number = Tracknr.
 disc_number = Schijfnr.
+disc_heading = Schijf { $number }
 duration = Duur
 sample_rate = Samplefrequentie
 bitrate = Bitrate

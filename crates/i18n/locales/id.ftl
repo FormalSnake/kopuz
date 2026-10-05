@@ -485,6 +485,7 @@ edit_metadata = Sunting metadata
 edit = Sunting
 track_number = Trek #
 disc_number = Disk #
+disc_heading = Disk { $number }
 duration = Durasi
 sample_rate = Sample rate
 bitrate = Bitrate

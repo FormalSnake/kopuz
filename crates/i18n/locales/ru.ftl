@@ -492,6 +492,7 @@ edit_metadata = Редактировать метаданные
 edit = Редактировать
 track_number = Трек №
 disc_number = Диск №
+disc_heading = Диск { $number }
 duration = Длительность
 sample_rate = Частота дискретизации
 bitrate = Битрейт

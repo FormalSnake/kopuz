@@ -485,6 +485,7 @@ edit_metadata = Sửa siêu dữ liệu
 edit = Sửa
 track_number = Bài số
 disc_number = Đĩa số
+disc_heading = Đĩa { $number }
 duration = Thời lượng
 sample_rate = Tần số lấy mẫu
 bitrate = Bitrate

@@ -492,6 +492,7 @@ edit_metadata = o ante e ijo nanpa
 edit = o ante
 track_number = nanpa pi kalama musi
 disc_number = nanpa pi sike kalama
+disc_heading = sike kalama nanpa { $number }
 duration = tenpo
 sample_rate = nanpa pi kipisi kalama
 bitrate = nanpa pi suli kalama

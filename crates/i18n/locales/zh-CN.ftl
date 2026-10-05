@@ -491,6 +491,7 @@ edit_metadata = 编辑元数据
 edit = 编辑
 track_number = 音轨号
 disc_number = 碟片号
+disc_heading = 碟片 { $number }
 duration = 时长
 sample_rate = 采样率
 bitrate = 比特率

@@ -491,6 +491,7 @@ edit_metadata = Üst verileri düzenle
 edit = Düzenle
 track_number = Parça No
 disc_number = Disk No
+disc_heading = Disk { $number }
 duration = Süre
 sample_rate = Örnekleme hızı
 bitrate = Bit hızı

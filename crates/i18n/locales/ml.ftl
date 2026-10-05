@@ -485,6 +485,7 @@ edit_metadata = മെറ്റാഡാറ്റ എഡിറ്റ് ചെ�
 edit = എഡിറ്റ്
 track_number = ട്രാക്ക് #
 disc_number = ഡിസ്ക് #
+disc_heading = ഡിസ്ക് { $number }
 duration = ദൈർഘ്യം
 sample_rate = സാമ്പിൾ റേറ്റ്
 bitrate = ബിറ്റ്റേറ്റ്

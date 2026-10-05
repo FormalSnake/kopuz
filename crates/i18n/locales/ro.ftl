@@ -491,6 +491,7 @@ edit_metadata = Editează metadatele
 edit = Editează
 track_number = Nr. piesă
 disc_number = Nr. disc
+disc_heading = Discul { $number }
 duration = Durată
 sample_rate = Rată de eșantionare
 bitrate = Rată de biți

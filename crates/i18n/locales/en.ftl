@@ -505,6 +505,7 @@ edit_metadata = Edit metadata
 edit = Edit
 track_number = Track #
 disc_number = Disc #
+disc_heading = Disc { $number }
 duration = Duration
 sample_rate = Sample rate
 bitrate = Bitrate

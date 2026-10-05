@@ -491,6 +491,7 @@ edit_metadata = Edytuj metadane
 edit = Edytuj
 track_number = Nr ścieżki
 disc_number = Nr dysku
+disc_heading = Dysk { $number }
 duration = Czas trwania
 sample_rate = Częstotliwość próbkowania
 bitrate = Przepływność

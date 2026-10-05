@@ -492,6 +492,7 @@ edit_metadata = Editar metadatos
 edit = Editar
 track_number = N.º de pista
 disc_number = N.º de disco
+disc_heading = Disco { $number }
 duration = Duración
 sample_rate = Frecuencia de muestreo
 bitrate = Tasa de bits

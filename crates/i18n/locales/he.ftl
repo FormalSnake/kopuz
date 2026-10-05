@@ -491,6 +491,7 @@ edit_metadata = ערוך מטא-נתונים
 edit = עריכה
 track_number = מספר רצועה
 disc_number = מספר תקליטור
+disc_heading = תקליטור { $number }
 duration = משך
 sample_rate = קצב דגימה
 bitrate = קצב סיביות

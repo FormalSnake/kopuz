@@ -485,6 +485,7 @@ edit_metadata = Redigera metadata
 edit = Redigera
 track_number = Spårnummer
 disc_number = Skivnummer
+disc_heading = Skiva { $number }
 duration = Längd
 sample_rate = Samplingsfrekvens
 bitrate = Bithastighet

@@ -485,6 +485,7 @@ edit_metadata = I-edit ang metadata
 edit = I-edit
 track_number = Track #
 disc_number = Disc #
+disc_heading = Disc { $number }
 duration = Tagal
 sample_rate = Sample rate
 bitrate = Bitrate

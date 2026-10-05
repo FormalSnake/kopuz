@@ -491,6 +491,7 @@ edit_metadata = Επεξεργασία μεταδεδομένων
 edit = Επεξεργασία
 track_number = Αρ. κομματιού
 disc_number = Αρ. δίσκου
+disc_heading = Δίσκος { $number }
 duration = Διάρκεια
 sample_rate = Ρυθμός δειγματοληψίας
 bitrate = Ρυθμός bit
