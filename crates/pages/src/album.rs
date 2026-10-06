@@ -248,7 +248,7 @@ fn AlbumGrid(
                                         components::album_actions::AlbumActionsMenu {
                                             album_id: id_for_menu.clone(),
                                             album_title: album.title.clone(),
-                                            artist: album.artist.clone(),
+                                            artist_key: album.artist_key.clone(),
                                             is_open: Some(is_open),
                                             on_open: {
                                                 let id = id_for_menu.clone();

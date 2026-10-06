@@ -498,7 +498,6 @@ fn render_listen_now(
                                     components::album_actions::AlbumActionsMenu {
                                         album_id: album_id.clone(),
                                         album_title: title.clone(),
-                                        artist: artist.clone(),
                                         is_open: Some(is_menu_open),
                                         on_open: Some(EventHandler::new(move |_| active_card_menu.set(Some(open_key.clone())))),
                                         on_close: Some(EventHandler::new(move |_| active_card_menu.set(None))),
@@ -561,7 +560,6 @@ fn render_listen_now(
                                 components::album_actions::AlbumActionsMenu {
                                     album_id: album_id.clone(),
                                     album_title: title.clone(),
-                                    artist: artist.clone(),
                                     is_open: Some(is_menu_open),
                                     on_open: Some(EventHandler::new(move |_| active_card_menu.set(Some(open_key.clone())))),
                                     on_close: Some(EventHandler::new(move |_| active_card_menu.set(None))),
@@ -715,7 +713,6 @@ fn render_albums_row(
                                 components::album_actions::AlbumActionsMenu {
                                     album_id: album_id.clone(),
                                     album_title: title.clone(),
-                                    artist: artist.clone(),
                                     is_open: Some(is_menu_open),
                                     on_open: Some(EventHandler::new(move |_| active_card_menu.set(Some(open_key.clone())))),
                                     on_close: Some(EventHandler::new(move |_| active_card_menu.set(None))),

@@ -160,7 +160,11 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
         ));
     }
 
-    if !props.track.artist.trim().is_empty() {
+    let nav_artist = props
+        .track
+        .primary_credit()
+        .and_then(|credit| credit.key.clone());
+    if nav_artist.is_some() {
         entries.push((
             Action::GoToArtist,
             MenuAction::new(i18n::t("go_to_artist"), "fa-solid fa-user"),
@@ -212,13 +216,6 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
     let actions: Vec<MenuAction> = entries.into_iter().map(|(_, item)| item).collect();
 
     let dispatch_track = props.track.clone();
-    // The track's credit can name several artists ("Alice feat. Bob"); the
-    // artist page matches on the components a credit splits into, so navigate
-    // to the first artist it names rather than the joined string.
-    let nav_artist = utils::artist::split_credit(&props.track.artist)
-        .into_iter()
-        .next()
-        .unwrap_or_else(|| props.track.artist.clone());
     let add_key = props.track.key.clone();
     let create_key = add_key.clone();
 
@@ -266,7 +263,11 @@ pub fn TrackActionsMenu(props: TrackActionsMenuProps) -> Element {
                             handler.call(());
                         }
                     }
-                    Action::GoToArtist => nav_ctrl.navigate_to_artist(nav_artist.clone()),
+                    Action::GoToArtist => {
+                        if let Some(artist) = nav_artist.clone() {
+                            nav_ctrl.open_artist(artist);
+                        }
+                    }
                     Action::GoToAlbum => nav_ctrl.navigate_to_album(track.album_id.clone()),
                     Action::Download => {
                         // "Downloading..." is a status row, not an action. The

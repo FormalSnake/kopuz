@@ -25,8 +25,9 @@ enum Action {
 pub struct AlbumActionsMenuProps {
     pub album_id: String,
     pub album_title: String,
+    /// The billed artist's key; an album crediting nobody it can open gets no Go to artist.
     #[props(default)]
-    pub artist: String,
+    pub artist_key: Option<String>,
 
     /// Open state owned by the parent, for rows that keep at most one card menu
     /// open at a time. Leave unset and the menu owns its own state.
@@ -102,7 +103,7 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
         ));
     }
 
-    if !props.artist.trim().is_empty() {
+    if props.artist_key.is_some() {
         entries.push((
             Action::GoToArtist,
             MenuAction::new(i18n::t("go_to_artist"), "fa-solid fa-user"),
@@ -135,16 +136,7 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
     let actions: Vec<MenuAction> = entries.into_iter().map(|(_, item)| item).collect();
 
     let dispatch_album = props.album_id.clone();
-    // The card shows the album's whole credit, which can name several artists
-    // ("Alice feat. Bob"). The artist page matches albums by the components a
-    // credit splits into, so navigating to the joined string lands on a page
-    // that matches nothing; go to the first artist the credit names. Splitting
-    // through the same helper the page filters with is what keeps the two ends
-    // agreeing.
-    let dispatch_artist = utils::artist::split_credit(&props.artist)
-        .into_iter()
-        .next()
-        .unwrap_or_else(|| props.artist.clone());
+    let dispatch_artist = props.artist_key.clone();
     let add_album = props.album_id.clone();
     let create_album = props.album_id.clone();
 
@@ -183,7 +175,11 @@ pub fn AlbumActionsMenu(props: AlbumActionsMenuProps) -> Element {
                         });
                     }
                     Action::AddToPlaylist => show_playlist_modal.set(true),
-                    Action::GoToArtist => nav_ctrl.navigate_to_artist(dispatch_artist.clone()),
+                    Action::GoToArtist => {
+                        if let Some(artist) = dispatch_artist.clone() {
+                            nav_ctrl.open_artist(artist);
+                        }
+                    }
                     Action::Download => {
                         // "Downloading..." is a status row, not an action. The
                         // queue discards a repeat request, but the menu should
