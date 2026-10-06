@@ -14,6 +14,17 @@ pub(crate) fn TrackMetadata(
 ) -> Element {
     let ctrl = use_context::<PlayerController>();
     let mut track_menu_open = use_signal(|| false);
+    // A menu left open across a track change would act on the new track.
+    let menu_track_key = use_memo(move || {
+        ctrl.current_track_snapshot
+            .read()
+            .as_ref()
+            .map(|track| track.key.clone())
+    });
+    use_effect(move || {
+        menu_track_key.read();
+        track_menu_open.set(false);
+    });
     let nav_ctrl = use_context::<NavigationController>();
     let favorite_track = use_memo(move || ctrl.current_track_snapshot.read().clone());
     let is_favorite = hooks::use_db_queries::use_track_is_favorite(favorite_track)();
@@ -61,8 +72,10 @@ pub(crate) fn TrackMetadata(
             style: "max-width: 640px;",
             oncontextmenu: move |evt| {
                 evt.prevent_default();
-                crate::dots_menu::open_at_pointer(&evt);
-                track_menu_open.set(true);
+                if ctrl.current_track_snapshot.peek().is_some() {
+                    crate::dots_menu::open_at_pointer(&evt);
+                    track_menu_open.set(true);
+                }
             },
             div {
                 class: "flex flex-col items-start min-w-0 flex-1",

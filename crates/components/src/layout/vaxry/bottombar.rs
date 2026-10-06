@@ -26,6 +26,17 @@ pub fn BottombarVaxry(
 ) -> Element {
     let mut ctrl = use_context::<PlayerController>();
     let mut track_menu_open = use_signal(|| false);
+    // A menu left open across a track change would act on the new track.
+    let menu_track_key = use_memo(move || {
+        ctrl.current_track_snapshot
+            .read()
+            .as_ref()
+            .map(|track| track.key.clone())
+    });
+    use_effect(move || {
+        menu_track_key.read();
+        track_menu_open.set(false);
+    });
     let nav_ctrl = use_context::<NavigationController>();
     let fav_track = use_memo(move || ctrl.current_track_snapshot.read().clone());
     let is_fav = hooks::use_db_queries::use_track_is_favorite(fav_track);
@@ -174,8 +185,8 @@ pub fn BottombarVaxry(
                 class: "flex flex-col flex-1 min-w-0 justify-center gap-0.5",
                 oncontextmenu: move |evt| {
                     evt.prevent_default();
-                    crate::dots_menu::open_at_pointer(&evt);
                     if ctrl.current_track_snapshot.peek().is_some() {
+                        crate::dots_menu::open_at_pointer(&evt);
                         track_menu_open.set(true);
                     }
                 },

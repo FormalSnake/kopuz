@@ -664,7 +664,13 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
 
     rsx! {
         div {
-            class: "shrink-0 w-44 text-left cursor-pointer transition-transform duration-200 ease-out hover:scale-[1.03] hover:-translate-y-0.5 group",
+            // A transformed card is the containing block for the menu's fixed
+            // panel and playlist overlay, so the hover lift is off while it is open.
+            class: if menu_open() {
+                "shrink-0 w-44 text-left cursor-pointer transition-transform duration-200 ease-out group"
+            } else {
+                "shrink-0 w-44 text-left cursor-pointer transition-transform duration-200 ease-out hover:scale-[1.03] hover:-translate-y-0.5 group"
+            },
             oncontextmenu: move |evt| {
                 evt.prevent_default();
                 components::dots_menu::open_at_pointer(&evt);
