@@ -77,6 +77,10 @@ pub struct SubsonicSong {
     pub artist: Option<String>,
     /// Sent by Subsonic and OpenSubsonic both; absent on a tagless server.
     pub artist_id: Option<String>,
+    /// OpenSubsonic only: each artist the song credits, in billing order, where
+    /// `artist` holds the joined display string ("A feat. B").
+    #[serde(default)]
+    pub artists: Vec<SubsonicArtistRef>,
     pub duration: Option<u64>,
     pub bit_rate: Option<u32>,
     pub sampling_rate: Option<u32>,
@@ -85,6 +89,14 @@ pub struct SubsonicSong {
     pub genre: Option<String>,
     pub cover_art: Option<String>,
     pub replay_gain: Option<SubsonicReplayGain>,
+}
+
+/// One entry of an OpenSubsonic song's `artists` list.
+#[derive(Debug, Clone, Deserialize)]
+pub struct SubsonicArtistRef {
+    #[serde(default)]
+    pub id: String,
+    pub name: String,
 }
 
 /// The OpenSubsonic `replayGain` object. `baseGain` is deliberately unread:
