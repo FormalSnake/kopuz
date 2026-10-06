@@ -79,18 +79,7 @@ pub fn show_tray_missing_popup() {
 #[cfg(not(target_os = "android"))]
 pub const UNGATE_EDITS_FROM_FRAME_CLOCK: &str = r#"<script>
 (function () {
-  var attempts = 0;
-  function patch() {
-    var interpreter = window.interpreter;
-    if (!interpreter) {
-      attempts += 1;
-      if (attempts > 600) {
-        console.warn('kopuz: interpreter never appeared; edits are still gated on requestAnimationFrame');
-        return;
-      }
-      setTimeout(patch, 50);
-      return;
-    }
+  function patch(interpreter) {
     if (typeof interpreter.run_from_bytes !== 'function'
       || typeof interpreter.markEditsFinished !== 'function') {
       console.warn('kopuz: dioxus interpreter changed shape; edits are still gated on requestAnimationFrame');
@@ -101,6 +90,25 @@ pub const UNGATE_EDITS_FROM_FRAME_CLOCK: &str = r#"<script>
       this.markEditsFinished();
     };
   }
-  patch();
+  if (window.interpreter) {
+    patch(window.interpreter);
+    return;
+  }
+  // The loader assigns window.interpreter and calls waitForRequest in the same
+  // script, so the patch has to land on assignment, before the first edit.
+  Object.defineProperty(window, 'interpreter', {
+    configurable: true,
+    enumerable: true,
+    get: function () { return undefined; },
+    set: function (interpreter) {
+      Object.defineProperty(window, 'interpreter', {
+        value: interpreter,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+      if (interpreter) patch(interpreter);
+    },
+  });
 })();
 </script>"#;

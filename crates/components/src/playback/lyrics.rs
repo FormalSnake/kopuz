@@ -478,7 +478,6 @@ pub fn LyricsView(
                 // An intro before the first line, and any gap between rows, report
                 // no active line. Holding the last anchor keeps the ramp in place
                 // instead of flattening the whole list until the next line lands.
-                let lastAnchorIndex = 0;
                 let hoveredLine = null;
                 const BLUR_STEP_PX = {depth_blur_step_px};
                 const BLUR_MAX_PX = {depth_blur_max_px};
@@ -734,10 +733,11 @@ pub fn LyricsView(
                 // far end instead of hitting a cutoff and snapping back to sharp
                 // partway down.
                 const applyDepthBlur = (mainIndex, litIndices, enabled, strengthPercent) => {{
+                    // -1 only ever means the intro before the first line, so the
+                    // ramp starts at the first row, including after a seek back.
                     const anchorIndex = mainIndex >= 0
                         ? mainIndex
-                        : (litIndices.size ? Math.max(...litIndices) : lastAnchorIndex);
-                    lastAnchorIndex = anchorIndex;
+                        : (litIndices.size ? Math.max(...litIndices) : 0);
                     const litKey = `${{anchorIndex}}:${{[...litIndices].sort((a, b) => a - b).join(',')}}`;
                     if (litKey === lastBlurLit
                         && enabled === lastBlurEnabled
@@ -898,8 +898,7 @@ pub fn LyricsView(
                     lastBlurLit = null;
                     lastBlurEnabled = null;
                     lastBlurStrength = null;
-                    lastAnchorIndex = 0;
-                    hoveredLine = null;
+                    setHovered(null);
                     container?.scrollTo({{ top: 0, left: 0 }});
                 }}
             "#,
