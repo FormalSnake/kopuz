@@ -623,7 +623,7 @@ toggle_mute = Mute
 toggle_fullscreen = Fullscreen Player
 command_palette = Command Palette
 filter_view = Filter
-go_back = Back
+go_back = رجوع
 go_forward = Forward
 keyboard_shortcuts = Keyboard Shortcuts
 
@@ -860,3 +860,13 @@ daemon_newer = The daemon is newer than this app. Rebuild the app.
 
 sign_in_with_webview = Sign in within Kopuz
 webview_sign_in_help = Sign-in opens inside Kopuz. Close the sign-in window to cancel.
+
+settings_group_app = التطبيق
+settings_group_playback = التشغيل
+settings_group_services = الخدمات
+settings_group_theme = السمة
+settings_group_background = الخلفية
+settings_group_interface = الواجهة
+settings_group_output = الإخراج
+settings_group_loudness = مستوى الصوت
+browse = تصفح
