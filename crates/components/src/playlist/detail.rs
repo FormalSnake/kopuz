@@ -32,7 +32,6 @@ pub fn PlaylistDetail(
 
     // Affordances follow the source's capabilities, not what kind of source it is.
     let caps = hooks::sources::use_capabilities().read().clone();
-    let can_reorder = caps.playlists == api::PlaylistCapability::Reorder;
 
     // A server playlist's contents are refreshed by the daemon, a page at a
     // time, and every page invalidates -- so the list fills in as it arrives
@@ -67,6 +66,8 @@ pub fn PlaylistDetail(
         } else {
             return rsx! { div { "{i18n::t(\"playlist_not_found\")}" } };
         };
+
+    let can_reorder = caps.playlists == api::PlaylistCapability::Reorder;
 
     let tracks_val = tracks_res.read().clone().unwrap_or_default();
     let track_count = tracks_val.len();
