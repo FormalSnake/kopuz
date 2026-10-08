@@ -2111,6 +2111,58 @@ fn gapless_load_starts_on_the_sample_after_the_last_one() {
     engine.shutdown();
 }
 
+/// The queued track is levelled by its own loudness from its first sample:
+/// its ramp starts settled at its gain rather than walking down from the
+/// outgoing track's.
+#[test]
+fn a_gapless_track_plays_at_its_own_loudness_from_the_boundary() {
+    let (sink, engine) = spawn_engine();
+    let (factory_a, duration_a) = wav_factory(0.5);
+    load(&engine, 1, factory_a, duration_a);
+    wait_until("phase Playing", || engine.status().phase == Phase::Playing);
+
+    let (factory_b, duration_b) = wav_factory(1.0);
+    let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+    engine.send(Command::Load(LoadRequest {
+        token: 2,
+        factory: factory_b,
+        duration: duration_b,
+        transition: Transition::Gapless,
+        start_at: None,
+        album_context: false,
+        service_replay_gain: config::ReplayGainInfo {
+            loudness_db: Some(6.0),
+            ..Default::default()
+        },
+        reply: Some(reply_tx),
+    }));
+    let outcome = reply_rx
+        .blocking_recv()
+        .expect("load reply")
+        .expect("load ok");
+    assert!(outcome.gapless);
+    std::thread::sleep(Duration::from_millis(200));
+
+    let a_samples = (0.5 * TEST_CONFIG.sample_rate as f64) as usize * TEST_CONFIG.channels;
+    let mut samples = Vec::new();
+    while samples.len() < a_samples * 2 {
+        samples.extend(sink.pull(1000));
+    }
+    // One period of the test waveform is 100 frames.
+    let period = 100 * TEST_CONFIG.channels;
+    let peak = |window: &[f32]| window.iter().fold(0.0_f32, |p, s| p.max(s.abs()));
+    let full = 10_000.0 / 32_768.0;
+    let levelled = full * 10.0_f32.powf(-6.0 / 20.0);
+    let last_of_a = peak(&samples[a_samples - period..a_samples]);
+    let first_of_b = peak(&samples[a_samples..a_samples + period]);
+    assert!((last_of_a - full).abs() < 1e-3, "A ended at {last_of_a}");
+    assert!(
+        (first_of_b - levelled).abs() < levelled * 0.05,
+        "B started at {first_of_b}, expected ~{levelled}"
+    );
+    engine.shutdown();
+}
+
 #[test]
 fn a_cancelled_gapless_load_lets_the_current_track_end() {
     let (sink, engine) = spawn_engine();
