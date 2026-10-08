@@ -17,8 +17,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use api::{
-    ApiError, CredentialProvision, ErrorCode, SourceCapabilities, SourceDraft, SourceFolderEntry,
-    SourceInfo, SourceLoginRequest, SourceState, Table,
+    ApiError, BrowserSession, CredentialProvision, ErrorCode, SourceCapabilities, SourceDraft,
+    SourceFolderEntry, SourceInfo, SourceLoginRequest, SourceState, Table,
 };
 use server::source::AuthOutcome;
 
@@ -646,6 +646,8 @@ impl SourceService {
                 config::Browser::from_id(browser)
                     .ok_or_else(|| ApiError::invalid_input("no such browser"))?,
             );
+            // Signed in through a browser, so no longer anonymous.
+            server.yt_anonymous = false;
         }
         let active = self
             .current()
@@ -832,6 +834,81 @@ impl SourceService {
                 server_id: id.to_string(),
                 secret,
                 user_id: Some(user_id),
+                browser: Some(browser.id().to_string()),
+            })
+            .await
+        }
+    }
+
+    /// Browser profiles on this machine already signed in to `service`.
+    pub async fn browser_sessions(&self, service: &str) -> Result<Vec<BrowserSession>, ApiError> {
+        if config::MusicService::from_id(service) != Some(config::MusicService::YtMusic) {
+            return Ok(Vec::new());
+        }
+        #[cfg(target_os = "android")]
+        {
+            Ok(Vec::new())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let scratch = server::ytmusic::browser_sessions::scratch_dir();
+            Ok(server::ytmusic::browser_sessions::signed_in(&scratch)
+                .await
+                .into_iter()
+                .map(|profile| BrowserSession {
+                    id: profile.id(),
+                    browser: profile.browser.label().to_string(),
+                    profile: profile.name,
+                    account: profile.email,
+                })
+                .collect())
+        }
+    }
+
+    /// Sign `id` in with the session a browser profile on this machine holds.
+    ///
+    /// Like a browser sign-in, the secret never leaves this process.
+    pub async fn import_browser_session(
+        &self,
+        id: &str,
+        session: &str,
+    ) -> Result<SourceInfo, ApiError> {
+        self.config.ensure_unlocked(&["server", "servers"])?;
+        let server = self
+            .db
+            .load_server(id)
+            .await
+            .map_err(db_error)?
+            .ok_or_else(|| ApiError::not_found("no such server"))?;
+        if server.service != config::MusicService::YtMusic {
+            return Err(ApiError::unsupported(
+                "this source cannot take a session from a browser profile",
+            ));
+        }
+        #[cfg(target_os = "android")]
+        {
+            let _ = session;
+            Err(ApiError::unsupported(
+                "there are no browser profiles to take a session from here",
+            ))
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let scratch = server::ytmusic::browser_sessions::scratch_dir();
+            let (browser, cookies) = server::ytmusic::browser_sessions::import(session, &scratch)
+                .await
+                .map_err(ApiError::invalid_input)?;
+            let secret = try_resume_ytmusic(Some(cookies)).await.ok_or_else(|| {
+                ApiError::invalid_input(format!(
+                    "YouTube Music did not accept the session from {}. Open music.youtube.com there to refresh it, then try again.",
+                    browser.label()
+                ))
+            })?;
+            let user = server::ytmusic::derive_user_id(&secret).unwrap_or_else(|| "me".to_string());
+            self.provision_credentials(CredentialProvision {
+                server_id: id.to_string(),
+                secret,
+                user_id: Some(user),
                 browser: Some(browser.id().to_string()),
             })
             .await
