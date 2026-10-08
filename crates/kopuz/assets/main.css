@@ -194,11 +194,10 @@ body {
     z-index: 1000;
 }
 
-/* Keep dots menus above cards but below modal overlays. */
-.dots-menu-root {
-    z-index: 900;
-}
-
+/* Keep dots menus above cards but below modal overlays. The z-index sits on
+   the fixed backdrop and panel only: a z-indexed menu root is a stacking
+   context, and WebKit then clips the fixed panel to the nearest overflow
+   ancestor, such as a shelf card's cover. */
 .dots-menu-backdrop {
     z-index: 880;
 }

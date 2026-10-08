@@ -114,11 +114,7 @@ pub fn DotsMenu(props: DotsMenuProps) -> Element {
         div {
             // `cursor-default` because rows that own a menu are often drag
             // handles carrying `cursor-grab`, and `cursor` inherits.
-            class: if props.is_open {
-                "relative dots-menu-root cursor-default"
-            } else {
-                "relative cursor-default"
-            },
+            class: "relative cursor-default",
             // On the root, not the panel: focus stays on the trigger when the
             // menu opens by click, so a keydown on the panel would never fire.
             onkeydown: move |evt| {
