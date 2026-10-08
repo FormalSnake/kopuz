@@ -188,8 +188,10 @@ pub fn TrackRow(
                     }
                     span { class: "text-[11px] text-white/45 truncate leading-tight",
                         span { dir: "auto", "{track.artist}" }
-                        " • "
-                        span { dir: "ltr", "{duration_str}" }
+                        if !duration_str.is_empty() {
+                            " • "
+                            span { dir: "ltr", "{duration_str}" }
+                        }
                     }
                 }
 
