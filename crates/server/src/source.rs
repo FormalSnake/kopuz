@@ -239,6 +239,12 @@ pub trait MediaSource: Send + Sync {
         Err(SourceError::unsupported("playlist details"))
     }
 
+    /// Runs before the local delete. Kept apart from `delete_playlist`, which the
+    /// sync's sweep also calls for playlists the remote already dropped.
+    async fn delete_remote_playlist(&self, _playlist_id: &str) -> Result<(), SourceError> {
+        Ok(())
+    }
+
     /// Start a radio/mix seeded from a track, returning the generated queue. Only
     /// sources whose [`Capabilities::radio`] is set override this; the rest
     /// inherit the unsupported default.

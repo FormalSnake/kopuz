@@ -179,10 +179,18 @@ impl PlaylistService {
     }
 
     pub async fn delete(&self, id: &str) -> Result<(), ApiError> {
-        self.active_source()
-            .delete_playlist(id)
-            .await
-            .map_err(source_error)?;
+        let source = self.active_source();
+        // Only an expired sign-in stops the delete: an unreachable source or a
+        // playlist the remote no longer has would otherwise leave a row nobody
+        // can remove.
+        match source.delete_remote_playlist(id).await {
+            Ok(()) => {}
+            Err(error @ server::source::SourceError::Auth) => return Err(source_error(error)),
+            Err(error) => {
+                tracing::warn!(%error, playlist = id, "remote playlist delete failed; deleting locally");
+            }
+        }
+        source.delete_playlist(id).await.map_err(source_error)?;
         self.session.invalidate(Table::Playlists);
         // A deleted playlist leaves every folder that held it.
         self.session.invalidate(Table::Folders);
