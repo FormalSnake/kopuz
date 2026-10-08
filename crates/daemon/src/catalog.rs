@@ -149,6 +149,7 @@ impl CatalogService {
                     more_kind,
                     layout,
                     continuation: shelf.continuation,
+                    search_filter: shelf.search_filter.map(str::to_string),
                     items: shelf
                         .items
                         .into_iter()
@@ -472,6 +473,83 @@ impl CatalogService {
             id,
             ..Default::default()
         }
+    }
+
+    /// Filtered search only; the plain search is the library's.
+    pub async fn search(
+        &self,
+        request: api::SearchRequest,
+    ) -> Result<api::SearchResults, ApiError> {
+        let config = self.config();
+        let source = self.source();
+        // A continuation page is parsed as its filter's kind, so it travels with it.
+        let filter = request
+            .filter
+            .as_deref()
+            .ok_or_else(|| ApiError::invalid_input("a search continuation needs its filter"))?;
+        let page = source
+            .search_shelves(&request.query, filter, request.continuation.as_deref())
+            .await
+            .map_err(source_error)?;
+        Ok(api::SearchResults {
+            shelves: self.shelves(page.shelves, source.source(), &config),
+            continuation: page.continuation,
+            correction: page.correction,
+            ..Default::default()
+        })
+    }
+
+    pub async fn search_suggestions(
+        &self,
+        query: &str,
+    ) -> Result<Vec<api::SearchSuggestion>, ApiError> {
+        use server::ytmusic::browse::search::Suggestion;
+        let config = self.config();
+        let source = self.source();
+        let suggestions = source
+            .search_suggestions(query)
+            .await
+            .map_err(source_error)?;
+        // Through the shelf conversion, so their songs are registered like any browse row's.
+        let mut hits = Vec::new();
+        let mut order = Vec::new();
+        for suggestion in suggestions {
+            match suggestion {
+                Suggestion::Query { text, from_history } => order.push(Some((text, from_history))),
+                Suggestion::Item(item) => {
+                    hits.push(item);
+                    order.push(None);
+                }
+            }
+        }
+        let shelf = DiscoverShelf {
+            title: String::new(),
+            strapline: None,
+            more: None,
+            items: hits,
+            layout: server::ytmusic::discover::ShelfLayout::List,
+            continuation: None,
+            search_filter: None,
+        };
+        let mut hits = self
+            .shelves(vec![shelf], source.source(), &config)
+            .into_iter()
+            .flat_map(|shelf| shelf.items);
+        Ok(order
+            .into_iter()
+            .filter_map(|entry| match entry {
+                Some((text, from_history)) => Some(api::SearchSuggestion {
+                    text,
+                    from_history,
+                    item: None,
+                }),
+                None => hits.next().map(|item| api::SearchSuggestion {
+                    text: item.title.clone(),
+                    from_history: false,
+                    item: Some(item),
+                }),
+            })
+            .collect())
     }
 
     /// An artist the source issued no id for has no catalog page, so it is the tracks the library files under it.

@@ -26,6 +26,8 @@ pub struct DiscoverShelf {
     pub layout: ShelfLayout,
     /// More items for this shelf, not more shelves for the page.
     pub continuation: Option<String>,
+    /// On a search's All results, the filter showing every result of this kind.
+    pub search_filter: Option<&'static str>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -417,6 +419,7 @@ fn parse_artist_carousel(section: &Value) -> Option<DiscoverShelf> {
         items,
         layout: ShelfLayout::Carousel,
         continuation: None,
+        search_filter: None,
     })
 }
 
@@ -459,6 +462,7 @@ fn parse_artist_song_list(section: &Value) -> Option<DiscoverShelf> {
         items,
         layout: ShelfLayout::List,
         continuation: None,
+        search_filter: None,
     })
 }
 
@@ -1027,6 +1031,7 @@ fn parse_shelf(section: &Value) -> Option<DiscoverShelf> {
         items,
         layout: ShelfLayout::Carousel,
         continuation: None,
+        search_filter: None,
     })
 }
 

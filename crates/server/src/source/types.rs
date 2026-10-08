@@ -186,6 +186,13 @@ pub struct CatalogPageEntry {
     pub icon: &'static str,
 }
 
+/// `label` is a translation key.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SearchFilterEntry {
+    pub id: &'static str,
+    pub label: &'static str,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AuthOutcome {
     Valid,

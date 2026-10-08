@@ -52,6 +52,12 @@ pub struct PageEntry {
     pub icon: Icon,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct SearchFilter {
+    pub id: String,
+    pub label: Text,
+}
+
 /// What the active source supports. Every "should this button exist?" question
 /// in a frontend is answered from here, so none of them branches on a service
 /// name.
@@ -86,6 +92,8 @@ pub struct SourceCapabilities {
     pub favorites_sync: FavoritesSyncMode,
     /// The catalog pages it offers, in the order to list them.
     pub pages: Vec<PageEntry>,
+    /// The filters its search takes, in the order to offer them.
+    pub search_filters: Vec<SearchFilter>,
 }
 
 /// What making a source usable takes.
