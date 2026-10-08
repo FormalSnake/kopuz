@@ -200,6 +200,12 @@ pub trait MediaSource: Send + Sync {
         Ok(())
     }
 
+    /// The accounts this sign-in can act as, the one in use marked. Only
+    /// sources whose [`Capabilities::accounts`] is set override this.
+    async fn accounts(&self) -> Result<Vec<SourceAccount>, SourceError> {
+        Err(SourceError::unsupported("accounts"))
+    }
+
     /// Start a radio/mix seeded from a track, returning the generated queue. Only
     /// sources whose [`Capabilities::radio`] is set override this; the rest
     /// inherit the unsupported default.

@@ -6,13 +6,13 @@ use serde_json::{Value, json};
 use super::actions::{ItemRef, bare_playlist_id, privacy_name};
 use super::clients::{ORIGIN_YOUTUBE_MUSIC, WEB_REMIX};
 use super::discover::{Privacy, Rating};
-use super::innertube::sapisid_hash;
+use super::innertube::{sapisid_hash, signed};
 
-async fn post(endpoint: &str, body: Value, cookies: &str) -> Result<Value, String> {
+async fn post(endpoint: &str, mut body: Value, cookies: &str) -> Result<Value, String> {
     let client = WEB_REMIX;
     let auth =
         sapisid_hash(cookies, ORIGIN_YOUTUBE_MUSIC).ok_or_else(|| "SAPISID missing".to_string())?;
-    let resp = super::innertube::http_client()
+    let req = super::innertube::http_client()
         .clone()
         .post(format!(
             "{ORIGIN_YOUTUBE_MUSIC}/youtubei/v1/{endpoint}?prettyPrint=false"
@@ -23,9 +23,8 @@ async fn post(endpoint: &str, body: Value, cookies: &str) -> Result<Value, Strin
         .header("X-YouTube-Client-Name", client.client_id)
         .header("X-YouTube-Client-Version", client.client_version)
         .header("X-Origin", ORIGIN_YOUTUBE_MUSIC)
-        .header("Referer", format!("{ORIGIN_YOUTUBE_MUSIC}/"))
-        .header("Cookie", cookies)
-        .header("Authorization", auth)
+        .header("Referer", format!("{ORIGIN_YOUTUBE_MUSIC}/"));
+    let resp = signed(req, &mut body, cookies, auth)
         .json(&body)
         .send()
         .await

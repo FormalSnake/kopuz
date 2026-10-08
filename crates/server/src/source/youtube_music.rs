@@ -6,13 +6,13 @@ use db::Db;
 
 use crate::server_ops::ServerConn;
 use crate::ytmusic::tracking::{self, Watch};
-use crate::ytmusic::{YouTubeMusicClient, player};
+use crate::ytmusic::{YouTubeMusicClient, innertube, player};
 
 use super::{
     AlbumType, ArtistLookup, ArtistView, AuthOutcome, Capabilities, CatalogPageEntry,
     FavoritesPage, FavoritesSync, LibraryActions, MediaSource, PlaylistDetails, PlaylistMeta,
-    PlaylistOps, PlaylistPage, RadioPage, RadioSeeds, RemoteAlbum, SearchFilterEntry, SourceError,
-    StreamInfo, mirror_added, mirror_created,
+    PlaylistOps, PlaylistPage, RadioPage, RadioSeeds, RemoteAlbum, SearchFilterEntry,
+    SourceAccount, SourceError, StreamInfo, mirror_added, mirror_created,
 };
 use crate::ytmusic::browse::{
     self,
@@ -39,14 +39,20 @@ pub(super) struct YtSource {
     source: Source,
     client: YouTubeMusicClient,
     reported: Arc<Mutex<Option<Reported>>>,
+    account: Option<String>,
 }
 
 impl YtSource {
+    fn brand_account(&self) -> Option<String> {
+        self.account.clone().filter(|id| !id.is_empty())
+    }
+
     pub(super) fn new(db: Db, source: Source, conn: &ServerConn) -> Self {
         Self {
             db,
             source,
-            client: YouTubeMusicClient::with_cookies(conn.token.clone()),
+            client: YouTubeMusicClient::signed_in_as(conn.token.clone(), conn.account.clone()),
+            account: conn.account.clone(),
             reported: Arc::default(),
         }
     }
@@ -83,6 +89,7 @@ impl MediaSource for YtSource {
             browse_folders: false,
             external_devices: false,
             browser_playback: false,
+            accounts: self.client.is_authenticated(),
             sync: true,
             downloads: true,
             discover: true,
@@ -183,6 +190,20 @@ impl MediaSource for YtSource {
             .dislike_video(item_id)
             .await
             .map_err(SourceError::from)
+    }
+
+    async fn accounts(&self) -> Result<Vec<SourceAccount>, SourceError> {
+        let listed = self.client.accounts().await?;
+        let chosen = self.account.as_deref();
+        Ok(listed
+            .into_iter()
+            .map(|account| SourceAccount {
+                active: account.page_id.as_deref() == chosen,
+                id: account.page_id,
+                name: account.name,
+                handle: account.handle,
+            })
+            .collect())
     }
 
     async fn start_radio(&self, seed_ref: &str) -> Result<RadioPage, SourceError> {
@@ -641,12 +662,13 @@ impl MediaSource for YtSource {
                 watch,
             });
         }
-        let (reported, cookies, video_id) = (
+        let (reported, cookies, video_id, account) = (
             self.reported.clone(),
             cookies.to_owned(),
             item_id.to_owned(),
+            self.brand_account(),
         );
-        tokio::spawn(async move {
+        tokio::spawn(innertube::as_account(account.clone(), async move {
             let tracking = match player::playback_tracking(&video_id, &cookies).await {
                 Ok(tracking) => tracking,
                 Err(error) => {
@@ -661,9 +683,9 @@ impl MediaSource for YtSource {
                     .map(|r| r.watch.attach(tracking))
             });
             if let Some(url) = url {
-                send_report(cookies, url);
+                send_report(cookies, url, account);
             }
-        });
+        }));
         Ok(())
     }
 
@@ -683,7 +705,7 @@ impl MediaSource for YtSource {
                 .and_then(|r| r.watch.on_position(position_ticks / 10_000))
         });
         if let Some(url) = url {
-            send_report(cookies.to_owned(), url);
+            send_report(cookies.to_owned(), url, self.brand_account());
         }
         Ok(())
     }
@@ -706,7 +728,7 @@ impl MediaSource for YtSource {
         };
         let due = watch.on_position(position_ticks / 10_000);
         for url in due.into_iter().chain(watch.finish()) {
-            send_report(cookies.to_owned(), url);
+            send_report(cookies.to_owned(), url, self.brand_account());
         }
         Ok(())
     }
@@ -818,15 +840,17 @@ impl MediaSource for YtSource {
     }
 }
 
-fn send_report(cookies: String, url: String) {
-    tokio::spawn(async move {
+/// The tracking pings run on their own tasks, outside the client call that
+/// scoped the brand account, so each one scopes it again.
+fn send_report(cookies: String, url: String, account: Option<String>) {
+    tokio::spawn(innertube::as_account(account, async move {
         let visitor = player::signed_in_visitor(&cookies).await;
         let endpoint = url.split('?').next().unwrap_or_default();
         match tracking::ping(&url, &cookies, visitor).await {
             Ok(status) => tracing::debug!(endpoint, status, "reported playback"),
             Err(error) => tracing::debug!(endpoint, %error, "playback report failed"),
         }
-    });
+    }));
 }
 
 /// A continuation only answers alongside the mix's playlist id, so the cursor
@@ -861,6 +885,7 @@ mod tests {
             apple_music_storefront: String::new(),
             apple_music_language: String::new(),
             folders: Vec::new(),
+            account: None,
         };
         let src = YtSource::new(db, Source::Server("test".to_string()), &conn);
         (src, dir)
