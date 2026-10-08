@@ -788,6 +788,21 @@ impl api::SourceApi for LocalApi {
         self.sources()?.authenticate_source(&id).await
     }
 
+    async fn browser_sessions(
+        &self,
+        service: String,
+    ) -> Result<Vec<api::BrowserSession>, ApiError> {
+        self.sources()?.browser_sessions(&service).await
+    }
+
+    async fn import_browser_session(
+        &self,
+        id: String,
+        session: String,
+    ) -> Result<api::SourceInfo, ApiError> {
+        self.sources()?.import_browser_session(&id, &session).await
+    }
+
     async fn browse_source(
         &self,
         id: String,

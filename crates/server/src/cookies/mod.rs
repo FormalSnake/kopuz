@@ -3,6 +3,8 @@ pub(crate) mod cdp;
 #[cfg(not(target_os = "android"))]
 pub(crate) mod mozilla;
 pub(crate) mod profile;
+#[cfg(not(target_os = "android"))]
+pub(crate) mod profiles;
 pub(crate) mod signin;
 pub(crate) mod store;
 #[cfg(target_os = "windows")]
