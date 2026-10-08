@@ -85,6 +85,10 @@ service Kopuz {
   rpc SelectExternalDevice(SelectExternalDeviceRequest) returns (Unit);
   rpc SetFavorite(FavoriteRequest) returns (SetFavoriteResponse);
   rpc DontRecommend(DontRecommendRequest) returns (Unit);
+  rpc Rate(RateRequest) returns (Unit);
+  rpc Follow(FollowRequest) returns (Unit);
+  rpc Save(SaveRequest) returns (Unit);
+  rpc RemoveFromHistory(RemoveFromHistoryRequest) returns (Unit);
   rpc UpdateTrackMetadata(TrackMetadataPatch) returns (TrackInfo);
   rpc DeleteTracks(DeleteTracksRequest) returns (Unit);
   rpc DeleteAlbum(DeleteAlbumRequest) returns (Unit);
@@ -153,6 +157,20 @@ message GetConfigRequest {}
 message SetFavoriteResponse {}
 // Stop recommending one track, by its library key.
 message DontRecommendRequest { string key = 1; }
+// Rate by a CatalogActions.rate_ref or a track's key.
+message RateRequest {
+  string item_ref = 1;
+  Rating rating = 2;
+}
+message FollowRequest {
+  string artist_ref = 1;
+  bool follow = 2;
+}
+message SaveRequest {
+  string item_ref = 1;
+  bool saved = 2;
+}
+message RemoveFromHistoryRequest { string token = 1; }
 message CancelJobResponse {}
 message RemoveDownloadResponse {}
 
@@ -775,6 +793,12 @@ message SourceCapabilities {
   bool storage_quota = 20;
   // The catalog pages it offers, in the order to list them.
   repeated PageEntry pages = 31;
+  bool rate = 32;
+  bool follow = 21;
+  bool save = 22;
+  bool remove_from_history = 23;
+  // A playlist has a description and a privacy to edit.
+  bool playlist_details = 24;
   repeated SearchFilter search_filters = 25;
 }
 
@@ -1050,6 +1074,33 @@ enum CatalogHeader {
   CATALOG_HEADER_ARTIST = 3;
 }
 
+enum Rating {
+  RATING_UNSPECIFIED = 0;
+  RATING_NONE = 1;
+  RATING_LIKE = 2;
+  RATING_DISLIKE = 3;
+}
+
+enum PlaylistPrivacy {
+  PLAYLIST_PRIVACY_UNSPECIFIED = 0;
+  PLAYLIST_PRIVACY_PRIVATE = 1;
+  PLAYLIST_PRIVACY_UNLISTED = 2;
+  PLAYLIST_PRIVACY_PUBLIC = 3;
+}
+
+// Refs are opaque. Unset means no such action, or for a state, that the page
+// did not say.
+message CatalogActions {
+  optional string rate_ref = 1;
+  optional Rating rating = 2;
+  optional string save_ref = 3;
+  optional bool saved = 4;
+  optional string follow_ref = 5;
+  optional bool followed = 6;
+  // Only on a row of the listening history.
+  optional string history_token = 7;
+}
+
 message CatalogItem {
   CatalogItemKind kind = 1;
   string id = 2;
@@ -1060,6 +1111,7 @@ message CatalogItem {
   optional TrackInfo track = 6;
   // #rrggbb
   optional string accent = 7;
+  CatalogActions actions = 8;
 }
 
 message CatalogShelf {
@@ -1116,6 +1168,9 @@ message CatalogDetail {
   optional string artist_key = 12;
   CatalogHeader header = 13;
   repeated CatalogChip chips = 14;
+  CatalogActions actions = 15;
+  // Set for a playlist the account owns.
+  optional PlaylistPrivacy privacy = 16;
 }
 
 // ---------------- radio ----------------
@@ -1173,6 +1228,8 @@ message PlaylistInfo {
   // Library refs, in playlist order; resolve with GetTracksByKeys.
   repeated string track_keys = 3;
   optional ArtworkRef artwork = 4;
+  // Unset where the source's own playlist capability decides.
+  optional PlaylistCapability capability = 5;
 }
 
 message PlaylistFolderInfo {
@@ -1202,6 +1259,10 @@ message CreatePlaylistRequest {
 message RenamePlaylistRequest {
   string id = 1;
   string name = 2;
+  // Either of these makes it an edit: the source is sent the description,
+  // the privacy and a non-empty name together.
+  optional string description = 3;
+  optional PlaylistPrivacy privacy = 4;
 }
 
 message AddPlaylistTracksRequest {

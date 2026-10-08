@@ -10,8 +10,8 @@ use lofty::file::TaggedFileExt;
 use sha2::{Digest, Sha256};
 
 use super::{
-    AlbumType, ArtistView, AuthOutcome, Capabilities, FavoritesSync, LibrarySnapshot, MediaSource,
-    PlaylistOps, RadioSeeds, SourceError, StreamInfo,
+    AlbumType, ArtistView, AuthOutcome, Capabilities, FavoritesSync, LibraryActions,
+    LibrarySnapshot, MediaSource, PlaylistOps, RadioSeeds, SourceError, StreamInfo,
 };
 use crate::server_ops::ServerConn;
 use crate::smb::{Location, SmbStream};
@@ -74,6 +74,7 @@ impl MediaSource for SmbSource {
             artist_view: ArtistView::Library,
             albums: AlbumType::Standard,
             favorites_sync: FavoritesSync::Instant,
+            library_actions: LibraryActions::NONE,
         }
     }
 
