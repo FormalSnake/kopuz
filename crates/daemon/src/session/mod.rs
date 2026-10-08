@@ -169,7 +169,10 @@ impl SessionHandle {
         let (events, _) = broadcast::channel(EVENT_BUFFER);
         let (config_tx, config_rx) = watch::channel(services.config.clone());
         let engine_events = player.subscribe();
-        player.set_volume(services.config.volume);
+        player.set_volume(match services.config.muted {
+            true => 0.0,
+            false => services.config.volume,
+        });
         player.set_channel_mode(services.config.channel_mode);
         player.set_equalizer(services.config.equalizer.clone());
         player.set_replay_gain(services.config.replay_gain);
@@ -195,6 +198,7 @@ impl SessionHandle {
             rev: 0,
             queue_rev: 0,
             volume: services.config.volume,
+            muted: services.config.muted,
             epoch: Instant::now(),
             events: events.clone(),
             materializer: materializer.clone(),
@@ -516,6 +520,7 @@ struct Session {
     rev: u64,
     queue_rev: u64,
     volume: f32,
+    muted: bool,
     epoch: Instant,
     events: broadcast::Sender<ApiEvent>,
     materializer: Arc<dyn QueueMaterializer>,
@@ -704,9 +709,21 @@ impl Session {
                 }
                 return Ok(self.publish(state_tx, shuffle.is_some()));
             }
-            if let PlayerCommand::SetVolume { volume } = command {
-                self.volume = volume.clamp(0.0, 1.0);
-            }
+            let command = match command {
+                PlayerCommand::SetVolume { volume } => {
+                    self.set_volume(volume);
+                    PlayerCommand::SetVolume {
+                        volume: self.output_volume(),
+                    }
+                }
+                PlayerCommand::SetMuted { muted } => {
+                    self.muted = muted;
+                    PlayerCommand::SetVolume {
+                        volume: self.output_volume(),
+                    }
+                }
+                other => other,
+            };
             self.dispatch_external(command);
             return Ok(self.publish(state_tx, false));
         }
@@ -726,8 +743,12 @@ impl Session {
             PlayerCommand::Stop => self.stop(state_tx),
             PlayerCommand::Seek { position_ms } => self.seek(position_ms, state_tx)?,
             PlayerCommand::SetVolume { volume } => {
-                self.volume = volume.clamp(0.0, 1.0);
-                self.player.set_volume(self.volume);
+                self.set_volume(volume);
+                self.player.set_volume(self.output_volume());
+            }
+            PlayerCommand::SetMuted { muted } => {
+                self.muted = muted;
+                self.player.set_volume(self.output_volume());
             }
             PlayerCommand::SetMode { shuffle, loop_mode } => {
                 queue_changed = shuffle.is_some();
@@ -1166,7 +1187,11 @@ impl Session {
             match key.as_str() {
                 "volume" => {
                     self.volume = config.volume.clamp(0.0, 1.0);
-                    self.player.set_volume(self.volume);
+                    self.player.set_volume(self.output_volume());
+                }
+                "muted" => {
+                    self.muted = config.muted;
+                    self.player.set_volume(self.output_volume());
                 }
                 "equalizer" => self.player.set_equalizer(config.equalizer.clone()),
                 "replay_gain" => self.player.set_replay_gain(config.replay_gain),
@@ -1291,6 +1316,19 @@ impl Session {
         );
     }
 
+    /// A new level also unmutes.
+    fn set_volume(&mut self, volume: f32) {
+        self.volume = volume.clamp(0.0, 1.0);
+        self.muted = false;
+    }
+
+    fn output_volume(&self) -> f32 {
+        match self.muted {
+            true => 0.0,
+            false => self.volume,
+        }
+    }
+
     /// Send a transport command to the integration that owns playback. The
     /// call is a network round-trip, so it runs off the actor loop; the answer
     /// comes back as the integration's next report.
@@ -1308,6 +1346,7 @@ impl Session {
                 PlayerCommand::Next
                 | PlayerCommand::Previous
                 | PlayerCommand::Toggle
+                | PlayerCommand::SetMuted { .. }
                 | PlayerCommand::SetMode { .. } => Ok(()),
             };
             if let Err(error) = result {
