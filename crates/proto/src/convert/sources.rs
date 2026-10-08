@@ -2,7 +2,7 @@ use super::*;
 use crate::*;
 
 pub fn capabilities_to_proto(value: &api::SourceCapabilities) -> SourceCapabilities {
-    use api::{AlbumPresentation, ArtistPresentation, FavoritesSyncMode, PlaylistCapability};
+    use api::{AlbumPresentation, ArtistPresentation, FavoritesSyncMode};
     SourceCapabilities {
         edit_tags: value.edit_tags,
         delete_from_disk: value.delete_from_disk,
@@ -12,17 +12,18 @@ pub fn capabilities_to_proto(value: &api::SourceCapabilities) -> SourceCapabilit
         downloads: value.downloads,
         discover: value.discover,
         dont_recommend: value.dont_recommend,
+        rate: value.rate,
+        follow: value.follow,
+        save: value.save,
+        remove_from_history: value.remove_from_history,
+        playlist_details: value.playlist_details,
         track_radio: value.track_radio,
         playlist_radio: value.playlist_radio,
         search_radio: value.search_radio,
         browse_folders: value.browse_folders,
         external_devices: value.external_devices,
         browser_playback: value.browser_playback,
-        playlists: match value.playlists {
-            PlaylistCapability::None => crate::PlaylistCapability::None,
-            PlaylistCapability::AddRemove => crate::PlaylistCapability::AddRemove,
-            PlaylistCapability::Reorder => crate::PlaylistCapability::Reorder,
-        } as i32,
+        playlists: playlist_capability_to_proto(value.playlists) as i32,
         artists: match value.artists {
             ArtistPresentation::Library => crate::ArtistPresentation::Library,
             ArtistPresentation::Remote => crate::ArtistPresentation::Remote,
@@ -44,6 +45,22 @@ pub fn capabilities_to_proto(value: &api::SourceCapabilities) -> SourceCapabilit
                 label: Some(text_to_proto(&filter.label)),
             })
             .collect(),
+    }
+}
+
+pub fn playlist_capability_to_proto(value: api::PlaylistCapability) -> PlaylistCapability {
+    match value {
+        api::PlaylistCapability::None => PlaylistCapability::None,
+        api::PlaylistCapability::AddRemove => PlaylistCapability::AddRemove,
+        api::PlaylistCapability::Reorder => PlaylistCapability::Reorder,
+    }
+}
+
+pub fn playlist_capability_from_proto(value: i32) -> api::PlaylistCapability {
+    match PlaylistCapability::try_from(value) {
+        Ok(PlaylistCapability::AddRemove) => api::PlaylistCapability::AddRemove,
+        Ok(PlaylistCapability::Reorder) => api::PlaylistCapability::Reorder,
+        _ => api::PlaylistCapability::None,
     }
 }
 
@@ -80,17 +97,18 @@ pub fn capabilities_from_proto(value: Option<&SourceCapabilities>) -> api::Sourc
         downloads: value.downloads,
         discover: value.discover,
         dont_recommend: value.dont_recommend,
+        rate: value.rate,
+        follow: value.follow,
+        save: value.save,
+        remove_from_history: value.remove_from_history,
+        playlist_details: value.playlist_details,
         track_radio: value.track_radio,
         playlist_radio: value.playlist_radio,
         search_radio: value.search_radio,
         browse_folders: value.browse_folders,
         external_devices: value.external_devices,
         browser_playback: value.browser_playback,
-        playlists: match crate::PlaylistCapability::try_from(value.playlists) {
-            Ok(crate::PlaylistCapability::AddRemove) => api::PlaylistCapability::AddRemove,
-            Ok(crate::PlaylistCapability::Reorder) => api::PlaylistCapability::Reorder,
-            _ => api::PlaylistCapability::None,
-        },
+        playlists: playlist_capability_from_proto(value.playlists),
         artists: match crate::ArtistPresentation::try_from(value.artists) {
             Ok(crate::ArtistPresentation::Remote) => api::ArtistPresentation::Remote,
             _ => api::ArtistPresentation::Library,

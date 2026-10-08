@@ -680,7 +680,14 @@ fn walk_items(items: &[Value]) -> (Vec<Track>, Option<String>) {
             continue;
         }
         if let Some(parsed) = parse_row(item) {
-            tracks.push(parsed_to_track(parsed));
+            let mut track = parsed_to_track(parsed);
+            // The entry's own id, which a move or a removal names: the video
+            // id is not one, a playlist can hold the same video twice.
+            track.playlist_item_id = item
+                .pointer("/musicResponsiveListItemRenderer/playlistItemData/playlistSetVideoId")
+                .and_then(Value::as_str)
+                .map(str::to_string);
+            tracks.push(track);
         }
     }
     (tracks, continuation)
