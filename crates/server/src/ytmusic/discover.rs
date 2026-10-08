@@ -54,6 +54,24 @@ pub enum LinkKind {
 }
 
 impl PageLink {
+    /// Albums and playlists open by id whatever the link carries; anything else
+    /// with `params` is a view of a page (an artist's "Singles") and opens as one.
+    pub fn endpoint(endpoint: &Value) -> Option<Self> {
+        let browse = endpoint.get("browseEndpoint")?;
+        let id = browse.get("browseId")?.as_str()?;
+        let params = browse
+            .get("params")
+            .and_then(Value::as_str)
+            .map(super::browse::decode_percent);
+        Some(match params {
+            Some(params) if !id.starts_with("MPRE") && !id.starts_with("VL") => Self {
+                kind: LinkKind::Page,
+                id: super::browse::page_id(id, Some(&params)),
+            },
+            _ => Self::browse(id),
+        })
+    }
+
     /// A playlist keeps its `VL` prefix, which the playlist walk accepts.
     pub fn browse(browse_id: &str) -> Self {
         let kind = match browse_id {
@@ -115,6 +133,14 @@ impl From<DiscoverHome> for BrowsePage {
 #[derive(Debug, Clone, PartialEq)]
 pub enum DiscoverItem {
     Song(Box<Track>),
+    /// A music video or an upload to YouTube rather than an album track.
+    Video(Box<Track>),
+    Episode {
+        track: Box<Track>,
+        browse_id: String,
+        /// As the page wrote it ("Feb 25, 2024", "10h ago").
+        published: Option<String>,
+    },
     Playlist {
         playlist_id: String,
         title: String,
@@ -130,12 +156,27 @@ pub enum DiscoverItem {
     Artist {
         channel_id: String,
         name: String,
+        subtitle: Option<String>,
         thumbnail: Option<String>,
     },
+    /// `browse_id` is a page id, params and all.
     Mood {
         browse_id: String,
         title: String,
         thumbnail: Option<String>,
+        /// `0xAARRGGBB`
+        accent: Option<u32>,
+    },
+    Podcast {
+        browse_id: String,
+        title: String,
+        subtitle: String,
+        thumbnail: Option<String>,
+    },
+    /// A button to another page, as Explore's New releases.
+    Page {
+        page_id: String,
+        title: String,
     },
 }
 
@@ -232,7 +273,7 @@ pub async fn fetch_artist(channel_id: &str, cookies: &str) -> Result<YtArtist, S
     Ok(artist)
 }
 
-fn parse_artist(channel_id: &str, resp: &Value) -> YtArtist {
+pub(super) fn parse_artist(channel_id: &str, resp: &Value) -> YtArtist {
     let header = find_artist_header(resp);
 
     let name = header
@@ -379,12 +420,8 @@ fn parse_artist_carousel(section: &Value) -> Option<DiscoverShelf> {
     })
 }
 
-/// A carousel header's "More" button.
 fn more_button(header: &Value) -> Option<PageLink> {
-    header
-        .pointer("/moreContentButton/buttonRenderer/navigationEndpoint/browseEndpoint/browseId")
-        .and_then(|v| v.as_str())
-        .map(PageLink::browse)
+    PageLink::endpoint(header.pointer("/moreContentButton/buttonRenderer/navigationEndpoint")?)
 }
 
 /// "Top songs" comes back as a list shelf (musicShelfRenderer), not a
@@ -528,7 +565,7 @@ pub async fn fetch_album(browse_id: &str, cookies: &str) -> Result<YtAlbum, Stri
     Ok(parse_album(browse_id, &resp))
 }
 
-fn parse_album(browse_id: &str, resp: &Value) -> YtAlbum {
+pub(super) fn parse_album(browse_id: &str, resp: &Value) -> YtAlbum {
     let sections = album_section_contents(resp);
     let header = find_album_header(resp, &sections);
 
@@ -926,7 +963,7 @@ async fn post(url: &str, body: &Value, cookies: &str) -> Result<Value, String> {
         .map_err(|e| format!("discover JSON: {e}"))
 }
 
-fn parse_initial(resp: &Value) -> DiscoverHome {
+pub(super) fn parse_initial(resp: &Value) -> DiscoverHome {
     let sections = tab_section_contents(resp, "/contents/singleColumnBrowseResultsRenderer/tabs");
     let continuation = resp
         .pointer("/contents/singleColumnBrowseResultsRenderer/tabs")
@@ -945,7 +982,7 @@ fn parse_initial(resp: &Value) -> DiscoverHome {
     }
 }
 
-fn parse_continuation(resp: &Value) -> DiscoverHome {
+pub(super) fn parse_continuation(resp: &Value) -> DiscoverHome {
     let contents = resp
         .pointer("/continuationContents/sectionListContinuation/contents")
         .and_then(|v| v.as_array());
@@ -1050,14 +1087,20 @@ fn parse_tile(item: &Value) -> Option<DiscoverItem> {
             return Some(DiscoverItem::Artist {
                 channel_id: browse_id.to_string(),
                 name: title,
+                subtitle: None,
                 thumbnail,
             });
         }
         if browse_id.starts_with("FEmusic_") {
+            let params = r
+                .pointer("/navigationEndpoint/browseEndpoint/params")
+                .and_then(|v| v.as_str())
+                .map(super::browse::decode_percent);
             return Some(DiscoverItem::Mood {
-                browse_id: browse_id.to_string(),
+                browse_id: super::browse::page_id(browse_id, params.as_deref()),
                 title,
                 thumbnail,
+                accent: None,
             });
         }
     }
@@ -1338,7 +1381,7 @@ fn row_index_text(row: &Value) -> Option<String> {
     runs_text(row, "/index/runs").map(|s| s.trim().to_string())
 }
 
-fn normalize_yt_thumbnail(url: String) -> String {
+pub(super) fn normalize_yt_thumbnail(url: String) -> String {
     // Photo-CDN URLs end with =wNNN-hNNN-... and accept rewriting to a
     // bigger size. Mix-art URLs (music.youtube.com/image/mixart?r=…)
     // and any other token-style URL can't take that suffix; appending
