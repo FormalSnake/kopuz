@@ -257,6 +257,19 @@ pub trait MediaSource: Send + Sync {
         Err(SourceError::unsupported("discover"))
     }
 
+    fn catalog_pages(&self) -> Vec<CatalogPageEntry> {
+        Vec::new()
+    }
+
+    /// A page by an id that `catalog_pages`, a chip or a link handed out.
+    async fn browse_page(
+        &self,
+        _id: &str,
+        _continuation: Option<&str>,
+    ) -> Result<crate::ytmusic::discover::BrowsePage, SourceError> {
+        Err(SourceError::unsupported("catalog pages"))
+    }
+
     /// The tracks of a remote album / browse id. Standard library remotes use
     /// this to open or act on an album before a full cache sync; catalog remotes
     /// use it for discover surfaces. Default unsupported.
