@@ -358,6 +358,7 @@ pub(crate) fn ItemRow(
     let show_pause = is_this && *ctrl.is_playing.read() && !*ctrl.is_loading.read();
     let show_loading = is_this && *ctrl.is_loading.read();
     let mut menu_open = use_signal(|| false);
+    let mut actions = use_signal(|| item.actions.clone());
     let target = item.clone();
     rsx! {
         div {
@@ -412,6 +413,8 @@ pub(crate) fn ItemRow(
                 div { onclick: move |evt| evt.stop_propagation(),
                     components::track_actions::TrackActionsMenu {
                         track,
+                        catalog_actions: Some(actions()),
+                        on_catalog_actions: move |next| actions.set(next),
                         is_open: Some(menu_open()),
                         on_open: Some(EventHandler::new(move |_| menu_open.set(true))),
                         on_close: Some(EventHandler::new(move |_| menu_open.set(false))),

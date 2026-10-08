@@ -46,6 +46,8 @@ pub fn TrackRow(
     #[props(default = false)] is_currently_playing: bool,
     #[props(default = Vec::new())] selected_queue_tracks: Vec<Track>,
     #[props(default = None)] row_num: Option<usize>,
+    #[props(default)] catalog_actions: Option<api::CatalogActions>,
+    #[props(default)] on_catalog_actions: Option<EventHandler<api::CatalogActions>>,
 ) -> Element {
     let config = use_context::<Signal<AppConfig>>();
     let nav_ctrl = use_context::<NavigationController>();
@@ -190,6 +192,8 @@ pub fn TrackRow(
                     div { class: "shrink-0",
                         crate::track_actions::TrackActionsMenu {
                             track: menu_track_android.clone(),
+                            catalog_actions: catalog_actions.clone(),
+                            on_catalog_actions,
                             is_open: Some(is_menu_open),
                             on_open: Some(EventHandler::new(move |_| {
                                 context_menu_position.set(None);
@@ -446,6 +450,8 @@ pub fn TrackRow(
                         if !is_selection_mode {
                             crate::track_actions::TrackActionsMenu {
                                 track: menu_track.clone(),
+                                catalog_actions: catalog_actions.clone(),
+                                on_catalog_actions,
                                 is_open: Some(is_menu_open),
                                 position: *context_menu_position.read(),
                                 on_open: Some(EventHandler::new(move |_| {
@@ -697,6 +703,8 @@ pub fn TrackRow(
                 if !is_selection_mode {
                     crate::track_actions::TrackActionsMenu {
                         track: menu_track_normal.clone(),
+                        catalog_actions: catalog_actions.clone(),
+                        on_catalog_actions,
                         is_open: Some(is_menu_open),
                         position: *context_menu_position.read(),
                         on_open: Some(EventHandler::new(move |_| {

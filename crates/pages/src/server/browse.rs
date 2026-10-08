@@ -452,6 +452,7 @@ fn Chips(chips: Vec<CatalogChip>, on_pick: EventHandler<CatalogChip>) -> Element
 /// The top of a page a tile opened, drawn the way its header kind says.
 #[component]
 fn PageHeader(detail: CatalogDetail, fallback: String) -> Element {
+    let mut actions = use_signal(|| detail.actions.clone());
     let ctrl = use_context::<hooks::use_player_controller::PlayerController>();
     let now_playing = use_context::<DiscoverNowPlaying>().0;
     let cache = use_context::<DiscoverPrefetchCache>().0;
@@ -492,8 +493,14 @@ fn PageHeader(detail: CatalogDetail, fallback: String) -> Element {
                     if let Some(description) = detail.description.clone() {
                         p { class: "text-sm text-white/60 max-w-3xl line-clamp-3 text-pretty mb-6", "{description}" }
                     }
-                    if let Some(play) = play {
-                        PlayButton { on_play: play }
+                    div { class: "flex items-center gap-4",
+                        if let Some(play) = play {
+                            PlayButton { on_play: play }
+                        }
+                        components::catalog_actions::CatalogActionButtons {
+                            actions: actions(),
+                            on_change: move |next| actions.set(next),
+                        }
                     }
                 }
             }
@@ -514,8 +521,14 @@ fn PageHeader(detail: CatalogDetail, fallback: String) -> Element {
                         if let Some(description) = detail.description.clone() {
                             p { class: "text-sm text-white/60 max-w-3xl line-clamp-3 text-pretty", "{description}" }
                         }
-                        if let Some(play) = play {
-                            div { class: "mt-2", PlayButton { on_play: play } }
+                        div { class: "flex items-center gap-3 mt-2",
+                            if let Some(play) = play {
+                                PlayButton { on_play: play }
+                            }
+                            components::catalog_actions::CatalogActionButtons {
+                                actions: actions(),
+                                on_change: move |next| actions.set(next),
+                            }
                         }
                     }
                 }

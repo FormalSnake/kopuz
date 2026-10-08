@@ -293,11 +293,30 @@ fn SongListShelf(
     let mut now_playing = use_context::<DiscoverNowPlaying>().0;
     // Shared menu / playing state across the rows.
     let mut active_menu_key = use_signal(|| None::<String>);
+    // Rows' catalog state as changed here, by track key. A history row whose
+    // token is gone was removed from the history, so it leaves the list.
+    let mut changed = use_signal(std::collections::HashMap::<String, api::CatalogActions>::new);
     let mut current_playing_key = use_signal(|| None::<String>);
     let songs: Vec<TrackInfo> = shelf
         .items
         .iter()
         .filter_map(|item| item.track.clone())
+        .collect();
+    let hidden: std::collections::HashSet<usize> = shelf
+        .items
+        .iter()
+        .enumerate()
+        .filter(|(_, item)| {
+            let removed = |key: &String| {
+                changed
+                    .read()
+                    .get(key)
+                    .is_some_and(|state| state.history_token.is_none())
+            };
+            item.actions.history_token.is_some()
+                && item.track.as_ref().is_some_and(|track| removed(&track.key))
+        })
+        .map(|(idx, _)| idx)
         .collect();
     let keys = keys_of(&songs);
     // Each song's place in the queue the list plays, skipping the rows that are not songs.
@@ -317,7 +336,7 @@ fn SongListShelf(
             shelves::ShelfHeader { shelf: shelf.clone(), on_more: on_show_all }
             div { class: "flex flex-col",
                 for (idx, item) in shelf.items.iter().enumerate() {
-                    if let Some(info) = item.track.clone() {
+                    if let Some(info) = item.track.clone().filter(|_| !hidden.contains(&idx)) {
                         {
                             let position = positions[idx];
                             let key = info.key.clone();
@@ -330,6 +349,13 @@ fn SongListShelf(
                             rsx! {
                                 TrackRow {
                                     key: "{idx}",
+                                    catalog_actions: Some(changed.read().get(&info.key).cloned().unwrap_or_else(|| item.actions.clone())),
+                                    on_catalog_actions: {
+                                        let key = info.key.clone();
+                                        move |next| {
+                                            changed.write().insert(key.clone(), next);
+                                        }
+                                    },
                                     track: info,
                                     cover_url,
                                     row_num: Some(position + 1),
@@ -363,7 +389,7 @@ fn SongListShelf(
                                 }
                             }
                         }
-                    } else {
+                    } else if item.track.is_none() {
                         shelves::ItemRow {
                             key: "{idx}",
                             item: item.clone(),
@@ -741,6 +767,7 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
 
     let menu_track = track.clone();
     let mut menu_open = use_signal(|| false);
+    let mut actions = use_signal(|| item.actions.clone());
 
     rsx! {
         div {
@@ -804,6 +831,8 @@ fn SongCard(item: CatalogItem, track: TrackInfo) -> Element {
                     onclick: move |evt| evt.stop_propagation(),
                     components::track_actions::TrackActionsMenu {
                         track: menu_track.clone(),
+                        catalog_actions: Some(actions()),
+                        on_catalog_actions: move |next| actions.set(next),
                         is_open: Some(menu_open()),
                         on_open: Some(EventHandler::new(move |_| menu_open.set(true))),
                         on_close: Some(EventHandler::new(move |_| menu_open.set(false))),
@@ -840,6 +869,7 @@ pub fn DiscoverPlaylistDetail(
     let api = hooks::use_api();
     let mut tracks = use_signal(Vec::<TrackInfo>::new);
     let mut artwork = use_signal(|| None::<api::ArtworkRef>);
+    let mut actions = use_signal(api::CatalogActions::default);
     let mut loading = use_signal(|| true);
     let mut error = use_signal(|| None::<String>);
 
@@ -862,6 +892,7 @@ pub fn DiscoverPlaylistDetail(
         });
         tracks.set(Vec::new());
         artwork.set(None);
+        actions.set(api::CatalogActions::default());
         loading.set(true);
         error.set(None);
         let load_span = tracing::info_span!("playlist.load", playlist_id = %id);
@@ -886,6 +917,7 @@ pub fn DiscoverPlaylistDetail(
                     Ok(detail) => {
                         tracing::debug!(tracks = detail.tracks.len(), "playlist load complete");
                         artwork.set(detail.artwork);
+                        actions.set(detail.actions);
                         tracks.set(detail.tracks);
                     }
                     Err(failure) => {
@@ -940,6 +972,12 @@ pub fn DiscoverPlaylistDetail(
                 tracks: track_list,
                 is_album: false,
                 on_close: move |_| on_back.call(()),
+                actions: rsx! {
+                    components::catalog_actions::CatalogActionButtons {
+                        actions: actions(),
+                        on_change: move |next| actions.set(next),
+                    }
+                },
             }
         }
     }
@@ -1064,7 +1102,7 @@ pub fn DiscoverArtistPage(
                                 if let Some(description) = detail.description.clone() {
                                     p { class: "text-sm text-white/60 max-w-3xl line-clamp-3", "{description}" }
                                 }
-                                div { class: "flex gap-3 mt-2",
+                                div { class: "flex items-center gap-3 mt-2",
                                     if let Some(id) = shuffle_id {
                                         button {
                                             class: "inline-flex items-center gap-2 bg-white text-black px-6 py-2.5 rounded-full font-bold hover:scale-105 active:scale-95 transition-transform cursor-pointer",
@@ -1080,6 +1118,14 @@ pub fn DiscoverArtistPage(
                                             i { class: "fa-solid fa-shuffle text-[11px]" }
                                             span { class: "text-sm", "{i18n::t(\"shuffle\")}" }
                                         }
+                                    }
+                                    components::catalog_actions::CatalogActionButtons {
+                                        actions: detail.actions.clone(),
+                                        on_change: move |next| {
+                                            if let Some(current) = artist.write().as_mut() {
+                                                current.actions = next;
+                                            }
+                                        },
                                     }
                                 }
                             }
