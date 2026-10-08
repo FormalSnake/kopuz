@@ -21,13 +21,102 @@ pub struct DiscoverHome {
 pub struct DiscoverShelf {
     pub title: String,
     pub strapline: Option<String>,
-    pub more_browse_id: Option<String>,
+    /// The shelf's own page, behind its "More" or its title.
+    pub more: Option<PageLink>,
     pub items: Vec<DiscoverItem>,
-    /// Render as a vertical song list (with row numbers / duration)
-    /// instead of a horizontal tile carousel. Only set true for the
-    /// artist-page "Top songs" shelf — discover-home shelves stay
-    /// horizontal.
-    pub is_song_list: bool,
+    pub layout: ShelfLayout,
+    /// More items for this shelf, as opposed to more shelves for the page.
+    pub continuation: Option<String>,
+}
+
+/// How a shelf lays out its items.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum ShelfLayout {
+    #[default]
+    Carousel,
+    Grid,
+    /// A vertical song list with row numbers and durations, as the artist
+    /// page's "Top songs".
+    List,
+    TrackGrid,
+    Hero,
+}
+
+/// Where a link leads: which kind of page, and the id that opens it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PageLink {
+    pub kind: LinkKind,
+    pub id: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LinkKind {
+    Album,
+    Artist,
+    Playlist,
+    Page,
+}
+
+impl PageLink {
+    /// What a bare browse id opens. A playlist keeps its `VL` prefix, which
+    /// the playlist walk accepts as it is.
+    pub fn browse(browse_id: &str) -> Self {
+        let kind = match browse_id {
+            id if id.starts_with("VL") => LinkKind::Playlist,
+            id if id.starts_with("MPRE") => LinkKind::Album,
+            id if id.starts_with("UC") => LinkKind::Artist,
+            _ => LinkKind::Page,
+        };
+        Self {
+            kind,
+            id: browse_id.to_string(),
+        }
+    }
+}
+
+/// A browse page as a whole: what heads it, the chips that filter it, and its shelves.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct BrowsePage {
+    pub header: PageHeader,
+    pub title: String,
+    pub subtitle: Option<String>,
+    pub description: Option<String>,
+    pub thumbnail: Option<String>,
+    /// The playlist that plays the whole page.
+    pub playback_id: Option<String>,
+    pub chips: Vec<PageChip>,
+    pub shelves: Vec<DiscoverShelf>,
+    pub continuation: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum PageHeader {
+    #[default]
+    None,
+    Title,
+    Detail,
+    Artist,
+}
+
+/// One chip over a page; `page_id` opens the page it filters to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PageChip {
+    pub title: String,
+    pub page_id: String,
+    pub selected: bool,
+}
+
+/// The browse id of the home feed, which is also its page id.
+pub const HOME: &str = "FEmusic_home";
+
+impl From<DiscoverHome> for BrowsePage {
+    fn from(home: DiscoverHome) -> Self {
+        Self {
+            shelves: home.shelves,
+            continuation: home.continuation,
+            ..Self::default()
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -59,7 +148,7 @@ pub enum DiscoverItem {
 
 #[tracing::instrument(name = "yt.discover_home", skip(cookies))]
 pub async fn fetch_home(cookies: &str) -> Result<DiscoverHome, String> {
-    let body = build_browse_body(Some("FEmusic_home"));
+    let body = build_browse_body(Some(HOME));
     let resp = post(
         &format!("{ORIGIN_YOUTUBE_MUSIC}/youtubei/v1/browse?prettyPrint=false"),
         &body,
@@ -278,14 +367,7 @@ fn parse_artist_carousel(section: &Value) -> Option<DiscoverShelf> {
         return None;
     }
     let strapline = header.and_then(|h| runs_text(h, "/strapline/runs"));
-    let more_browse_id = header
-        .and_then(|h| {
-            h.pointer(
-                "/moreContentButton/buttonRenderer/navigationEndpoint/browseEndpoint/browseId",
-            )
-        })
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string());
+    let more = header.and_then(more_button);
     let items: Vec<DiscoverItem> = shelf
         .get("contents")
         .and_then(|v| v.as_array())
@@ -297,10 +379,19 @@ fn parse_artist_carousel(section: &Value) -> Option<DiscoverShelf> {
     Some(DiscoverShelf {
         title,
         strapline,
-        more_browse_id,
+        more,
         items,
-        is_song_list: false,
+        layout: ShelfLayout::Carousel,
+        continuation: None,
     })
+}
+
+/// A carousel header's "More" button.
+fn more_button(header: &Value) -> Option<PageLink> {
+    header
+        .pointer("/moreContentButton/buttonRenderer/navigationEndpoint/browseEndpoint/browseId")
+        .and_then(|v| v.as_str())
+        .map(PageLink::browse)
 }
 
 /// "Top songs" comes back as a list shelf (musicShelfRenderer), not a
@@ -313,10 +404,10 @@ fn parse_artist_song_list(section: &Value) -> Option<DiscoverShelf> {
     if title.is_empty() {
         return None;
     }
-    let more_browse_id = shelf
+    let more = shelf
         .pointer("/bottomEndpoint/browseEndpoint/browseId")
         .and_then(|v| v.as_str())
-        .map(|s| s.to_string());
+        .map(PageLink::browse);
     let items: Vec<DiscoverItem> = shelf
         .get("contents")
         .and_then(|v| v.as_array())
@@ -334,9 +425,10 @@ fn parse_artist_song_list(section: &Value) -> Option<DiscoverShelf> {
     Some(DiscoverShelf {
         title,
         strapline: None,
-        more_browse_id,
+        more,
         items,
-        is_song_list: true,
+        layout: ShelfLayout::List,
+        continuation: None,
     })
 }
 
@@ -886,14 +978,7 @@ fn parse_shelf(section: &Value) -> Option<DiscoverShelf> {
         return None;
     }
     let strapline = header.and_then(|h| runs_text(h, "/strapline/runs"));
-    let more_browse_id = header
-        .and_then(|h| {
-            h.pointer(
-                "/moreContentButton/buttonRenderer/navigationEndpoint/browseEndpoint/browseId",
-            )
-        })
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string());
+    let more = header.and_then(more_button);
 
     let items: Vec<DiscoverItem> = shelf
         .get("contents")
@@ -908,9 +993,10 @@ fn parse_shelf(section: &Value) -> Option<DiscoverShelf> {
     Some(DiscoverShelf {
         title,
         strapline,
-        more_browse_id,
+        more,
         items,
-        is_song_list: false,
+        layout: ShelfLayout::Carousel,
+        continuation: None,
     })
 }
 
@@ -1273,6 +1359,23 @@ fn normalize_yt_thumbnail(url: String) -> String {
         return format!("{}=w544-h544-l90-rj", &url[..idx]);
     }
     url
+}
+
+#[cfg(test)]
+mod link_tests {
+    use super::{LinkKind, PageLink};
+
+    /// A "More" opens what its browse id is; a playlist keeps the `VL` the
+    /// playlist viewer is handed today.
+    #[test]
+    fn a_browse_id_says_what_it_opens() {
+        let kind = |id: &str| PageLink::browse(id).kind;
+        assert_eq!(kind("VLOLAK5uy_x"), LinkKind::Playlist);
+        assert_eq!(PageLink::browse("VLOLAK5uy_x").id, "VLOLAK5uy_x");
+        assert_eq!(kind("MPREb_x"), LinkKind::Album);
+        assert_eq!(kind("UCabc"), LinkKind::Artist);
+        assert_eq!(kind("FEmusic_moods_and_genres"), LinkKind::Page);
+    }
 }
 
 #[cfg(test)]

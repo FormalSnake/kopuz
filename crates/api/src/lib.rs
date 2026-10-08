@@ -24,7 +24,8 @@ mod sources;
 
 pub use artwork::{ArtworkData, ArtworkRef, ArtworkRequest, ArtworkTarget};
 pub use catalog::{
-    CatalogDetail, CatalogDetailRequest, CatalogItem, CatalogItemKind, CatalogPage, CatalogShelf,
+    CatalogChip, CatalogDetail, CatalogDetailRequest, CatalogHeader, CatalogItem, CatalogItemKind,
+    CatalogPage, CatalogShelf, ShelfLayout,
 };
 pub use error::{ApiError, ErrorBody, ErrorCode};
 pub use events::{ApiEvent, JobKind, JobProgress, NoticeLevel, SourceState, Table};
@@ -52,8 +53,8 @@ pub use schema::{
 };
 pub use sources::{
     AlbumPresentation, ArtistPresentation, ConnectKind, CredentialProvision, DraftCheck,
-    FavoritesSyncMode, IntegrationInfo, PlaylistCapability, ServiceInfo, ServiceRef, SignInKind,
-    SourceCapabilities, SourceDraft, SourceFolderEntry, SourceInfo, SourceLoginRequest,
+    FavoritesSyncMode, IntegrationInfo, PageEntry, PlaylistCapability, ServiceInfo, ServiceRef,
+    SignInKind, SourceCapabilities, SourceDraft, SourceFolderEntry, SourceInfo, SourceLoginRequest,
 };
 
 /// The config view: the layered config with credential keys
