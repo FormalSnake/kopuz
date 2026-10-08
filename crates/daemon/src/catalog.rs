@@ -117,7 +117,9 @@ impl CatalogService {
             .iter_mut()
             .flat_map(|shelf| shelf.items.iter_mut())
             .filter_map(|item| match item {
-                DiscoverItem::Song(track) => Some(&mut **track),
+                DiscoverItem::Song(track)
+                | DiscoverItem::Video(track)
+                | DiscoverItem::Episode { track, .. } => Some(&mut **track),
                 _ => None,
             });
         crate::wire::listed_by(listed, songs);
@@ -125,7 +127,9 @@ impl CatalogService {
             .iter()
             .flat_map(|shelf| shelf.items.iter())
             .filter_map(|item| match item {
-                DiscoverItem::Song(track) => Some((**track).clone()),
+                DiscoverItem::Song(track)
+                | DiscoverItem::Video(track)
+                | DiscoverItem::Episode { track, .. } => Some((**track).clone()),
                 _ => None,
             })
             .collect();
@@ -200,13 +204,14 @@ impl CatalogService {
             DiscoverItem::Artist {
                 channel_id,
                 name,
+                subtitle,
                 thumbnail,
             } => CatalogItem {
                 artwork: self.remember_thumbnail(&channel_id, thumbnail.as_deref()),
                 kind: CatalogItemKind::Artist,
                 id: channel_id,
                 title: name,
-                subtitle: None,
+                subtitle,
                 track: None,
                 accent: None,
             },
@@ -214,6 +219,7 @@ impl CatalogService {
                 browse_id,
                 title,
                 thumbnail,
+                accent,
             } => CatalogItem {
                 artwork: self.remember_thumbnail(&browse_id, thumbnail.as_deref()),
                 kind: CatalogItemKind::Mood,
@@ -221,7 +227,36 @@ impl CatalogService {
                 title,
                 subtitle: None,
                 track: None,
+                accent: accent.map(|argb| format!("#{:06x}", argb & 0x00ff_ffff)),
+            },
+            DiscoverItem::Video(track) => CatalogItem {
+                kind: CatalogItemKind::Video,
+                ..self.item(DiscoverItem::Song(track), config)
+            },
+            DiscoverItem::Episode { track, browse_id } => CatalogItem {
+                kind: CatalogItemKind::Episode,
+                id: browse_id,
+                ..self.item(DiscoverItem::Song(track), config)
+            },
+            DiscoverItem::Podcast {
+                browse_id,
+                title,
+                subtitle,
+                thumbnail,
+            } => CatalogItem {
+                artwork: self.remember_thumbnail(&browse_id, thumbnail.as_deref()),
+                kind: CatalogItemKind::Podcast,
+                id: browse_id,
+                title,
+                subtitle: Some(subtitle),
+                track: None,
                 accent: None,
+            },
+            DiscoverItem::Page { page_id, title } => CatalogItem {
+                kind: CatalogItemKind::Page,
+                id: page_id,
+                title,
+                ..CatalogItem::default()
             },
         }
     }
@@ -368,19 +403,23 @@ impl CatalogService {
                     ..Default::default()
                 })
             }
-            CatalogItemKind::Page => {
+            // Each of these is a page of the source's own, opened by the id it handed out.
+            CatalogItemKind::Page
+            | CatalogItemKind::Mood
+            | CatalogItemKind::Podcast
+            | CatalogItemKind::Episode => {
                 let page = source
                     .browse_page(&request.id, request.continuation.as_deref())
                     .await
                     .map_err(source_error)?;
-                Ok(self.browse_detail(request.id, page, source.source(), &config))
+                Ok(self.browse_detail(request, page, source.source(), &config))
             }
-            CatalogItemKind::Track
-            | CatalogItemKind::Mood
-            | CatalogItemKind::Podcast
-            | CatalogItemKind::Episode
-            | CatalogItemKind::Video
-            | CatalogItemKind::Unknown => Err(ApiError::unsupported(
+            // A song's own page is what the source relates to it.
+            CatalogItemKind::Track | CatalogItemKind::Video => {
+                let page = source.related(&request.id).await.map_err(source_error)?;
+                Ok(self.browse_detail(request, page, source.source(), &config))
+            }
+            CatalogItemKind::Unknown => Err(ApiError::unsupported(
                 "this catalog kind has no detail page",
             )),
         }
@@ -388,14 +427,15 @@ impl CatalogService {
 
     fn browse_detail(
         &self,
-        id: String,
+        request: CatalogDetailRequest,
         page: BrowsePage,
         listed: &config::Source,
         config: &config::AppConfig,
     ) -> CatalogDetail {
+        let id = request.id;
         let artwork = self.remember_thumbnail(&id, page.thumbnail.as_deref());
         CatalogDetail {
-            kind: CatalogItemKind::Page,
+            kind: request.kind,
             title: page.title,
             subtitle: page.subtitle,
             description: page.description,
