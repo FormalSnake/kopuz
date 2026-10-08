@@ -1302,6 +1302,35 @@ async fn catalog_and_radio_report_absence_identically() {
     );
 }
 
+/// A source's pages are its navigation, so the list a client renders has to
+/// be the one the daemon declared, and opening a page a source does not have
+/// has to fail the same way on both transports.
+#[tokio::test]
+async fn catalog_pages_agree_across_transports() {
+    let pair = spawn_pair().await;
+
+    let active = |sources: Vec<api::SourceInfo>| {
+        sources
+            .into_iter()
+            .find(|source| source.active)
+            .expect("an active source")
+            .capabilities
+    };
+    let local = active(pair.local.sources().await.expect("local sources"));
+    let wire = active(pair.wire.sources().await.expect("wire sources"));
+    assert_eq!(local, wire);
+    assert!(local.pages.is_empty(), "a local library declares no pages");
+
+    let request = api::CatalogDetailRequest::page("FEmusic_home");
+    let local = pair.local.catalog_detail(request.clone()).await;
+    let wire = pair.wire.catalog_detail(request).await;
+    assert_eq!(
+        local.as_ref().err().map(|e| e.code),
+        Some(ErrorCode::Unsupported)
+    );
+    assert_eq!(local.err().map(|e| e.code), wire.err().map(|e| e.code));
+}
+
 /// Deleting from disk is the one API call that destroys something outside
 /// the database, so its guard has to hold identically on both transports.
 #[tokio::test]

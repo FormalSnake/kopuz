@@ -9,10 +9,11 @@ use crate::ytmusic::tracking::{self, Watch};
 use crate::ytmusic::{YouTubeMusicClient, player};
 
 use super::{
-    AlbumType, ArtistLookup, ArtistView, AuthOutcome, Capabilities, FavoritesPage, FavoritesSync,
-    MediaSource, PlaylistMeta, PlaylistOps, PlaylistPage, RadioPage, RadioSeeds, RemoteAlbum,
-    SourceError, StreamInfo, mirror_added, mirror_created,
+    AlbumType, ArtistLookup, ArtistView, AuthOutcome, Capabilities, CatalogPageEntry,
+    FavoritesPage, FavoritesSync, MediaSource, PlaylistMeta, PlaylistOps, PlaylistPage, RadioPage,
+    RadioSeeds, RemoteAlbum, SourceError, StreamInfo, mirror_added, mirror_created,
 };
+use crate::ytmusic::discover::{self, BrowsePage};
 
 /// YT Music's "Liked Music" auto-playlist. It is not browsed like the user's
 /// other playlists: its contents are the liked songs, which kopuz already keeps
@@ -166,6 +167,29 @@ impl MediaSource for YtSource {
             .discover_continuation(token)
             .await
             .map_err(SourceError::from)
+    }
+
+    fn catalog_pages(&self) -> Vec<CatalogPageEntry> {
+        vec![CatalogPageEntry {
+            id: discover::HOME.to_string(),
+            label: "home",
+            icon: "fa-solid fa-house",
+        }]
+    }
+
+    async fn browse_page(
+        &self,
+        id: &str,
+        continuation: Option<&str>,
+    ) -> Result<BrowsePage, SourceError> {
+        if id != discover::HOME {
+            return Err(SourceError::InvalidInput(format!("no such page: {id}")));
+        }
+        let home = match continuation {
+            Some(token) => self.client.discover_continuation(token).await,
+            None => self.client.discover_home().await,
+        }?;
+        Ok(BrowsePage::from(home))
     }
 
     async fn fetch_album_tracks(&self, browse_id: &str) -> Result<Vec<reader::Track>, SourceError> {

@@ -14,11 +14,13 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
 use api::{
-    ApiError, ArtworkRef, ArtworkTarget, CatalogDetail, CatalogDetailRequest, CatalogItem,
-    CatalogItemKind, CatalogPage, CatalogShelf,
+    ApiError, ArtworkRef, ArtworkTarget, CatalogChip, CatalogDetail, CatalogDetailRequest,
+    CatalogHeader, CatalogItem, CatalogItemKind, CatalogPage, CatalogShelf, ShelfLayout,
 };
 use server::source::RadioPage;
-use server::ytmusic::discover::{DiscoverHome, DiscoverItem};
+use server::ytmusic::discover::{
+    BrowsePage, DiscoverHome, DiscoverItem, DiscoverShelf, LinkKind, PageHeader,
+};
 
 use crate::library::LibraryService;
 use crate::session::SessionHandle;
@@ -95,12 +97,23 @@ impl CatalogService {
     /// Convert a browse page `listed` served, registering its songs and tile images so later requests resolve them.
     fn page(
         &self,
-        mut home: DiscoverHome,
+        home: DiscoverHome,
         listed: &config::Source,
         config: &config::AppConfig,
     ) -> CatalogPage {
-        let songs = home
-            .shelves
+        CatalogPage {
+            shelves: self.shelves(home.shelves, listed, config),
+            continuation: home.continuation,
+        }
+    }
+
+    fn shelves(
+        &self,
+        mut shelves: Vec<DiscoverShelf>,
+        listed: &config::Source,
+        config: &config::AppConfig,
+    ) -> Vec<CatalogShelf> {
+        let songs = shelves
             .iter_mut()
             .flat_map(|shelf| shelf.items.iter_mut())
             .filter_map(|item| match item {
@@ -108,8 +121,7 @@ impl CatalogService {
                 _ => None,
             });
         crate::wire::listed_by(listed, songs);
-        let songs: Vec<reader::Track> = home
-            .shelves
+        let songs: Vec<reader::Track> = shelves
             .iter()
             .flat_map(|shelf| shelf.items.iter())
             .filter_map(|item| match item {
@@ -118,24 +130,30 @@ impl CatalogService {
             })
             .collect();
         self.library.register_transient(&songs);
-        CatalogPage {
-            shelves: home
-                .shelves
-                .into_iter()
-                .map(|shelf| CatalogShelf {
+        shelves
+            .into_iter()
+            .map(|shelf| {
+                let layout = layout(shelf.layout);
+                let (more_ref, more_kind) = match shelf.more {
+                    Some(link) => (Some(link.id), link_kind(link.kind)),
+                    None => (None, CatalogItemKind::Unknown),
+                };
+                CatalogShelf {
                     title: shelf.title,
                     strapline: shelf.strapline,
-                    more_ref: shelf.more_browse_id,
-                    list: shelf.is_song_list,
+                    more_ref,
+                    more_kind,
+                    list: layout == ShelfLayout::List,
+                    layout,
+                    continuation: shelf.continuation,
                     items: shelf
                         .items
                         .into_iter()
                         .map(|item| self.item(item, config))
                         .collect(),
-                })
-                .collect(),
-            continuation: home.continuation,
-        }
+                }
+            })
+            .collect()
     }
 
     fn item(&self, item: DiscoverItem, config: &config::AppConfig) -> CatalogItem {
@@ -149,6 +167,7 @@ impl CatalogService {
                 subtitle: Some(track.artist.clone()),
                 artwork: crate::artwork::track_ref(&track),
                 track: Some(crate::wire::track_info(&track, config)),
+                accent: None,
             },
             DiscoverItem::Playlist {
                 playlist_id,
@@ -162,6 +181,7 @@ impl CatalogService {
                 title,
                 subtitle: Some(subtitle),
                 track: None,
+                accent: None,
             },
             DiscoverItem::Album {
                 browse_id,
@@ -175,6 +195,7 @@ impl CatalogService {
                 title,
                 subtitle: Some(subtitle),
                 track: None,
+                accent: None,
             },
             DiscoverItem::Artist {
                 channel_id,
@@ -187,6 +208,7 @@ impl CatalogService {
                 title: name,
                 subtitle: None,
                 track: None,
+                accent: None,
             },
             DiscoverItem::Mood {
                 browse_id,
@@ -199,6 +221,7 @@ impl CatalogService {
                 title,
                 subtitle: None,
                 track: None,
+                accent: None,
             },
         }
     }
@@ -262,6 +285,7 @@ impl CatalogService {
                     artwork,
                     playback_id: album.audio_playlist_id,
                     year: album.year,
+                    header: CatalogHeader::Detail,
                     tracks: album
                         .tracks
                         .iter()
@@ -294,6 +318,7 @@ impl CatalogService {
                         .map(|track| crate::wire::track_info(track, &config))
                         .collect(),
                     continuation: page.next,
+                    header: CatalogHeader::Detail,
                     ..Default::default()
                 })
             }
@@ -339,12 +364,62 @@ impl CatalogService {
                     playback_id: artist.shuffle_playlist_id,
                     shelves: page.shelves,
                     continuation: page.continuation,
+                    header: CatalogHeader::Artist,
                     ..Default::default()
                 })
             }
-            CatalogItemKind::Track | CatalogItemKind::Mood | CatalogItemKind::Unknown => Err(
-                ApiError::unsupported("this catalog kind has no detail page"),
-            ),
+            CatalogItemKind::Page => {
+                let page = source
+                    .browse_page(&request.id, request.continuation.as_deref())
+                    .await
+                    .map_err(source_error)?;
+                Ok(self.browse_detail(request.id, page, source.source(), &config))
+            }
+            CatalogItemKind::Track
+            | CatalogItemKind::Mood
+            | CatalogItemKind::Podcast
+            | CatalogItemKind::Episode
+            | CatalogItemKind::Video
+            | CatalogItemKind::Unknown => Err(ApiError::unsupported(
+                "this catalog kind has no detail page",
+            )),
+        }
+    }
+
+    fn browse_detail(
+        &self,
+        id: String,
+        page: BrowsePage,
+        listed: &config::Source,
+        config: &config::AppConfig,
+    ) -> CatalogDetail {
+        let artwork = self.remember_thumbnail(&id, page.thumbnail.as_deref());
+        CatalogDetail {
+            kind: CatalogItemKind::Page,
+            title: page.title,
+            subtitle: page.subtitle,
+            description: page.description,
+            artwork,
+            playback_id: page.playback_id,
+            header: match page.header {
+                PageHeader::None => CatalogHeader::None,
+                PageHeader::Title => CatalogHeader::Title,
+                PageHeader::Detail => CatalogHeader::Detail,
+                PageHeader::Artist => CatalogHeader::Artist,
+            },
+            chips: page
+                .chips
+                .into_iter()
+                .map(|chip| CatalogChip {
+                    id: chip.page_id,
+                    label: chip.title,
+                    selected: chip.selected,
+                })
+                .collect(),
+            shelves: self.shelves(page.shelves, listed, config),
+            continuation: page.continuation,
+            id,
+            ..Default::default()
         }
     }
 
@@ -425,6 +500,26 @@ impl CatalogService {
         self.library
             .transient_track(key)
             .ok_or_else(|| ApiError::not_found("unknown radio seed"))
+    }
+}
+
+fn layout(layout: server::ytmusic::discover::ShelfLayout) -> ShelfLayout {
+    use server::ytmusic::discover::ShelfLayout as Source;
+    match layout {
+        Source::Carousel => ShelfLayout::Carousel,
+        Source::Grid => ShelfLayout::Grid,
+        Source::List => ShelfLayout::List,
+        Source::TrackGrid => ShelfLayout::TrackGrid,
+        Source::Hero => ShelfLayout::Hero,
+    }
+}
+
+fn link_kind(kind: LinkKind) -> CatalogItemKind {
+    match kind {
+        LinkKind::Album => CatalogItemKind::Album,
+        LinkKind::Artist => CatalogItemKind::Artist,
+        LinkKind::Playlist => CatalogItemKind::Playlist,
+        LinkKind::Page => CatalogItemKind::Page,
     }
 }
 

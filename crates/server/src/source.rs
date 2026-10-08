@@ -222,6 +222,23 @@ pub trait MediaSource: Send + Sync {
         Err(SourceError::unsupported("discover"))
     }
 
+    /// The catalog pages this source offers a frontend's navigation, in order.
+    /// Default none; only catalog remotes (YT) declare any.
+    fn catalog_pages(&self) -> Vec<CatalogPageEntry> {
+        Vec::new()
+    }
+
+    /// One catalog page by an id [`catalog_pages`](Self::catalog_pages), a
+    /// chip or a link on another page handed out; `continuation` pages it.
+    /// Default unsupported.
+    async fn browse_page(
+        &self,
+        _id: &str,
+        _continuation: Option<&str>,
+    ) -> Result<crate::ytmusic::discover::BrowsePage, SourceError> {
+        Err(SourceError::unsupported("catalog pages"))
+    }
+
     /// The tracks of a remote album / browse id. Standard library remotes use
     /// this to open or act on an album before a full cache sync; catalog remotes
     /// use it for discover surfaces. Default unsupported.

@@ -44,10 +44,20 @@ pub enum FavoritesSyncMode {
     Paginated,
 }
 
+/// A page of the source's catalog a frontend can link to, such as its home
+/// feed, its charts or a library tab. Opened with
+/// [`crate::CatalogItemKind::Page`] and `id`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct PageEntry {
+    pub id: String,
+    pub label: Text,
+    pub icon: Icon,
+}
+
 /// What the active source supports. Every "should this button exist?" question
 /// in a frontend is answered from here, so none of them branches on a service
 /// name.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct SourceCapabilities {
     pub edit_tags: bool,
     pub delete_from_disk: bool,
@@ -74,6 +84,8 @@ pub struct SourceCapabilities {
     pub artists: ArtistPresentation,
     pub albums: AlbumPresentation,
     pub favorites_sync: FavoritesSyncMode,
+    /// The catalog pages it offers, in the order to list them.
+    pub pages: Vec<PageEntry>,
 }
 
 /// What making a source usable takes.

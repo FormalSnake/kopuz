@@ -748,6 +748,15 @@ message SourceCapabilities {
   // Playing a search result starts a track radio from it rather than
   // queueing the results.
   bool search_radio = 18;
+  // The catalog pages it offers, in the order to list them.
+  repeated PageEntry pages = 19;
+}
+
+// A catalog page a frontend can link to; opened as CATALOG_ITEM_PAGE with id.
+message PageEntry {
+  string id = 1;
+  Text label = 2;
+  Icon icon = 3;
 }
 
 // What making a source usable takes.
@@ -990,6 +999,25 @@ enum CatalogItemKind {
   CATALOG_ITEM_PLAYLIST = 3;
   CATALOG_ITEM_ARTIST = 4;
   CATALOG_ITEM_MOOD = 5;
+  CATALOG_ITEM_PODCAST = 6;
+  CATALOG_ITEM_EPISODE = 7;
+  CATALOG_ITEM_VIDEO = 8;
+  CATALOG_ITEM_PAGE = 9;
+}
+
+enum ShelfLayout {
+  SHELF_LAYOUT_CAROUSEL = 0;
+  SHELF_LAYOUT_GRID = 1;
+  SHELF_LAYOUT_LIST = 2;
+  SHELF_LAYOUT_TRACK_GRID = 3;
+  SHELF_LAYOUT_HERO = 4;
+}
+
+enum CatalogHeader {
+  CATALOG_HEADER_NONE = 0;
+  CATALOG_HEADER_TITLE = 1;
+  CATALOG_HEADER_DETAIL = 2;
+  CATALOG_HEADER_ARTIST = 3;
 }
 
 message CatalogItem {
@@ -998,8 +1026,11 @@ message CatalogItem {
   string title = 3;
   optional string subtitle = 4;
   optional ArtworkRef artwork = 5;
-  // Set for tracks, so a shelf of songs is playable without a second call.
+  // Set for tracks, videos and episodes, so a shelf of them is playable
+  // without a second call.
   optional TrackInfo track = 6;
+  // The tile's own colour, as #rrggbb.
+  optional string accent = 7;
 }
 
 message CatalogShelf {
@@ -1008,6 +1039,18 @@ message CatalogShelf {
   repeated CatalogItem items = 3;
   optional string more_ref = 4;
   bool list = 5;
+  ShelfLayout layout = 6;
+  // The kind that opens more_ref.
+  CatalogItemKind more_kind = 7;
+  // More items for this shelf.
+  optional string continuation = 8;
+}
+
+// A filter over a page; id opens the filtered page as CATALOG_ITEM_PAGE.
+message CatalogChip {
+  string id = 1;
+  string label = 2;
+  bool selected = 3;
 }
 
 message CatalogRequest {
@@ -1040,6 +1083,8 @@ message CatalogDetail {
   optional string continuation = 11;
   // For an album, the artist its header opens; absent when it bills nobody.
   optional string artist_key = 12;
+  CatalogHeader header = 13;
+  repeated CatalogChip chips = 14;
 }
 
 // ---------------- radio ----------------

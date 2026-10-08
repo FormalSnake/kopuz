@@ -35,6 +35,27 @@ pub fn capabilities_to_proto(value: &api::SourceCapabilities) -> SourceCapabilit
             FavoritesSyncMode::Instant => crate::FavoritesSyncMode::FavoritesSyncInstant,
             FavoritesSyncMode::Paginated => crate::FavoritesSyncMode::FavoritesSyncPaginated,
         } as i32,
+        pages: value.pages.iter().map(page_entry_to_proto).collect(),
+    }
+}
+
+pub fn page_entry_to_proto(value: &api::PageEntry) -> PageEntry {
+    PageEntry {
+        id: value.id.clone(),
+        label: Some(text_to_proto(&value.label)),
+        icon: Some(icon_to_proto(&value.icon)),
+    }
+}
+
+pub fn page_entry_from_proto(value: &PageEntry) -> api::PageEntry {
+    api::PageEntry {
+        id: value.id.clone(),
+        label: value
+            .label
+            .as_ref()
+            .map(text_from_proto)
+            .unwrap_or_default(),
+        icon: value.icon.as_ref().map(icon_from_proto).unwrap_or_default(),
     }
 }
 
@@ -76,6 +97,7 @@ pub fn capabilities_from_proto(value: Option<&SourceCapabilities>) -> api::Sourc
             }
             _ => api::FavoritesSyncMode::Instant,
         },
+        pages: value.pages.iter().map(page_entry_from_proto).collect(),
     }
 }
 
