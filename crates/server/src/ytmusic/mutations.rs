@@ -262,6 +262,13 @@ pub fn move_playlist_item_request(
     )
 }
 
+pub fn delete_playlist_request(playlist_id: &str) -> Request {
+    Request::new(
+        "playlist/delete",
+        json!({ "playlistId": bare_playlist_id(playlist_id) }),
+    )
+}
+
 #[tracing::instrument(name = "yt.rate", skip(cookies))]
 pub async fn rate(target: ItemRef<'_>, rating: Rating, cookies: &str) -> Result<(), String> {
     rate_request(target, rating)?.send(cookies).await.map(drop)
@@ -317,6 +324,14 @@ pub async fn move_playlist_item(
         .send(cookies)
         .await?;
     check_status(&response)
+}
+
+#[tracing::instrument(name = "yt.playlist_delete", skip(cookies))]
+pub async fn delete_playlist(playlist_id: &str, cookies: &str) -> Result<(), String> {
+    delete_playlist_request(playlist_id)
+        .send(cookies)
+        .await
+        .map(drop)
 }
 
 /// A feedback call answers 200 whether or not it did anything; whether it
@@ -463,6 +478,13 @@ mod tests {
             last.body["actions"],
             json!([{ "action": "ACTION_MOVE_VIDEO_BEFORE", "setVideoId": "AAA" }])
         );
+    }
+
+    #[test]
+    fn a_delete_names_the_bare_playlist() {
+        let request = delete_playlist_request("VLPLx");
+        assert_eq!(request.endpoint, "playlist/delete");
+        assert_eq!(request.body["playlistId"], "PLx");
     }
 
     #[test]
