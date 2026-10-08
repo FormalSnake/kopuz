@@ -258,6 +258,7 @@ pub(crate) fn cookies_in(reply: &Value, domain: &str) -> Vec<Cookie> {
                 })
                 .filter_map(|c| {
                     Some(Cookie {
+                        domain: c["domain"].as_str()?.to_owned(),
                         name: c["name"].as_str()?.to_owned(),
                         value: c["value"].as_str()?.to_owned(),
                     })
