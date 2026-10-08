@@ -97,7 +97,13 @@ pub fn TrackRow(
     };
 
     let fmt_dur = |s: u64| format!("{}:{:02}", s / 60, s % 60);
-    let duration_str = fmt_dur(track.duration_secs().unwrap_or_default());
+    // A row whose length is unknown (YouTube search rows for podcast episodes
+    // carry none) shows no duration rather than 0:00.
+    let duration_str = track
+        .duration_secs()
+        .filter(|secs| *secs > 0)
+        .map(fmt_dur)
+        .unwrap_or_default();
 
     // The container a file is in, which the daemon works out: a row
     // that came from a service names no file, so it has none.
@@ -173,8 +179,10 @@ pub fn TrackRow(
                     }
                     span { class: "text-[11px] text-white/45 truncate leading-tight",
                         span { dir: "auto", "{track.artist}" }
-                        " • "
-                        span { dir: "ltr", "{duration_str}" }
+                        if !duration_str.is_empty() {
+                            " • "
+                            span { dir: "ltr", "{duration_str}" }
+                        }
                     }
                 }
 
