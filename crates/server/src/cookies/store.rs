@@ -32,6 +32,39 @@ pub(crate) async fn read_cookies(
     }
 }
 
+/// Read every cookie scoped to `domain` from a profile no browser has open.
+/// A Chromium browser that can take the DevTools pipe is started headless on
+/// it and hands the cookies over itself, decrypted with its own key, so kopuz
+/// never asks the keyring; anything else decrypts the store from disk. `args`
+/// are the launch flags the profile was made with.
+pub(crate) async fn read_profile_cookies(
+    browser: Browser,
+    profile_root: &Path,
+    domain: &str,
+    args: &[String],
+) -> Result<Vec<Cookie>, String> {
+    if browser.engine() == BrowserEngine::Chromium
+        && let Some(bin) = super::browser::find_browser_bin(browser, Some(profile_root)).await
+        && super::cdp::pipe_reaches(&bin)
+    {
+        match super::cdp::read_headless(&bin, profile_root, args, domain).await {
+            Ok(cookies) => {
+                tracing::trace!(
+                    browser = browser.id(),
+                    domain,
+                    count = cookies.len(),
+                    "read cookies over DevTools"
+                );
+                return Ok(cookies);
+            }
+            Err(e) => {
+                tracing::debug!(error = %e, "headless cookie read failed; decrypting the store instead");
+            }
+        }
+    }
+    read_cookies(browser, profile_root, domain).await
+}
+
 #[cfg(not(target_os = "android"))]
 async fn read_gecko_cookies(
     browser: Browser,
