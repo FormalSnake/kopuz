@@ -178,6 +178,14 @@ pub struct Capabilities {
     pub favorites_sync: FavoritesSync,
 }
 
+/// `label` is a translation key, `icon` an icon class.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CatalogPageEntry {
+    pub id: String,
+    pub label: &'static str,
+    pub icon: &'static str,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AuthOutcome {
     Valid,
