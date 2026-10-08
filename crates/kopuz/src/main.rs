@@ -34,6 +34,7 @@ mod desktop_shell;
 #[cfg(not(target_os = "android"))]
 mod exit_flush;
 mod logging;
+mod material3;
 mod static_assets;
 #[cfg(not(target_os = "android"))]
 mod ui_profile;
@@ -1229,7 +1230,7 @@ fn App() -> Element {
         let theme = config.read().theme.clone();
         if theme == "album-art" {
             "theme-default".to_string()
-        } else if theme == utils::live_theme::THEME_ID {
+        } else if theme == utils::live_theme::THEME_ID || theme == "system" {
             // A palette can be partial, or not written yet, so the default sits
             // underneath to keep every var resolving. The injected `.theme-live`
             // block lands later in <head>, so it still wins.
@@ -1257,7 +1258,7 @@ fn App() -> Element {
         {
             utils::color::get_background_style(palette.read().as_deref())
         } else {
-            "background-color: var(--color-black); background-image: none;".to_string()
+            "background-color: var(--md-sys-color-surface, var(--color-black)); background-image: none;".to_string()
         }
     });
 
@@ -1355,6 +1356,7 @@ fn App() -> Element {
 
     rsx! {
         WindowsToolbarIconAssets {}
+        material3::SystemColors { config, artwork: palette }
 
         div {
             id: "app-root",
@@ -1368,6 +1370,7 @@ fn App() -> Element {
             },
             dir: "{dir}",
             "data-platform": if cfg!(target_os = "android") { "android" } else { "desktop" },
+            "data-ui-style": config.read().ui_style.as_str(),
             "data-reduce-animations": "{reduce_animations}",
             tabindex: "0",
             autofocus: true,
@@ -1552,7 +1555,7 @@ fn App() -> Element {
                 }
             }
             div {
-                class: "{content_row_class}",
+                class: "app-content {content_row_class}",
                 ontouchstart: move |evt| open_swipe.start(&evt),
                 ontouchmove: move |evt| open_swipe.update(&evt),
                 ontouchend: on_open_swipe,
@@ -1617,32 +1620,32 @@ fn App() -> Element {
                             let has_image_background = config.read().cover_art_background
                                 || !config.read().custom_background_path.is_empty();
                             rsx! {
-                                div { class: if has_image_background { "shrink-0 z-[60] bg-black/30 backdrop-blur-xl border-b border-white/5 flex items-center h-11 px-3" } else { "shrink-0 z-[60] bg-black/60 backdrop-blur-2xl border-b border-white/5 flex items-center h-11 px-3 shadow-xl" },
+                                div { class: if has_image_background { "app-topbar shrink-0 z-[60] bg-black/30 backdrop-blur-xl border-b border-white/5 flex items-center h-11 px-3" } else { "app-topbar shrink-0 z-[60] bg-black/60 backdrop-blur-2xl border-b border-white/5 flex items-center h-11 px-3 shadow-xl" },
                                     if is_details {
                                         button {
-                                            class: "w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white active:scale-95 transition-all border border-white/10",
+                                            class: "app-icon-button w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white active:scale-95 transition-all border border-white/10",
                                             aria_label: i18n::t("go_back"),
                                             onclick: move |_| nav_ctrl.go_back(),
                                             i { class: "fa-solid fa-arrow-left text-lg" }
                                         }
                                     } else if settings_title.is_some() {
                                         button {
-                                            class: "w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white active:scale-95 transition-all border border-white/10",
+                                            class: "app-icon-button w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white active:scale-95 transition-all border border-white/10",
                                             aria_label: i18n::t("go_back"),
                                             onclick: move |_| settings_subpage.set(None),
                                             i { class: "fa-solid fa-arrow-left text-lg" }
                                         }
                                     } else {
                                         button {
-                                            class: "w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white active:scale-95 transition-all border border-white/10",
+                                            class: "app-icon-button w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white active:scale-95 transition-all border border-white/10",
                                             onclick: move |_| is_sidebar_collapsed.toggle(),
                                             i { class: "fa-solid fa-bars text-lg" }
                                         }
                                     }
                                     div { class: "flex-1 flex justify-center pr-10",
                                         h2 {
-                                            class: "text-[13px] font-black tracking-[0.2em] text-white/90 uppercase",
-                                            style: "font-family: 'kopuz-custom-font', 'JetBrains Mono', monospace;",
+                                            class: "app-topbar-title text-[13px] font-black tracking-[0.2em] text-white/90 uppercase",
+                                            style: if config.read().ui_style != config::UiStyle::Material3 { "font-family: 'kopuz-custom-font', 'JetBrains Mono', monospace;" },
                                             "{page_title}"
                                         }
                                     }

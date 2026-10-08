@@ -38,7 +38,7 @@ fn BuildInfoCard() -> Element {
             }
             button {
                 r#type: "button",
-                class: "p-2 rounded text-white/35 hover:text-white hover:bg-white/10 transition-colors shrink-0",
+                class: "app-icon-button p-2 rounded text-white/35 hover:text-white hover:bg-white/10 transition-colors shrink-0",
                 title: "{build_summary}",
                 aria_label: "{build_summary}",
                 onclick: move |_| {
@@ -207,9 +207,10 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
 
     let is_android = cfg!(target_os = "android");
     let showing_index = is_android && subpage.is_none_or(|subpage| subpage.read().is_none());
+    let is_material3 = config.read().ui_style == config::UiStyle::Material3;
 
     rsx! {
-        div { class: if is_android { "px-3 pt-2 pb-6 w-full max-w-7xl mx-auto" } else if config.read().settings_layout == config::SettingsLayout::TopBar { "settings-page settings-layout-topbar px-6 py-7 w-full max-w-7xl mx-auto" } else { "settings-page settings-layout-cd px-6 py-7 w-full max-w-7xl mx-auto" },
+        div { class: if is_android { "px-3 pt-2 pb-6 w-full max-w-7xl mx-auto" } else if is_material3 || config.read().settings_layout == config::SettingsLayout::TopBar { "settings-page settings-layout-topbar px-6 py-7 w-full max-w-7xl mx-auto" } else { "settings-page settings-layout-cd px-6 py-7 w-full max-w-7xl mx-auto" },
             if !is_android {
                 h1 { class: "text-2xl font-semibold tracking-tight text-white mb-5 px-1", "{i18n::t(\"settings\")}" }
             }
@@ -281,13 +282,13 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                         }
                                         if !config.read().live_theme_path.is_empty() {
                                             button {
-                                                class: "px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-red-300 text-sm transition-colors",
+                                                class: "app-button-tonal app-button-danger px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-red-300 text-sm transition-colors",
                                                 onclick: move |_| config.write().live_theme_path = String::new(),
                                                 "{i18n::t(\"remove\")}"
                                             }
                                         }
                                         button {
-                                            class: "px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors",
+                                            class: "app-button-tonal px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors",
                                             onclick: move |_| {
                                                 #[cfg(not(target_os = "android"))]
                                                 spawn(async move {
@@ -319,13 +320,13 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                                 "{config.read().custom_font_path}"
                                             }
                                             button {
-                                                class: "px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-red-300 text-sm transition-colors",
+                                                class: "app-button-tonal app-button-danger px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-red-300 text-sm transition-colors",
                                                 onclick: move |_| config.write().custom_font_path = String::new(),
                                                 "{i18n::t(\"remove\")}"
                                             }
                                         }
                                         button {
-                                            class: "px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors",
+                                            class: "app-button-tonal px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors",
                                             onclick: move |_| {
                                                 #[cfg(not(target_os = "android"))]
                                                 spawn(async move {
@@ -369,13 +370,13 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                                 "{config.read().custom_background_path}"
                                             }
                                             button {
-                                                class: "px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-red-300 text-sm transition-colors",
+                                                class: "app-button-tonal app-button-danger px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-red-300 text-sm transition-colors",
                                                 onclick: move |_| config.write().custom_background_path = String::new(),
                                                 "{i18n::t(\"remove\")}"
                                             }
                                         }
                                         button {
-                                            class: "px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors",
+                                            class: "app-button-tonal px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm transition-colors",
                                             onclick: move |_| {
                                                 #[cfg(not(target_os = "android"))]
                                                 spawn(async move {
@@ -411,7 +412,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                                 step: "5",
                                                 value: format!("{}", config.read().cover_art_darkening),
                                                 class: "w-40",
-                                                style: "accent-color: var(--color-indigo-500);",
+                                                style: components::settings::items::range_style(f64::from(config.read().cover_art_darkening), 0.0, 95.0),
                                                 oninput: move |evt| {
                                                     if let Ok(value) = evt.value().parse::<u8>() {
                                                         config.write().cover_art_darkening = value.min(95);
@@ -438,7 +439,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                                 step: "5",
                                                 value: format!("{}", config.read().cover_art_blur),
                                                 class: "w-40",
-                                                style: "accent-color: var(--color-indigo-500);",
+                                                style: components::settings::items::range_style(f64::from(config.read().cover_art_blur), 0.0, 100.0),
                                                 oninput: move |evt| {
                                                     if let Ok(value) = evt.value().parse::<u8>() {
                                                         config.write().cover_art_blur = value.min(100);
@@ -479,7 +480,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                             step: "10",
                                             value: format!("{}", config.read().lyrics_depth_blur_strength),
                                             class: "w-40",
-                                            style: "accent-color: var(--color-indigo-500);",
+                                            style: components::settings::items::range_style(f64::from(config.read().lyrics_depth_blur_strength), 10.0, 200.0),
                                             oninput: move |evt| {
                                                 if let Ok(value) = evt.value().parse::<u8>() {
                                                     config.write().lyrics_depth_blur_strength = value.clamp(10, 200);
@@ -572,11 +573,12 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                     rsx! {
                                         AppSelect {
                                             class: "settings-select",
-                                            value: (if current_style == config::UiStyle::Vaxry { "vaxry" } else { "normal" }).to_string(),
-                                            options: vec![("normal".into(), i18n::t("ui_normal")), ("vaxry".into(), i18n::t("ui_vaxry"))],
+                                            value: current_style.as_str().to_string(),
+                                            options: vec![("normal".into(), i18n::t("ui_normal")), ("vaxry".into(), i18n::t("ui_vaxry")), ("material3".into(), i18n::t("ui_material3"))],
                                             on_change: move |value: String| {
                                                 config.write().ui_style = match value.as_str() {
                                                     "vaxry" => config::UiStyle::Vaxry,
+                                                    "material3" => config::UiStyle::Material3,
                                                     _ => config::UiStyle::Normal,
                                                 };
                                             },
@@ -607,7 +609,7 @@ pub fn Settings(config: Signal<AppConfig>) -> Element {
                                 }
                             }
                         }
-                        if !is_android {
+                        if !is_android && !is_material3 {
                             SettingItem {
                                 title: i18n::t("settings_layout").to_string(),
                                 config_key: "settings_layout",

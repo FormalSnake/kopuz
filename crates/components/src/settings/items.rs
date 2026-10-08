@@ -346,6 +346,7 @@ pub fn ThemeSelector(current_theme: String, on_change: EventHandler<String>) -> 
         .collect();
     custom.sort_by(|a, b| a.1.cmp(&b.1));
     let mut options = vec![
+        ("system".into(), i18n::t("system_colors")),
         ("album-art".into(), i18n::t("album_art_gradient")),
         ("default".into(), i18n::t("default_theme")),
         ("amoled".into(), i18n::t("amoled_black")),
@@ -425,11 +426,13 @@ pub fn ToggleSetting(enabled: bool, on_change: EventHandler<bool>) -> Element {
             button {
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {enable_class}",
                 onclick: move |_| on_change.call(true),
+                aria_pressed: enabled,
                 "{i18n::t(\"enabled\")}"
             }
             button {
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {disable_class}",
                 onclick: move |_| on_change.call(false),
+                aria_pressed: !enabled,
                 "{i18n::t(\"disabled\")}"
             }
         }
@@ -476,12 +479,14 @@ pub fn BackBehaviorSelector(
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {rewind_class}",
                 title: "{i18n::t(\"back_behavior_rewind\")}",
                 onclick: move |_| on_change.call(BackBehavior::RewindThenPrev),
+                aria_pressed: is_rewind,
                 "{i18n::t(\"back_behavior_rewind\")}"
             }
             button {
                 class: "flex-1 text-[11px] font-bold z-10 transition-colors duration-300 cursor-pointer {always_class}",
                 title: "{i18n::t(\"back_behavior_always_prev\")}",
                 onclick: move |_| on_change.call(BackBehavior::AlwaysPrev),
+                aria_pressed: !is_rewind,
                 "{i18n::t(\"back_behavior_always_prev\")}"
             }
         }
@@ -559,6 +564,18 @@ pub fn ReplayGainModeSelector(
     }
 }
 
+/// Inline style for a settings range input: the accent colour, plus how far
+/// along the value sits as `--fill`. A native range input exposes no fill of
+/// its own, and the Material 3 style paints its active track from this.
+pub fn range_style(value: f64, min: f64, max: f64) -> String {
+    let fill = if max > min {
+        ((value - min) / (max - min)).clamp(0.0, 1.0) * 100.0
+    } else {
+        0.0
+    };
+    format!("accent-color: var(--color-indigo-500); --fill: {fill:.1}%;")
+}
+
 /// A dB slider with a signed monospace readout, for the two ReplayGain trims.
 #[component]
 pub fn GainSlider(value: f32, min: f32, max: f32, on_change: EventHandler<f32>) -> Element {
@@ -571,7 +588,7 @@ pub fn GainSlider(value: f32, min: f32, max: f32, on_change: EventHandler<f32>) 
                 step: "0.5",
                 value: format!("{value:.1}"),
                 class: "w-40",
-                style: "accent-color: var(--color-indigo-500);",
+                style: range_style(f64::from(value), f64::from(min), f64::from(max)),
                 oninput: move |evt| {
                     if let Ok(parsed) = evt.value().parse::<f32>() {
                         on_change.call(parsed.clamp(min, max));
@@ -691,7 +708,7 @@ pub fn RadioRegistryDropdown(
                                     if !is_default {
                                         button {
                                             onclick: move |_| on_delete.call(i),
-                                            class: "text-red-400 hover:text-red-300 text-xs px-2 py-0.5 rounded transition-colors shrink-0",
+                                            class: "app-button-text app-button-danger text-red-400 hover:text-red-300 text-xs px-2 py-0.5 rounded transition-colors shrink-0",
                                             "{delete_text}"
                                         }
                                     }
@@ -701,7 +718,7 @@ pub fn RadioRegistryDropdown(
                     }
                     button {
                         onclick: move |_| on_add.call(()),
-                        class: "bg-white/10 hover:bg-white/20 px-3 py-1 rounded text-sm text-white transition-colors self-start mt-1",
+                        class: "app-button-tonal bg-white/10 hover:bg-white/20 px-3 py-1 rounded text-sm text-white transition-colors self-start mt-1",
                         "{add_text}"
                     }
                 }
