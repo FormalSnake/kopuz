@@ -34,8 +34,8 @@ pub use jobs::{
 };
 pub use library::{
     AlbumInfo, AlbumPage, ArtistCredit, ArtistDetail, ArtistInfo, ArtistPage, DEFAULT_PAGE_LIMIT,
-    LyricChunkView, LyricLineView, LyricsView, Page, SearchResults, StatsView, TrackFilter,
-    TrackInfo, TrackPage, TrackSort,
+    LyricChunkView, LyricLineView, LyricsView, Page, SearchRequest, SearchResults,
+    SearchSuggestion, StatsView, TrackFilter, TrackInfo, TrackPage, TrackSort,
 };
 pub use mutations::{ArtworkChange, ArtworkUpload, TrackMetadataPatch};
 pub use player::{
@@ -56,9 +56,9 @@ pub use schema::{
 };
 pub use sources::{
     AlbumPresentation, ArtistPresentation, BrowserSession, ConnectKind, CredentialProvision,
-    DraftCheck, FavoritesSyncMode, IntegrationInfo, PageEntry, PlaylistCapability, ServiceInfo,
-    ServiceRef, SignInKind, SourceCapabilities, SourceDraft, SourceFolderEntry, SourceInfo,
-    SourceLoginRequest,
+    DraftCheck, FavoritesSyncMode, IntegrationInfo, PageEntry, PlaylistCapability, SearchFilter,
+    ServiceInfo, ServiceRef, SignInKind, SourceCapabilities, SourceDraft, SourceFolderEntry,
+    SourceInfo, SourceLoginRequest,
 };
 
 /// The config view: the layered config with credential keys
@@ -203,7 +203,11 @@ pub trait LibraryApi: Send + Sync {
 
     /// Search the active source. Remote sources answer over the network, so
     /// this is a daemon call and not a filter the caller composes.
-    async fn search(&self, query: String) -> Result<SearchResults, ApiError>;
+    async fn search(&self, request: SearchRequest) -> Result<SearchResults, ApiError>;
+
+    /// Completions for a half-typed query, and direct hits among them.
+    /// Empty for a source that offers none.
+    async fn search_suggestions(&self, query: String) -> Result<Vec<SearchSuggestion>, ApiError>;
 
     /// The source's public page for a row, for a share action. `None` when the
     /// source has no web pages, which is a client's cue to fall back to a

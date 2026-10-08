@@ -11,10 +11,13 @@ use crate::ytmusic::{YouTubeMusicClient, player};
 use super::{
     AlbumType, ArtistLookup, ArtistView, AuthOutcome, Capabilities, CatalogPageEntry,
     FavoritesPage, FavoritesSync, LibraryActions, MediaSource, PlaylistDetails, PlaylistMeta,
-    PlaylistOps, PlaylistPage, RadioPage, RadioSeeds, RemoteAlbum, SourceError, StreamInfo,
-    mirror_added, mirror_created,
+    PlaylistOps, PlaylistPage, RadioPage, RadioSeeds, RemoteAlbum, SearchFilterEntry, SourceError,
+    StreamInfo, mirror_added, mirror_created,
 };
-use crate::ytmusic::browse;
+use crate::ytmusic::browse::{
+    self,
+    search::{self, SearchPage, Suggestion},
+};
 use crate::ytmusic::discover::{self, BrowsePage};
 
 /// YT Music's "Liked Music" auto-playlist. It is not browsed like the user's
@@ -339,6 +342,56 @@ impl MediaSource for YtSource {
             Some(token) => self.client.browse_continuation(token).await?,
             None => self.client.browse_page(id).await?,
         })
+    }
+
+    fn search_filters(&self) -> Vec<SearchFilterEntry> {
+        let all = SearchFilterEntry {
+            id: search::ALL,
+            label: search::ALL_LABEL,
+        };
+        let library = self.client.is_authenticated().then_some(&search::LIBRARY);
+        std::iter::once(all)
+            .chain(
+                search::FILTERS
+                    .iter()
+                    .chain(library)
+                    .map(|filter| SearchFilterEntry {
+                        id: filter.id,
+                        label: filter.label,
+                    }),
+            )
+            .collect()
+    }
+
+    async fn search_shelves(
+        &self,
+        query: &str,
+        filter: &str,
+        continuation: Option<&str>,
+    ) -> Result<SearchPage, SourceError> {
+        if let Some(token) = continuation {
+            return Ok(search::continued(
+                self.client.browse_continuation(token).await?,
+            ));
+        }
+        if query.trim().is_empty() {
+            return Ok(SearchPage::default());
+        }
+        let filter = match filter {
+            search::ALL => None,
+            id => Some(
+                search::filter(id)
+                    .ok_or_else(|| SourceError::InvalidInput(format!("no such filter: {id}")))?,
+            ),
+        };
+        Ok(self.client.search_page(query, filter).await?)
+    }
+
+    async fn search_suggestions(&self, query: &str) -> Result<Vec<Suggestion>, SourceError> {
+        if query.trim().is_empty() {
+            return Ok(Vec::new());
+        }
+        Ok(self.client.search_suggestions(query).await?)
     }
 
     async fn related(&self, item_id: &str) -> Result<BrowsePage, SourceError> {

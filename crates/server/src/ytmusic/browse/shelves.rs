@@ -56,6 +56,7 @@ fn shelf_of(layout: ShelfLayout, items: Vec<DiscoverItem>) -> DiscoverShelf {
         items,
         layout,
         continuation: None,
+        search_filter: None,
     }
 }
 
