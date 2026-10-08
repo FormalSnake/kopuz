@@ -65,6 +65,8 @@ pub struct CatalogShelf {
     pub more_kind: CatalogItemKind,
     /// More items for this shelf, not more shelves for the page.
     pub continuation: Option<String>,
+    /// On an "all" search, the filter that shows every result of this kind.
+    pub search_filter: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
