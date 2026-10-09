@@ -221,7 +221,6 @@ impl CatalogService {
                 accent: None,
                 actions: actions(item_actions),
                 explicit,
-                ..CatalogItem::default()
             },
             DiscoverItem::Artist {
                 channel_id,
