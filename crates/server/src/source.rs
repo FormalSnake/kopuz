@@ -100,8 +100,13 @@ pub trait MediaSource: Send + Sync {
     ) -> Result<(), SourceError>;
 
     /// Resolve a playable stream for one item id (local = a file path, server =
-    /// the remote's URL / deciphered stream).
-    async fn resolve_stream(&self, item_id: &str) -> Result<StreamInfo, SourceError>;
+    /// the remote's URL / deciphered stream). `quality` picks among several
+    /// formats where the source offers them; a source with one ignores it.
+    async fn resolve_stream(
+        &self,
+        item_id: &str,
+        quality: config::StreamQuality,
+    ) -> Result<StreamInfo, SourceError>;
 
     /// The bytes of one track, for sources that can't express it as a URL.
     ///

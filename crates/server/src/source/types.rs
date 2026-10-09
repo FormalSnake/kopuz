@@ -162,6 +162,14 @@ pub struct Capabilities {
     pub favorites_sync: FavoritesSync,
     /// A signed-in account has a picture, which [`MediaSource::account_avatar`](super::MediaSource::account_avatar) fetches.
     pub account_avatar: bool,
+    /// It offers several formats per track and picks one by
+    /// [`config::StreamQuality`].
+    pub stream_quality: bool,
+    /// Its listings mark explicit tracks, so skipping them can work.
+    pub explicit_flags: bool,
+    /// It keeps a watch history of the account's plays, which
+    /// [`config::AppConfig::pause_watch_history`] stops it being told about.
+    pub watch_history: bool,
 }
 
 /// A catalog page a source declares: the id that opens it, the translation
