@@ -305,6 +305,8 @@ pub(crate) fn parse_page(response: &Value) -> Option<BrowsePage> {
         description: header.description.or(about),
         thumbnail: header.thumbnail,
         playback_id: header.playback_id,
+        owner: header.owner,
+        plays: header.plays,
         chips: chips(&list["header"]["chipCloudRenderer"]),
         shelves: found,
         continuation: continuation(list),

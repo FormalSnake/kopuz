@@ -186,6 +186,29 @@ pub trait MediaSource: Send + Sync {
         None
     }
 
+    /// The same for an artist, given the id this source browses it by.
+    fn artist_web_url(&self, _artist_id: &str) -> Option<String> {
+        None
+    }
+
+    /// The same for a playlist, given the id this source lists it by.
+    fn playlist_web_url(&self, _playlist_id: &str) -> Option<String> {
+        None
+    }
+
+    /// One track by the id it plays under, for a key nothing has listed this
+    /// session. `None` when the source has no such track; the default has no
+    /// way to look one up.
+    async fn fetch_track(&self, _item_id: &str) -> Result<Option<reader::Track>, SourceError> {
+        Ok(None)
+    }
+
+    /// The signed-in account's picture. `None` anonymously, and for a source
+    /// whose accounts have none.
+    async fn account_avatar(&self) -> Result<Option<String>, SourceError> {
+        Ok(None)
+    }
+
     /// Search this source for `query`, returning matching tracks and albums. The
     /// default searches the source's library corpus (the behavior local, Jellyfin
     /// and Subsonic all share); catalog-backed remotes (YT) override to query the
@@ -375,6 +398,7 @@ pub trait MediaSource: Send + Sync {
         Ok(PlaylistPage {
             tracks: self.fetch_playlist_entries(playlist_id).await?,
             next: None,
+            header: None,
         })
     }
 

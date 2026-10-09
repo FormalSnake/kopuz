@@ -146,6 +146,8 @@ pub(super) struct Header {
     pub description: Option<String>,
     pub thumbnail: Option<String>,
     pub playback_id: Option<String>,
+    pub owner: Option<String>,
+    pub plays: Option<String>,
 }
 
 pub(super) fn header(v: &Value) -> Option<Header> {
@@ -164,6 +166,7 @@ pub(super) fn header(v: &Value) -> Option<Header> {
                     ["playlistId"]
                     .as_str()
                     .map(str::to_string),
+                ..Header::default()
             })
         }
         "musicResponsiveHeaderRenderer" | "musicDetailHeaderRenderer" => {
@@ -179,6 +182,18 @@ pub(super) fn header(v: &Value) -> Option<Header> {
                 .filter_map(text)
                 .collect();
             let description = &r["description"];
+            let owner = r["facepile"]["avatarStackViewModel"]["text"]["content"]
+                .as_str()
+                .map(str::trim)
+                .filter(|name| !name.is_empty())
+                .map(str::to_string)
+                .or_else(|| text(&r["straplineTextOne"]));
+            let plays = runs(&r["secondSubtitle"])
+                .iter()
+                .filter_map(|run| run["text"].as_str())
+                .map(str::trim)
+                .find(|part| crate::ytmusic::is_count(part))
+                .map(str::to_string);
             Some(Header {
                 kind: PageHeader::Detail,
                 title: text(&r["title"])?,
@@ -187,6 +202,8 @@ pub(super) fn header(v: &Value) -> Option<Header> {
                     .or_else(|| text(description)),
                 thumbnail: thumbnail(&r["thumbnail"]),
                 playback_id,
+                owner,
+                plays,
             })
         }
         "musicEditablePlaylistDetailHeaderRenderer" => header(&r["header"]),
