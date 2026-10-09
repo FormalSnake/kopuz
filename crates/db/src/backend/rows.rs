@@ -79,6 +79,8 @@ impl TrackRow {
                 album_peak: self.rg_album_peak.map(|v| v as f32),
                 loudness_db: None,
             },
+            explicit: false,
+            plays: None,
         }
     }
 }
@@ -175,6 +177,8 @@ impl QueueTrackRow {
                 album_peak: self.rg_album_peak.map(|v| v as f32),
                 loudness_db: None,
             },
+            explicit: false,
+            plays: None,
         }
     }
 }

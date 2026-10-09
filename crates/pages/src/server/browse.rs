@@ -13,9 +13,7 @@ use components::{CatalogPageRef, NavigationController};
 use dioxus::prelude::*;
 use tracing::Instrument;
 
-use super::discover::{
-    DiscoverNowPlaying, DiscoverPage, DiscoverPrefetchCache, ShelfRow, failure_text, play_catalog,
-};
+use super::discover::{DiscoverNowPlaying, DiscoverPage, ShelfRow, failure_text, play_catalog};
 
 fn entry_page(entry: &PageEntry) -> CatalogPageRef {
     CatalogPageRef {
@@ -455,7 +453,6 @@ fn PageHeader(detail: CatalogDetail, fallback: String) -> Element {
     let mut actions = use_signal(|| detail.actions.clone());
     let ctrl = use_context::<hooks::use_player_controller::PlayerController>();
     let now_playing = use_context::<DiscoverNowPlaying>().0;
-    let cache = use_context::<DiscoverPrefetchCache>().0;
     let title = if detail.title.is_empty() {
         fallback
     } else {
@@ -464,13 +461,7 @@ fn PageHeader(detail: CatalogDetail, fallback: String) -> Element {
     let artwork = hooks::artwork::url(detail.artwork.as_ref(), hooks::artwork::Size::Thumb);
     let play = detail.playback_id.clone().map(|id| {
         EventHandler::new(move |_: ()| {
-            play_catalog(
-                CatalogItemKind::Playlist,
-                id.clone(),
-                ctrl,
-                now_playing,
-                cache,
-            )
+            play_catalog(CatalogItemKind::Playlist, id.clone(), ctrl, now_playing)
         })
     });
     match detail.header {

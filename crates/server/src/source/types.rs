@@ -228,6 +228,8 @@ pub struct Capabilities {
     pub albums: AlbumType,
     pub favorites_sync: FavoritesSync,
     pub library_actions: LibraryActions,
+    /// A signed-in account has a picture, which [`MediaSource::account_avatar`](super::MediaSource::account_avatar) fetches.
+    pub account_avatar: bool,
 }
 
 /// A catalog page a source declares: the id that opens it, the translation
@@ -288,6 +290,8 @@ pub struct RemoteAlbum {
     pub artist: Option<String>,
     pub artist_id: Option<String>,
     pub year: Option<String>,
+    pub album_type: Option<String>,
+    pub description: Option<String>,
     pub thumbnail: Option<String>,
     pub audio_playlist_id: Option<String>,
     pub tracks: Vec<reader::Track>,
@@ -302,6 +306,8 @@ impl From<crate::ytmusic::discover::YtAlbum> for RemoteAlbum {
             artist: a.artist,
             artist_id: a.artist_id,
             year: a.year,
+            album_type: a.album_type,
+            description: a.description,
             thumbnail: a.thumbnail,
             audio_playlist_id: a.audio_playlist_id,
             tracks: a.tracks,

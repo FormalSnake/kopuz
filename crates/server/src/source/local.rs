@@ -41,6 +41,7 @@ impl MediaSource for LocalSource {
             albums: AlbumType::Standard,
             favorites_sync: FavoritesSync::Instant,
             library_actions: LibraryActions::NONE,
+            account_avatar: false,
         }
     }
 

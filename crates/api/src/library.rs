@@ -47,6 +47,11 @@ pub struct TrackInfo {
     pub artwork: Option<crate::ArtworkRef>,
     /// Every credited artist in billing order; `artist` is the billing as the source shows it.
     pub credits: Vec<ArtistCredit>,
+    /// The source marks it explicit.
+    pub explicit: bool,
+    /// How often it was played or watched, as the source wrote it ("1.2B plays"),
+    /// on a row whose listing shows that.
+    pub plays: Option<String>,
 }
 
 /// One artist a row credits: what the row calls them, and the key that opens them.

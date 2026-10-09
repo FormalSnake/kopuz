@@ -178,6 +178,8 @@ pub struct SourceInfo {
     pub permanent: bool,
     /// What the daemon's last probe found; `None` until it has probed this source.
     pub state: Option<crate::SourceState>,
+    /// The picture of the account it is signed in as, for a service whose accounts have one.
+    pub avatar: Option<crate::ArtworkRef>,
 }
 
 /// One account a source's sign-in can act as, such as a YouTube brand account.

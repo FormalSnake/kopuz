@@ -315,6 +315,8 @@ fn headed(header: shelves::Header) -> BrowsePage {
         playback_id: header.playback_id,
         actions: header.actions,
         privacy: header.privacy,
+        owner: header.owner,
+        plays: header.plays,
         ..BrowsePage::default()
     }
 }

@@ -157,6 +157,8 @@ pub fn catalog_item_to_proto(value: &api::CatalogItem) -> CatalogItem {
         track: value.track.as_ref().map(track_info_to_proto),
         accent: value.accent.clone(),
         actions: Some(catalog_actions_to_proto(&value.actions)),
+        explicit: value.explicit,
+        web_url: value.web_url.clone(),
     }
 }
 
@@ -170,6 +172,8 @@ pub fn catalog_item_from_proto(value: &CatalogItem) -> api::CatalogItem {
         track: value.track.as_ref().map(track_info_from_proto),
         accent: value.accent.clone(),
         actions: catalog_actions_from_proto(value.actions.as_ref()),
+        explicit: value.explicit,
+        web_url: value.web_url.clone(),
     }
 }
 
@@ -253,6 +257,11 @@ pub fn catalog_detail_to_proto(value: &api::CatalogDetail) -> CatalogDetail {
         privacy: value
             .privacy
             .map(|privacy| playlist_privacy_to_proto(privacy) as i32),
+        album_type: value.album_type.clone(),
+        monthly_listeners: value.monthly_listeners.clone(),
+        owner: value.owner.clone(),
+        plays: value.plays.clone(),
+        web_url: value.web_url.clone(),
     }
 }
 
@@ -274,6 +283,11 @@ pub fn catalog_detail_from_proto(value: &CatalogDetail) -> api::CatalogDetail {
         chips: value.chips.iter().map(catalog_chip_from_proto).collect(),
         actions: catalog_actions_from_proto(value.actions.as_ref()),
         privacy: value.privacy.and_then(playlist_privacy_from_proto),
+        album_type: value.album_type.clone(),
+        monthly_listeners: value.monthly_listeners.clone(),
+        owner: value.owner.clone(),
+        plays: value.plays.clone(),
+        web_url: value.web_url.clone(),
     }
 }
 
@@ -413,6 +427,8 @@ mod tests {
                         followed: None,
                         history_token: Some("HISTORY".into()),
                     },
+                    explicit: true,
+                    web_url: Some("https://example.com/MPRE1".into()),
                 }],
                 ..Default::default()
             }],
@@ -464,6 +480,24 @@ mod tests {
         assert_eq!(
             detail,
             catalog_detail_from_proto(&catalog_detail_to_proto(&detail))
+        );
+
+        let album = api::CatalogDetail {
+            kind: api::CatalogItemKind::Album,
+            id: "MPRE1".into(),
+            title: "An album".into(),
+            description: Some("About it".into()),
+            album_type: Some("EP".into()),
+            monthly_listeners: Some("1M monthly audience".into()),
+            owner: Some("Someone".into()),
+            plays: Some("2M views".into()),
+            web_url: Some("https://example.com/MPRE1".into()),
+            header: api::CatalogHeader::Detail,
+            ..Default::default()
+        };
+        assert_eq!(
+            album,
+            catalog_detail_from_proto(&catalog_detail_to_proto(&album))
         );
         for layout in [
             api::ShelfLayout::Carousel,

@@ -62,6 +62,7 @@ const CAPABILITIES: Capabilities = Capabilities {
     albums: AlbumType::Standard,
     favorites_sync: FavoritesSync::Instant,
     library_actions: LibraryActions::NONE,
+    account_avatar: false,
 };
 
 /// Art fetches in flight at once, enough to hide the round trips without
@@ -229,6 +230,8 @@ impl MediaSource for NextcloudSource {
                     credits: Vec::new(),
                     artists: vec![track.artist],
                     replay_gain: config::ReplayGainInfo::default(),
+                    explicit: false,
+                    plays: None,
                 }
             })
             .collect();

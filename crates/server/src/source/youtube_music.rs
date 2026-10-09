@@ -157,6 +157,7 @@ impl MediaSource for YtSource {
             artist_view: ArtistView::Remote,
             albums: AlbumType::YtMusic,
             favorites_sync: FavoritesSync::Paginated,
+            account_avatar: true,
             // Every one of these is the account's, so none works signed out.
             library_actions: if self.client.is_authenticated() {
                 LibraryActions::ALL
@@ -300,6 +301,33 @@ impl MediaSource for YtSource {
     fn album_web_url(&self, browse_id: &str) -> Option<String> {
         (!browse_id.trim().is_empty())
             .then(|| format!("https://music.youtube.com/browse/{browse_id}"))
+    }
+
+    fn artist_web_url(&self, channel_id: &str) -> Option<String> {
+        (!channel_id.trim().is_empty())
+            .then(|| format!("https://music.youtube.com/channel/{channel_id}"))
+    }
+
+    fn playlist_web_url(&self, playlist_id: &str) -> Option<String> {
+        let id = playlist_id.strip_prefix("VL").unwrap_or(playlist_id);
+        (!id.trim().is_empty()).then(|| format!("https://music.youtube.com/playlist?list={id}"))
+    }
+
+    async fn fetch_track(&self, item_id: &str) -> Result<Option<reader::Track>, SourceError> {
+        if item_id.trim().is_empty() {
+            return Ok(None);
+        }
+        self.client
+            .fetch_track(item_id)
+            .await
+            .map_err(SourceError::from)
+    }
+
+    async fn account_avatar(&self) -> Result<Option<String>, SourceError> {
+        self.client
+            .account_avatar()
+            .await
+            .map_err(SourceError::from)
     }
 
     async fn search(

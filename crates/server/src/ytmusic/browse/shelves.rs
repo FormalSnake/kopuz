@@ -151,6 +151,8 @@ pub(super) struct Header {
     pub playback_id: Option<String>,
     pub actions: ItemActions,
     pub privacy: Option<Privacy>,
+    pub owner: Option<String>,
+    pub plays: Option<String>,
 }
 
 pub(super) fn header(v: &Value) -> Option<Header> {
@@ -171,6 +173,7 @@ pub(super) fn header(v: &Value) -> Option<Header> {
                     .map(str::to_string),
                 actions: actions::subscription(r),
                 privacy: None,
+                ..Header::default()
             })
         }
         "musicResponsiveHeaderRenderer" | "musicDetailHeaderRenderer" => {
@@ -186,6 +189,18 @@ pub(super) fn header(v: &Value) -> Option<Header> {
                 .filter_map(text)
                 .collect();
             let description = &r["description"];
+            let owner = r["facepile"]["avatarStackViewModel"]["text"]["content"]
+                .as_str()
+                .map(str::trim)
+                .filter(|name| !name.is_empty())
+                .map(str::to_string)
+                .or_else(|| text(&r["straplineTextOne"]));
+            let plays = runs(&r["secondSubtitle"])
+                .iter()
+                .filter_map(|run| run["text"].as_str())
+                .map(str::trim)
+                .find(|part| crate::ytmusic::is_count(part))
+                .map(str::to_string);
             Some(Header {
                 kind: PageHeader::Detail,
                 title: text(&r["title"])?,
@@ -196,6 +211,8 @@ pub(super) fn header(v: &Value) -> Option<Header> {
                 actions: actions::detail_header(r, playback_id.as_deref()),
                 playback_id,
                 privacy: None,
+                owner,
+                plays,
             })
         }
         // A playlist the account owns: its own, so there is nothing to save.

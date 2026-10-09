@@ -42,6 +42,10 @@ pub struct CatalogItem {
     pub track: Option<TrackInfo>,
     /// The tile's own colour, as `#rrggbb`, where the source gives one (mood tiles).
     pub accent: Option<String>,
+    /// The source marks it explicit. A song tile says the same as its track.
+    pub explicit: bool,
+    /// The source's public page for it, to share.
+    pub web_url: Option<String>,
     pub actions: CatalogActions,
 }
 
@@ -190,4 +194,14 @@ pub struct CatalogDetail {
     pub actions: CatalogActions,
     /// Set for a playlist the account owns.
     pub privacy: Option<crate::PlaylistPrivacy>,
+    /// For an album, the kind of release as the source labels it ("Album", "Single", "EP").
+    pub album_type: Option<String>,
+    /// For an artist, the audience the source counts per month; `subtitle` is its subscribers.
+    pub monthly_listeners: Option<String>,
+    /// For a playlist or a show, who made it.
+    pub owner: Option<String>,
+    /// For a playlist, how often it was played or watched, as the source wrote it.
+    pub plays: Option<String>,
+    /// The source's public page for it, to share.
+    pub web_url: Option<String>,
 }

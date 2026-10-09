@@ -107,6 +107,10 @@ pub struct BrowsePage {
     pub thumbnail: Option<String>,
     /// The playlist that plays the whole page.
     pub playback_id: Option<String>,
+    /// Who made it, for a playlist or a show.
+    pub owner: Option<String>,
+    /// "6.9M views", where the header counts them.
+    pub plays: Option<String>,
     pub chips: Vec<PageChip>,
     pub shelves: Vec<DiscoverShelf>,
     pub continuation: Option<String>,
@@ -201,6 +205,7 @@ pub enum DiscoverItem {
         subtitle: String,
         thumbnail: Option<String>,
         actions: ItemActions,
+        explicit: bool,
     },
     Artist {
         channel_id: String,
@@ -276,6 +281,9 @@ pub struct YtAlbum {
     pub artist: Option<String>,
     pub artist_id: Option<String>,
     pub year: Option<String>,
+    /// "Album", "Single", "EP", as the header labels it.
+    pub album_type: Option<String>,
+    pub description: Option<String>,
     pub thumbnail: Option<String>,
     pub audio_playlist_id: Option<String>,
     pub tracks: Vec<Track>,
@@ -300,6 +308,8 @@ pub struct YtArtist {
     pub channel_id: String,
     pub name: String,
     pub subscribers: Option<String>,
+    /// "80.8M monthly audience", where the header shows it.
+    pub monthly_listeners: Option<String>,
     pub description: Option<String>,
     pub banner_thumbnail: Option<String>,
     pub shuffle_playlist_id: Option<String>,
@@ -339,6 +349,7 @@ pub(super) fn parse_artist(channel_id: &str, resp: &Value) -> YtArtist {
         )
         .or_else(|| runs_text(h, "/subscriberCountText/runs"))
     });
+    let monthly_listeners = header.and_then(|h| runs_text(h, "/monthlyListenerCount/runs"));
     let description = header.and_then(|h| runs_text(h, "/description/runs"));
     let banner_thumbnail = header.and_then(best_artist_banner);
     let shuffle_playlist_id = header
@@ -365,6 +376,7 @@ pub(super) fn parse_artist(channel_id: &str, resp: &Value) -> YtArtist {
         channel_id: channel_id.to_string(),
         name,
         subscribers,
+        monthly_listeners,
         description,
         banner_thumbnail,
         shuffle_playlist_id,
@@ -536,6 +548,7 @@ fn parse_artist_song_row(row: &Value) -> Option<Track> {
     let mut credits: Vec<ArtistCredit> = Vec::new();
     let mut album = String::new();
     let mut flex_duration: Option<u64> = None;
+    let mut plays = None;
     for c in &cols {
         match c {
             RowColumn::Title {
@@ -563,6 +576,7 @@ fn parse_artist_song_row(row: &Value) -> Option<Track> {
             RowColumn::Duration { secs } if flex_duration.is_none() => {
                 flex_duration = Some(*secs);
             }
+            RowColumn::PlayCount { text } if plays.is_none() => plays = Some(text.clone()),
             _ => {}
         }
     }
@@ -611,6 +625,8 @@ fn parse_artist_song_row(row: &Value) -> Option<Track> {
         artists,
         replay_gain: config::ReplayGainInfo::default(),
         credits,
+        explicit: super::has_explicit_badge(row),
+        plays,
     })
 }
 
@@ -636,6 +652,14 @@ pub(super) fn parse_album(browse_id: &str, resp: &Value) -> YtAlbum {
 
     let artist = pick_album_artist(header);
     let year = pick_album_year(header);
+    let album_type = pick_album_type(header);
+    let description = header.and_then(|h| {
+        runs_text(
+            h,
+            "/description/musicDescriptionShelfRenderer/description/runs",
+        )
+        .or_else(|| runs_text(h, "/description/runs"))
+    });
     let thumbnail = best_album_thumbnail(header).map(normalize_yt_thumbnail);
     let audio_playlist_id_header = header.and_then(find_audio_playlist_id);
 
@@ -682,6 +706,8 @@ pub(super) fn parse_album(browse_id: &str, resp: &Value) -> YtAlbum {
         artist_id: artist.as_ref().and_then(|credit| credit.id.clone()),
         artist: artist.map(|credit| credit.name),
         year,
+        album_type,
+        description,
         thumbnail,
         actions: header
             .map(|h| actions::detail_header(h, audio_playlist_id.as_deref()))
@@ -828,6 +854,15 @@ fn pick_album_year(header: Option<&Value>) -> Option<String> {
     None
 }
 
+/// The first part of the header's subtitle, "Album • 2013", when it names a kind of release.
+fn pick_album_type(header: Option<&Value>) -> Option<String> {
+    let first = header?
+        .pointer("/subtitle/runs/0/text")
+        .and_then(Value::as_str)?
+        .trim();
+    matches!(first, "Album" | "Single" | "EP" | "Audiobook").then(|| first.to_string())
+}
+
 fn find_audio_playlist_id(header: &Value) -> Option<String> {
     let buttons = header.get("buttons").and_then(|v| v.as_array())?;
     for button in buttons {
@@ -874,6 +909,7 @@ fn parse_album_row(
     let mut row_artist: Option<String> = None;
     let mut row_credits: Vec<ArtistCredit> = Vec::new();
     let mut flex_duration: Option<u64> = None;
+    let mut plays = None;
     for c in &cols {
         match c {
             RowColumn::Title {
@@ -900,6 +936,7 @@ fn parse_album_row(
             RowColumn::Duration { secs } if flex_duration.is_none() => {
                 flex_duration = Some(*secs);
             }
+            RowColumn::PlayCount { text } if plays.is_none() => plays = Some(text.clone()),
             _ => {}
         }
     }
@@ -951,6 +988,8 @@ fn parse_album_row(
         artists,
         replay_gain: config::ReplayGainInfo::default(),
         credits,
+        explicit: super::has_explicit_badge(row),
+        plays,
     })
 }
 
@@ -1111,13 +1150,15 @@ fn parse_tile(item: &Value) -> Option<DiscoverItem> {
         .pointer("/navigationEndpoint/watchEndpoint/videoId")
         .and_then(|v| v.as_str())
     {
+        let mut track = build_song_track(video_id, &title, &subtitle, thumbnail.as_deref());
+        track.explicit = super::has_explicit_badge(r);
+        track.plays = subtitle
+            .split('•')
+            .map(str::trim)
+            .find(|part| super::is_count(part))
+            .map(str::to_string);
         return Some(DiscoverItem::Song(
-            Box::new(build_song_track(
-                video_id,
-                &title,
-                &subtitle,
-                thumbnail.as_deref(),
-            )),
+            Box::new(track),
             actions::track(menu, video_id),
         ));
     }
@@ -1158,6 +1199,7 @@ fn parse_tile(item: &Value) -> Option<DiscoverItem> {
                     menu,
                     actions::overlay_playlist_id(&r["thumbnailOverlay"]),
                 ),
+                explicit: super::has_explicit_badge(r),
             });
         }
         if browse_id.starts_with("UC") {
@@ -1217,6 +1259,8 @@ fn build_song_track(video_id: &str, title: &str, subtitle: &str, thumbnail: Opti
         credits: Vec::new(),
         artists,
         replay_gain: config::ReplayGainInfo::default(),
+        explicit: false,
+        plays: None,
     }
 }
 
@@ -1304,7 +1348,9 @@ pub(crate) enum RowColumn {
     Duration {
         secs: u64,
     },
-    PlayCount,
+    PlayCount {
+        text: String,
+    },
     Other,
     Empty,
 }
@@ -1420,7 +1466,9 @@ fn classify_flex_columns(row: &Value) -> Vec<RowColumn> {
         if let Some(secs) = parse_mm_ss(text.trim()) {
             out.push(RowColumn::Duration { secs });
         } else if is_play_count_text(&text) {
-            out.push(RowColumn::PlayCount);
+            out.push(RowColumn::PlayCount {
+                text: text.trim().to_string(),
+            });
         } else {
             out.push(RowColumn::Other);
         }

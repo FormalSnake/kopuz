@@ -75,6 +75,7 @@ impl MediaSource for SpotifySource {
             albums: AlbumType::Standard,
             favorites_sync: FavoritesSync::Paginated,
             library_actions: LibraryActions::NONE,
+            account_avatar: false,
         }
     }
 
