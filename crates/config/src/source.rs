@@ -208,6 +208,11 @@ pub struct MusicServer {
     /// For `MusicService::YtMusic` only: anonymous mode.
     #[serde(default)]
     pub yt_anonymous: bool,
+    /// For `MusicService::YtMusic`: the browser profile the session was
+    /// imported from, as `browser_sessions` names it, so an expired session
+    /// can be read from it again. `None` when it came from anywhere else.
+    #[serde(default)]
+    pub yt_profile: Option<String>,
     /// For services with several accounts under one sign-in (YouTube brand
     /// accounts): the one in use. `None` is the signed-in account itself.
     #[serde(default)]
@@ -245,6 +250,7 @@ impl MusicServer {
             id: Some(uuid::Uuid::new_v4().to_string()),
             yt_browser: None,
             yt_anonymous: false,
+            yt_profile: None,
             account: None,
             apple_music_storefront: "us".to_string(),
             apple_music_language: "en".to_string(),
@@ -276,6 +282,7 @@ impl Default for MusicServer {
             id: None,
             yt_browser: None,
             yt_anonymous: false,
+            yt_profile: None,
             account: None,
             apple_music_storefront: "us".to_string(),
             apple_music_language: "en".to_string(),
@@ -408,6 +415,9 @@ pub struct SavedServer {
     /// Persisted anonymous-mode flag.
     #[serde(default)]
     pub yt_anonymous: bool,
+    /// Persisted browser profile a YouTube Music session was imported from.
+    #[serde(default)]
+    pub yt_profile: Option<String>,
     /// Persisted account choice, for services with several under one sign-in.
     #[serde(default)]
     pub account: Option<String>,
@@ -428,6 +438,7 @@ impl SavedServer {
             service,
             yt_browser: None,
             yt_anonymous: false,
+            yt_profile: None,
             account: None,
             apple_music_storefront: "us".to_string(),
             apple_music_language: "en".to_string(),
@@ -445,6 +456,7 @@ impl SavedServer {
             service: server.service,
             yt_browser: server.yt_browser,
             yt_anonymous: server.yt_anonymous,
+            yt_profile: server.yt_profile.clone(),
             account: server.account.clone(),
             apple_music_storefront: server.apple_music_storefront.clone(),
             apple_music_language: server.apple_music_language.clone(),

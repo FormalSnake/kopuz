@@ -114,6 +114,12 @@ impl LocalApi {
             .ok_or_else(|| ApiError::unsupported("this daemon runs read-only"))
     }
 
+    fn favorites_service(&self) -> Result<&crate::favorites::FavoritesService, ApiError> {
+        self.favorites
+            .as_deref()
+            .ok_or_else(|| ApiError::unsupported("this daemon runs without a favorites service"))
+    }
+
     fn catalog(&self) -> Result<&crate::catalog::CatalogService, ApiError> {
         self.catalog
             .as_deref()
@@ -143,6 +149,18 @@ impl LocalApi {
     ) -> Self {
         self.integrations = Some(integrations);
         self
+    }
+
+    /// Run `attempt`, a call that reaches the active source, recovering an
+    /// expired session once and trying again.
+    async fn recovering<T, A>(&self, mut attempt: impl FnMut() -> A) -> Result<T, ApiError>
+    where
+        A: std::future::Future<Output = Result<T, ApiError>>,
+    {
+        match &self.sources {
+            Some(sources) => sources.recovering(attempt).await,
+            None => attempt().await,
+        }
     }
 
     fn sources(&self) -> Result<&crate::sources::SourceService, ApiError> {
@@ -216,27 +234,39 @@ impl api::PlaylistApi for LocalApi {
     }
 
     async fn create_playlist(&self, name: String, keys: Vec<String>) -> Result<String, ApiError> {
-        self.playlists()?.create(&name, &keys).await
+        let (name, keys) = (&name, &keys);
+        self.recovering(|| async move { self.playlists()?.create(name, keys).await })
+            .await
     }
 
     async fn rename_playlist(&self, id: String, name: String) -> Result<(), ApiError> {
-        self.playlists()?.rename(&id, &name).await
+        let (id, name) = (&id, &name);
+        self.recovering(|| async move { self.playlists()?.rename(id, name).await })
+            .await
     }
 
     async fn edit_playlist(&self, id: String, edit: api::PlaylistEdit) -> Result<(), ApiError> {
-        self.playlists()?.edit(&id, edit).await
+        let (id, edit) = (&id, &edit);
+        self.recovering(|| async move { self.playlists()?.edit(id, edit.clone()).await })
+            .await
     }
 
     async fn delete_playlist(&self, id: String) -> Result<(), ApiError> {
-        self.playlists()?.delete(&id).await
+        let id = &id;
+        self.recovering(|| async move { self.playlists()?.delete(id).await })
+            .await
     }
 
     async fn add_playlist_tracks(&self, id: String, keys: Vec<String>) -> Result<(), ApiError> {
-        self.playlists()?.add_tracks(&id, &keys).await
+        let (id, keys) = (&id, &keys);
+        self.recovering(|| async move { self.playlists()?.add_tracks(id, keys).await })
+            .await
     }
 
     async fn remove_playlist_track(&self, id: String, index: u32) -> Result<(), ApiError> {
-        self.playlists()?.remove_track(&id, index).await
+        let id = &id;
+        self.recovering(|| async move { self.playlists()?.remove_track(id, index).await })
+            .await
     }
 
     async fn reorder_playlist(
@@ -244,7 +274,9 @@ impl api::PlaylistApi for LocalApi {
         id: String,
         reorder: api::PlaylistReorder,
     ) -> Result<(), ApiError> {
-        self.playlists()?.reorder(&id, reorder).await
+        let id = &id;
+        self.recovering(|| async move { self.playlists()?.reorder(id, reorder).await })
+            .await
     }
 
     async fn refresh_playlist(&self, id: String) -> Result<(), ApiError> {
@@ -252,15 +284,21 @@ impl api::PlaylistApi for LocalApi {
     }
 
     async fn create_playlist_folder(&self, name: String) -> Result<String, ApiError> {
-        self.playlists()?.create_folder(&name).await
+        let name = &name;
+        self.recovering(|| async move { self.playlists()?.create_folder(name).await })
+            .await
     }
 
     async fn rename_playlist_folder(&self, id: String, name: String) -> Result<(), ApiError> {
-        self.playlists()?.rename_folder(&id, &name).await
+        let (id, name) = (&id, &name);
+        self.recovering(|| async move { self.playlists()?.rename_folder(id, name).await })
+            .await
     }
 
     async fn delete_playlist_folder(&self, id: String) -> Result<(), ApiError> {
-        self.playlists()?.delete_folder(&id).await
+        let id = &id;
+        self.recovering(|| async move { self.playlists()?.delete_folder(id).await })
+            .await
     }
 
     async fn move_playlist(
@@ -268,9 +306,13 @@ impl api::PlaylistApi for LocalApi {
         playlist_id: String,
         folder_id: Option<String>,
     ) -> Result<(), ApiError> {
-        self.playlists()?
-            .move_playlist(&playlist_id, folder_id.as_deref())
-            .await
+        let (playlist_id, folder_id) = (&playlist_id, folder_id.as_deref());
+        self.recovering(|| async move {
+            self.playlists()?
+                .move_playlist(playlist_id, folder_id)
+                .await
+        })
+        .await
     }
 }
 
@@ -335,11 +377,15 @@ impl api::PlayerApi for LocalApi {
     }
 
     async fn video(&self, request: api::VideoRequest) -> Result<api::VideoChunk, ApiError> {
-        self.video
-            .as_deref()
-            .ok_or_else(|| ApiError::unsupported("this daemon runs without music videos"))?
-            .chunk(request)
-            .await
+        let request = &request;
+        self.recovering(|| async move {
+            self.video
+                .as_deref()
+                .ok_or_else(|| ApiError::unsupported("this daemon runs without music videos"))?
+                .chunk(request.clone())
+                .await
+        })
+        .await
     }
 }
 
@@ -383,14 +429,18 @@ impl api::LibraryApi for LocalApi {
     }
 
     async fn catalog(&self, continuation: Option<String>) -> Result<api::CatalogPage, ApiError> {
-        self.catalog()?.catalog(continuation.as_deref()).await
+        let continuation = continuation.as_deref();
+        self.recovering(|| async move { self.catalog()?.catalog(continuation).await })
+            .await
     }
 
     async fn catalog_detail(
         &self,
         request: api::CatalogDetailRequest,
     ) -> Result<api::CatalogDetail, ApiError> {
-        self.catalog()?.detail(request).await
+        let request = &request;
+        self.recovering(|| async move { self.catalog()?.detail(request.clone()).await })
+            .await
     }
 
     async fn radio_stations(&self) -> Result<Vec<api::RadioStationInfo>, ApiError> {
@@ -421,19 +471,27 @@ impl api::LibraryApi for LocalApi {
     }
 
     async fn delete_tracks(&self, keys: Vec<String>, from_disk: bool) -> Result<(), ApiError> {
-        self.mutations()?.delete_tracks(&keys, from_disk).await
+        let keys = &keys;
+        self.recovering(|| async move { self.mutations()?.delete_tracks(keys, from_disk).await })
+            .await
     }
 
     async fn delete_album(&self, id: String, from_disk: bool) -> Result<(), ApiError> {
-        self.mutations()?.delete_album(&id, from_disk).await
+        let id = &id;
+        self.recovering(|| async move { self.mutations()?.delete_album(id, from_disk).await })
+            .await
     }
 
     async fn upload_artwork(&self, upload: api::ArtworkUpload) -> Result<(), ApiError> {
-        self.mutations()?.upload_artwork(upload).await
+        let upload = &upload;
+        self.recovering(|| async move { self.mutations()?.upload_artwork(upload.clone()).await })
+            .await
     }
 
     async fn remove_artwork(&self, target: api::ArtworkTarget) -> Result<(), ApiError> {
-        self.mutations()?.remove_artwork(target).await
+        let target = &target;
+        self.recovering(|| async move { self.mutations()?.remove_artwork(target.clone()).await })
+            .await
     }
 
     async fn artist_tracks(&self, artist: String, page: Page) -> Result<api::TrackPage, ApiError> {
@@ -467,7 +525,11 @@ impl api::LibraryApi for LocalApi {
     async fn search(&self, request: api::SearchRequest) -> Result<api::SearchResults, ApiError> {
         match (&request.filter, &request.continuation) {
             (None, None) => self.library()?.search(&request.query).await,
-            _ => self.catalog()?.search(request).await,
+            _ => {
+                let request = &request;
+                self.recovering(|| async move { self.catalog()?.search(request.clone()).await })
+                    .await
+            }
         }
     }
 
@@ -475,7 +537,9 @@ impl api::LibraryApi for LocalApi {
         &self,
         query: String,
     ) -> Result<Vec<api::SearchSuggestion>, ApiError> {
-        self.catalog()?.search_suggestions(&query).await
+        let query = &query;
+        self.recovering(|| async move { self.catalog()?.search_suggestions(query).await })
+            .await
     }
 
     async fn track_web_url(&self, key: String) -> Result<Option<String>, ApiError> {
@@ -491,51 +555,44 @@ impl api::LibraryApi for LocalApi {
     }
 
     async fn favorites(&self) -> Result<api::FavoritesView, ApiError> {
-        match &self.favorites {
-            Some(service) => service.list().await,
-            None => Err(ApiError::unsupported(
-                "this daemon runs without a favorites service",
-            )),
-        }
+        self.recovering(|| async move { self.favorites_service()?.list().await })
+            .await
     }
 
     async fn set_favorite(&self, key: String, favorite: bool) -> Result<(), ApiError> {
-        match &self.favorites {
-            Some(service) => service.set(&key, favorite).await,
-            None => Err(ApiError::unsupported(
-                "this daemon runs without a favorites service",
-            )),
-        }
+        let key = &key;
+        self.recovering(|| async move { self.favorites_service()?.set(key, favorite).await })
+            .await
     }
 
     async fn dont_recommend(&self, key: String) -> Result<(), ApiError> {
-        match &self.favorites {
-            Some(service) => service.dont_recommend(&key).await,
-            None => Err(ApiError::unsupported(
-                "this daemon runs without a favorites service",
-            )),
-        }
+        let key = &key;
+        self.recovering(|| async move { self.favorites_service()?.dont_recommend(key).await })
+            .await
     }
 
     async fn rate(&self, item_ref: String, rating: api::Rating) -> Result<(), ApiError> {
-        match &self.favorites {
-            Some(service) => service.rate(&item_ref, rating).await,
-            None => Err(ApiError::unsupported(
-                "this daemon runs without a favorites service",
-            )),
-        }
+        let item_ref = &item_ref;
+        self.recovering(|| async move { self.favorites_service()?.rate(item_ref, rating).await })
+            .await
     }
 
     async fn follow(&self, artist_ref: String, follow: bool) -> Result<(), ApiError> {
-        self.catalog()?.follow(&artist_ref, follow).await
+        let artist_ref = &artist_ref;
+        self.recovering(|| async move { self.catalog()?.follow(artist_ref, follow).await })
+            .await
     }
 
     async fn save(&self, item_ref: String, saved: bool) -> Result<(), ApiError> {
-        self.catalog()?.save(&item_ref, saved).await
+        let item_ref = &item_ref;
+        self.recovering(|| async move { self.catalog()?.save(item_ref, saved).await })
+            .await
     }
 
     async fn remove_from_history(&self, token: String) -> Result<(), ApiError> {
-        self.catalog()?.remove_from_history(&token).await
+        let token = &token;
+        self.recovering(|| async move { self.catalog()?.remove_from_history(token).await })
+            .await
     }
 
     async fn folder_tracks(&self, prefix: String, page: Page) -> Result<api::TrackPage, ApiError> {
