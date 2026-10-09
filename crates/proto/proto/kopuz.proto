@@ -806,6 +806,12 @@ message SourceCapabilities {
   // One sign-in holds several accounts, which a client can list and switch
   // between.
   bool accounts = 26;
+  // It offers several formats per track and picks one by stream_quality.
+  bool stream_quality = 28;
+  // Its listings mark explicit tracks.
+  bool explicit_flags = 29;
+  // It keeps a watch history of the account's plays.
+  bool watch_history = 30;
 }
 
 message SearchFilter {
@@ -1707,6 +1713,10 @@ message Config {
   uint32 lyrics_depth_blur_strength = 68;
   ReplayGainSettings replay_gain = 70;
   bool muted = 71;
+  StreamQuality stream_quality = 72;
+  bool autoplay_radio = 73;
+  bool skip_explicit = 74;
+  bool pause_watch_history = 75;
 }
 
 enum AlbumViewMode {
@@ -1734,6 +1744,13 @@ enum ChannelMode {
   CHANNEL_MODE_LEFT_ONLY = 3;
   CHANNEL_MODE_RIGHT_ONLY = 4;
   CHANNEL_MODE_SWAP_LEFT_RIGHT = 5;
+}
+
+enum StreamQuality {
+  STREAM_QUALITY_UNSPECIFIED = 0;
+  STREAM_QUALITY_LOW = 1;
+  STREAM_QUALITY_NORMAL = 2;
+  STREAM_QUALITY_HIGH = 3;
 }
 
 enum DeviceChangeBehavior {

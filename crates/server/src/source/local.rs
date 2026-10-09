@@ -42,6 +42,9 @@ impl MediaSource for LocalSource {
             favorites_sync: FavoritesSync::Instant,
             library_actions: LibraryActions::NONE,
             account_avatar: false,
+            stream_quality: false,
+            explicit_flags: false,
+            watch_history: false,
         }
     }
 
@@ -88,7 +91,11 @@ impl MediaSource for LocalSource {
             .map_err(SourceError::from)
     }
 
-    async fn resolve_stream(&self, item_id: &str) -> Result<StreamInfo, SourceError> {
+    async fn resolve_stream(
+        &self,
+        item_id: &str,
+        _: config::StreamQuality,
+    ) -> Result<StreamInfo, SourceError> {
         Ok(StreamInfo {
             url: item_id.to_string(),
             format: None,

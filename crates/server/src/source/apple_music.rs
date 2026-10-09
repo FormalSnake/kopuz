@@ -68,6 +68,9 @@ impl MediaSource for AppleMusicSource {
             favorites_sync: FavoritesSync::Instant,
             library_actions: LibraryActions::NONE,
             account_avatar: false,
+            stream_quality: false,
+            explicit_flags: false,
+            watch_history: false,
         }
     }
 
@@ -164,7 +167,11 @@ impl MediaSource for AppleMusicSource {
         .map_err(SourceError::Backend)
     }
 
-    async fn resolve_stream(&self, _item_id: &str) -> Result<StreamInfo, SourceError> {
+    async fn resolve_stream(
+        &self,
+        _item_id: &str,
+        _: config::StreamQuality,
+    ) -> Result<StreamInfo, SourceError> {
         let token = self.client.media_user_token().unwrap_or("");
         let encoded_token =
             base64::Engine::encode(&base64::engine::general_purpose::STANDARD, token.as_bytes());
