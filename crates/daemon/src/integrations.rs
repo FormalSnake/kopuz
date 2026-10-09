@@ -187,6 +187,12 @@ fn youtube_signed_in(config: &config::AppConfig) -> bool {
         })
 }
 
+/// Plays reach YouTube History only from a signed-in source, and not while
+/// the user has paused the watch history.
+fn reports_history(config: &config::AppConfig) -> bool {
+    youtube_signed_in(config) && !config.pause_watch_history
+}
+
 /// YouTube History reporting while a signed-in YouTube Music source is
 /// active: a play is reported once it is audible, its position every second
 /// while it plays and on every state change (which is how a seek arrives),
@@ -222,7 +228,7 @@ pub fn spawn_youtube_reporter(
                         Err(broadcast::error::RecvError::Closed) => break,
                     };
                     let received = Instant::now();
-                    let live_id = (youtube_signed_in(&config.borrow())
+                    let live_id = (reports_history(&config.borrow())
                         && matches!(state.phase, Phase::Playing | Phase::Paused))
                     .then(|| {
                         state
@@ -865,5 +871,13 @@ mod tests {
         let mut local = youtube("SAPISID=abc", false);
         local.active_source = config::Source::LocalLibrary("local".into());
         assert!(!youtube_signed_in(&local));
+    }
+
+    #[test]
+    fn a_paused_watch_history_reports_nothing() {
+        let mut config = youtube("SAPISID=abc", false);
+        assert!(reports_history(&config));
+        config.pause_watch_history = true;
+        assert!(!reports_history(&config));
     }
 }
