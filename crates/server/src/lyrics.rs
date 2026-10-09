@@ -489,12 +489,8 @@ where
     let youtube_music = async {
         match &youtube_music_id {
             Some(video_id) => {
-                fetch_youtube_music_lyrics(
-                    video_id,
-                    request.youtube_music_auth.as_ref(),
-                    reach,
-                )
-                .await
+                fetch_youtube_music_lyrics(video_id, request.youtube_music_auth.as_ref(), reach)
+                    .await
             }
             None => None,
         }

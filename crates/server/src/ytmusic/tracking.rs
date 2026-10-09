@@ -12,7 +12,7 @@ use std::time::Instant;
 use serde_json::Value;
 
 use super::clients::{ORIGIN_YOUTUBE_MUSIC, WEB_REMIX};
-use super::innertube::{http_client, sapisid_hash};
+use super::innertube::{http_client, sapisid_hash, signed};
 
 const SCHEDULED_FLUSH_MS: [u64; 3] = [10_000, 20_000, 30_000];
 const FLUSH_INTERVAL_MS: u64 = 40_000;
@@ -196,9 +196,8 @@ pub async fn ping(url: &str, cookies: &str, visitor: Option<&str>) -> Result<u16
         .header("Origin", ORIGIN_YOUTUBE_MUSIC)
         .header("X-Origin", ORIGIN_YOUTUBE_MUSIC)
         .header("Referer", format!("{ORIGIN_YOUTUBE_MUSIC}/"))
-        .header("X-Goog-AuthUser", "0")
-        .header("Cookie", cookies)
-        .header("Authorization", auth);
+        .header("X-Goog-AuthUser", "0");
+    req = signed(req, &mut Value::Null, cookies, auth);
     if let Some(visitor) = visitor {
         req = req.header("X-Goog-Visitor-Id", visitor);
     }
