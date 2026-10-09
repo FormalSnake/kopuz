@@ -18,6 +18,15 @@ pub struct AppleMusicLyricsAuth {
     pub catalog_id: String,
 }
 
+/// The YouTube Music session the lyrics provider reads with. `account` is the
+/// brand account the source acts as, so the lookup runs as that account like
+/// every other signed-in call; `None` is the Google account itself.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct YouTubeMusicLyricsAuth {
+    pub cookies: String,
+    pub account: Option<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LyricsRequest {
     pub artist: String,
@@ -34,7 +43,7 @@ pub struct LyricsRequest {
     pub apple_music_auth: Option<AppleMusicLyricsAuth>,
     /// The YouTube Music session, which leads a music video to its song's
     /// lyrics. Anonymous lookups still read the song's own.
-    pub youtube_music_cookies: Option<String>,
+    pub youtube_music_auth: Option<YouTubeMusicLyricsAuth>,
 }
 
 impl LyricsRequest {
@@ -55,7 +64,7 @@ impl LyricsRequest {
             prefer_local: false,
             enable_musixmatch: false,
             apple_music_auth: None,
-            youtube_music_cookies: None,
+            youtube_music_auth: None,
         }
     }
 
@@ -88,8 +97,8 @@ impl LyricsRequest {
         self
     }
 
-    pub fn youtube_music_cookies(mut self, cookies: String) -> Self {
-        self.youtube_music_cookies = Some(cookies);
+    pub fn youtube_music_auth(mut self, auth: YouTubeMusicLyricsAuth) -> Self {
+        self.youtube_music_auth = Some(auth);
         self
     }
 

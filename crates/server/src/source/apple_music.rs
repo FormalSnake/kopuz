@@ -56,6 +56,7 @@ impl MediaSource for AppleMusicSource {
             browse_folders: false,
             external_devices: false,
             browser_playback: false,
+            accounts: false,
             sync: true,
             downloads: true,
             discover: false,
