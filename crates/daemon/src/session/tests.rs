@@ -2676,6 +2676,10 @@ impl QueueMaterializer for RadioLibrary {
 
     async fn materialize_queue(&self, context: &QueueContext) -> Result<RadioPage, ApiError> {
         match context {
+            QueueContext::TrackRadio { key } if key == "dirty" => Ok(RadioPage {
+                tracks: radio_tracks(&[key, "r1", "r2", "r3", "r4", "r5"]),
+                more: Some("p-explicit".into()),
+            }),
             QueueContext::TrackRadio { key } => Ok(RadioPage {
                 tracks: radio_tracks(&[key, "r1", "r2", "r3", "r4", "r5"]),
                 more: Some("p1".into()),
@@ -2700,6 +2704,10 @@ impl QueueMaterializer for RadioLibrary {
             "p2" => RadioPage {
                 tracks: radio_tracks(&["r11", "r12", "r13"]),
                 more: Some("p1".into()),
+            },
+            "p-explicit" => RadioPage {
+                tracks: radio_tracks(&["r20", "explicit-r21", "r22"]),
+                more: None,
             },
             _ => RadioPage::default(),
         })
@@ -3101,6 +3109,13 @@ struct PlaybackSettingsHarness {
 async fn autoplay_harness(
     configure: impl FnOnce(&mut config::AppConfig),
 ) -> PlaybackSettingsHarness {
+    autoplay_harness_over(Arc::new(StubLibrary), configure).await
+}
+
+async fn autoplay_harness_over(
+    library: Arc<dyn QueueMaterializer>,
+    configure: impl FnOnce(&mut config::AppConfig),
+) -> PlaybackSettingsHarness {
     let dir = tempfile::tempdir().expect("tempdir");
     let database = db::init(&dir.path().join("radio.db")).await.expect("db");
     let sink = FakeSinkHandle::default();
@@ -3114,7 +3129,7 @@ async fn autoplay_harness(
         source: config::Source::default(),
     }));
     let session = SessionHandle::spawn_with_factory(
-        Arc::new(StubLibrary),
+        library,
         player,
         services,
         Arc::new(|track| Some(wav_factory(track.duration.min(6)))),
@@ -3256,4 +3271,53 @@ async fn a_run_out_queue_stops_without_autoplay_or_without_track_radio() {
             "autoplay {autoplay}, track radio {with_radio}"
         );
     }
+}
+
+#[tokio::test]
+async fn a_radio_top_up_leaves_out_explicit_tracks_when_skipping_them() {
+    let library = Arc::new(RadioLibrary::default());
+    let harness = radio_harness(library.clone());
+    let mut config = harness.api.session.config_watch().borrow().clone();
+    config.skip_explicit = true;
+    harness
+        .api
+        .session
+        .set_config(config, vec!["skip_explicit".into()]);
+    harness.api.set_queue(track_radio("dirty")).await.unwrap();
+    wait_committed(&harness.api).await;
+
+    harness
+        .api
+        .queue_edit(QueueEdit::Jump { index: 1 })
+        .await
+        .unwrap();
+    wait_state(&harness.api, "the top-up", |state| state.queue.length == 8).await;
+    assert_eq!(library.asked(), ["p-explicit"]);
+    let keys = queue_keys(&harness.api).await;
+    assert!(keys.iter().all(|key| !key.contains("explicit")), "{keys:?}");
+}
+
+/// Autoplay continues a run-out queue as a radio that then tops itself up,
+/// rather than a one-off batch with nothing after it.
+#[tokio::test]
+async fn an_autoplay_radio_tops_itself_up_like_any_radio() {
+    let library = Arc::new(RadioLibrary::default());
+    let PlaybackSettingsHarness { harness, .. } =
+        autoplay_harness_over(library.clone(), |config| config.autoplay_radio = true).await;
+    harness
+        .api
+        .set_queue(replace(&["short-seed"]))
+        .await
+        .expect("set queue");
+    wait_committed(&harness.api).await;
+
+    drive_until(&harness, "the autoplay radio", |state| {
+        state.queue.index == Some(1) && matches!(state.intent, Intent::Committed { .. })
+    })
+    .await;
+    wait_state(&harness.api, "its first top-up", |state| {
+        state.queue.length == 11
+    })
+    .await;
+    assert_eq!(library.asked(), ["p1"]);
 }

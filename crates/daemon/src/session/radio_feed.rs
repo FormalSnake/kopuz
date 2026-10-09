@@ -134,8 +134,18 @@ impl Session {
             (Some(next), false) => feed.cursor = next,
             _ => self.set_radio_feed(None),
         }
+        let skip = self.config.skip_explicit;
+        let fresh: Vec<Track> = fresh
+            .into_iter()
+            .filter(|track| !(skip && track.explicit))
+            .collect();
         if fresh.is_empty() {
+            // A page skip_explicit emptied is not the end of the radio.
+            if let Some(feed) = self.radio_feed.as_mut() {
+                feed.resume = resume;
+            }
             self.queue_dirty = true;
+            self.top_up_radio();
             return;
         }
         self.model.add(fresh);
