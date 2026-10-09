@@ -61,6 +61,7 @@ fn capabilities(source: &dyn server::source::MediaSource) -> SourceCapabilities 
         downloads: caps.downloads,
         discover: caps.discover,
         dont_recommend: caps.dont_recommend,
+        music_videos: caps.music_videos,
         track_radio: caps.radio.track,
         playlist_radio: caps.radio.playlist,
         search_radio: caps.radio.track && caps.radio.search,

@@ -641,6 +641,7 @@ pub(super) fn parsed_to_track(p: ParsedRow) -> Track {
         artists: p.artists.iter().map(|c| c.name.clone()).collect(),
         credits: p.artists,
         replay_gain: config::ReplayGainInfo::default(),
+        counterpart: None,
     }
 }
 

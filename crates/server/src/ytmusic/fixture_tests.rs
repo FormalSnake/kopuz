@@ -652,3 +652,47 @@ fn search_tracks_and_their_album_ids() {
         assert!(track.album_id == by_name || track.album_id.starts_with("ytmusic:album:MPRE"));
     }
 }
+
+/// The one fixture recorded signed in: only a session is sent the wrapper
+/// rows that pair an album track with its music video. The asked-for song is
+/// the primary row, and its video is the counterpart, with the stretch both
+/// share.
+#[test]
+fn watch_next_pairs_a_song_with_its_music_video() {
+    use reader::{Counterpart, SharedSegment};
+    let rows = super::mix::walk_queue(&fixture!("next_counterpart"));
+    let song = &rows[0];
+    assert_eq!(song.id.key(), "lYBUbBu4W08");
+    let video = Counterpart {
+        item_id: "LLFhKaqnWwk".into(),
+        video: true,
+        duration_ms: Some(213_000),
+        segments: vec![SharedSegment {
+            start_ms: 924,
+            counterpart_start_ms: 0,
+            duration_ms: 212_500,
+        }],
+    };
+    assert_eq!(song.counterpart.as_deref(), Some(&video));
+    assert!(rows[1..].iter().all(|row| row.counterpart.is_none()));
+
+    assert_eq!(
+        super::mix::counterpart_of(&rows, "lYBUbBu4W08"),
+        Some(video)
+    );
+    // Asked from the video's side, the same row answers with the song,
+    // its stretch seen the other way round.
+    let from_video = super::mix::counterpart_of(&rows, "LLFhKaqnWwk").expect("the song");
+    assert_eq!(from_video.item_id, "lYBUbBu4W08");
+    assert!(!from_video.video);
+    assert_eq!(from_video.duration_ms, Some(214_000));
+    assert_eq!(
+        from_video.segments,
+        vec![SharedSegment {
+            start_ms: 0,
+            counterpart_start_ms: 924,
+            duration_ms: 212_500,
+        }]
+    );
+    assert_eq!(super::mix::counterpart_of(&rows, "nothing"), None);
+}
