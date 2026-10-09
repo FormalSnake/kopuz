@@ -328,7 +328,11 @@ fn CatalogSearchBar(
                 onkeydown: move |evt| {
                     evt.stop_propagation();
                     match evt.key() {
-                        Key::Enter => run(text.peek().clone()),
+                        Key::Enter => {
+                            // The peek guard has to drop before `run` writes `text`.
+                            let query = text.peek().clone();
+                            run(query);
+                        }
                         Key::Escape => open.set(false),
                         _ => {}
                     }
