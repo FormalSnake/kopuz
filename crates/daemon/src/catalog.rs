@@ -44,7 +44,7 @@ struct Thumbnails {
     order: VecDeque<String>,
 }
 
-fn source_error(error: server::source::SourceError) -> ApiError {
+pub(crate) fn source_error(error: server::source::SourceError) -> ApiError {
     use api::ErrorCode;
     use server::source::SourceError;
     match &error {
@@ -928,6 +928,7 @@ mod tests {
             replay_gain: config::ReplayGainInfo::default(),
             explicit: false,
             plays: None,
+            counterpart: None,
         }
     }
 

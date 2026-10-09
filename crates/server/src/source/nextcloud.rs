@@ -56,6 +56,7 @@ const CAPABILITIES: Capabilities = Capabilities {
     downloads: true,
     discover: false,
     dont_recommend: false,
+    music_videos: false,
     radio: RadioSeeds::NONE,
     playlists: PlaylistOps::None, // none over raw WebDAV, the Music app's are Subsonic
     artist_view: ArtistView::Library,
@@ -235,6 +236,7 @@ impl MediaSource for NextcloudSource {
                     replay_gain: config::ReplayGainInfo::default(),
                     explicit: false,
                     plays: None,
+                    counterpart: None,
                 }
             })
             .collect();

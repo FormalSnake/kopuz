@@ -27,6 +27,7 @@ pub fn capabilities_to_proto(value: &api::SourceCapabilities) -> SourceCapabilit
         stream_quality: value.stream_quality,
         explicit_flags: value.explicit_flags,
         watch_history: value.watch_history,
+        music_videos: value.music_videos,
         playlists: playlist_capability_to_proto(value.playlists) as i32,
         artists: match value.artists {
             ArtistPresentation::Library => crate::ArtistPresentation::Library,
@@ -134,6 +135,7 @@ pub fn capabilities_from_proto(value: Option<&SourceCapabilities>) -> api::Sourc
         stream_quality: value.stream_quality,
         explicit_flags: value.explicit_flags,
         watch_history: value.watch_history,
+        music_videos: value.music_videos,
         playlists: playlist_capability_from_proto(value.playlists),
         artists: match crate::ArtistPresentation::try_from(value.artists) {
             Ok(crate::ArtistPresentation::Remote) => api::ArtistPresentation::Remote,
@@ -427,6 +429,7 @@ mod tests {
                 stream_quality: true,
                 explicit_flags: true,
                 watch_history: true,
+                music_videos: true,
                 playlists: api::PlaylistCapability::Reorder,
                 artists: api::ArtistPresentation::Library,
                 albums: api::AlbumPresentation::Standard,

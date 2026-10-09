@@ -12,7 +12,7 @@ use super::{
     AlbumType, ArtistLookup, ArtistView, AuthOutcome, Capabilities, CatalogPageEntry,
     FavoritesPage, FavoritesSync, LibraryActions, MediaSource, PlaylistDetails, PlaylistMeta,
     PlaylistOps, PlaylistPage, RadioPage, RadioSeeds, RemoteAlbum, SearchFilterEntry,
-    SourceAccount, SourceError, StreamInfo, mirror_added, mirror_created,
+    SourceAccount, SourceError, StreamInfo, VideoStream, mirror_added, mirror_created,
 };
 use crate::ytmusic::browse::{
     self,
@@ -145,6 +145,7 @@ impl MediaSource for YtSource {
             downloads: true,
             discover: true,
             dont_recommend: true,
+            music_videos: true,
             radio: RadioSeeds {
                 search: true,
                 ..RadioSeeds::ALL
@@ -863,6 +864,27 @@ impl MediaSource for YtSource {
             send_report(cookies.to_owned(), url, self.brand_account());
         }
         Ok(())
+    }
+
+    async fn counterpart(
+        &self,
+        track: &reader::Track,
+    ) -> Result<Option<reader::Counterpart>, SourceError> {
+        let video_id = track.id.key();
+        if video_id.trim().is_empty() {
+            return Ok(None);
+        }
+        Ok(self.client.counterpart(&video_id).await?)
+    }
+
+    async fn video_stream(&self, item_id: &str) -> Result<VideoStream, SourceError> {
+        let stream = self.client.get_video_stream(item_id).await?;
+        Ok(VideoStream {
+            url: stream.url,
+            content_type: stream.mime,
+            user_agent: Some(stream.user_agent),
+            content_length: stream.content_length,
+        })
     }
 
     async fn validate(&self) -> AuthOutcome {

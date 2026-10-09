@@ -222,6 +222,8 @@ pub struct Capabilities {
     /// The person can tell it to stop recommending a track — a negative
     /// signal to the source's recommender, not a library edit.
     pub dont_recommend: bool,
+    /// Its tracks can have a music video cut, which plays with a picture.
+    pub music_videos: bool,
     pub radio: RadioSeeds,
     pub playlists: PlaylistOps,
     pub artist_view: ArtistView,
@@ -283,6 +285,16 @@ pub struct StreamInfo {
     pub content_length: Option<u64>,
     /// See [`config::ReplayGainInfo::loudness_db`].
     pub loudness_db: Option<f32>,
+}
+
+/// A picture-only stream, fetched by range. The URL is the source's and is
+/// never handed to a frontend.
+#[derive(Debug, Clone)]
+pub struct VideoStream {
+    pub url: String,
+    pub content_type: String,
+    pub user_agent: Option<String>,
+    pub content_length: Option<u64>,
 }
 
 pub struct PlaylistMeta {

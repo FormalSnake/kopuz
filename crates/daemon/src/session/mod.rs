@@ -25,6 +25,7 @@ use crate::queue_model::{NextOutcome, QueueModel};
 mod load;
 mod radio_feed;
 mod reconciler;
+mod versions;
 
 use load::{LoadFailure, LoadFinished, PreparedLoad};
 use radio_feed::RadioFeed;
@@ -157,6 +158,11 @@ enum SessionCmd {
         token: u64,
         meta: Box<NowPlayingMeta>,
     },
+    /// The source paired a queued track with its other cut.
+    CounterpartFound {
+        uid: String,
+        counterpart: Box<reader::Counterpart>,
+    },
 }
 
 #[derive(Clone)]
@@ -246,6 +252,7 @@ impl SessionHandle {
             station_registry: services.station_registry,
             cmd_tx: cmd_tx.clone(),
             factory_override,
+            counterparts: std::collections::HashMap::new(),
         };
         let (state_tx, state_rx) = watch::channel(session.build_state());
         tokio::spawn(session.run(cmd_rx, engine_events, state_tx));
@@ -576,6 +583,9 @@ struct Session {
     station_registry: Arc<radio::registry::StationRegistry>,
     cmd_tx: mpsc::UnboundedSender<SessionCmd>,
     factory_override: Option<FactoryOverride>,
+    /// What the source answered for each track it was asked to pair, so a
+    /// track queued again gets its pair back without asking twice.
+    counterparts: std::collections::HashMap<String, Option<reader::Counterpart>>,
 }
 
 impl Session {
@@ -720,6 +730,13 @@ impl Session {
                     self.player.update_metadata(token, *meta);
                 }
             }
+            SessionCmd::CounterpartFound { uid, counterpart } => {
+                self.counterparts
+                    .insert(uid.clone(), Some(counterpart.as_ref().clone()));
+                if self.learn_counterpart(&uid, *counterpart) {
+                    self.publish(state_tx, true);
+                }
+            }
         }
     }
 
@@ -791,6 +808,9 @@ impl Session {
             PlayerCommand::SetMuted { muted } => {
                 self.muted = muted;
                 self.player.set_volume(self.output_volume());
+            }
+            PlayerCommand::SetVersion { version } => {
+                queue_changed = self.set_version(version, state_tx)?;
             }
             PlayerCommand::SetMode { shuffle, loop_mode } => {
                 queue_changed = shuffle.is_some();
@@ -1528,7 +1548,8 @@ impl Session {
                 | PlayerCommand::Previous
                 | PlayerCommand::Toggle
                 | PlayerCommand::SetMuted { .. }
-                | PlayerCommand::SetMode { .. } => Ok(()),
+                | PlayerCommand::SetMode { .. }
+                | PlayerCommand::SetVersion { .. } => Ok(()),
             };
             if let Err(error) = result {
                 tracing::warn!(%error, "external playback command failed");

@@ -113,6 +113,9 @@ pub struct SourceCapabilities {
     /// It keeps a watch history of the account's plays, which
     /// `pause_watch_history` stops it being told about.
     pub watch_history: bool,
+    /// Its rows can have a music video cut, whose picture
+    /// [`crate::PlayerApi::video`] serves while the engine plays its sound.
+    pub music_videos: bool,
     pub playlists: PlaylistCapability,
     pub artists: ArtistPresentation,
     pub albums: AlbumPresentation,

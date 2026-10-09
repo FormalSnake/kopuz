@@ -52,6 +52,34 @@ pub struct TrackInfo {
     /// How often it was played or watched, as the source wrote it ("1.2B plays"),
     /// on a row whose listing shows that.
     pub plays: Option<String>,
+    /// The other cut of this recording, when the source pairs one with it.
+    pub counterpart: Option<TrackCounterpart>,
+}
+
+/// Which cut of a recording a row is, for a source that has both.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TrackVersion {
+    Song,
+    Video,
+}
+
+impl TrackVersion {
+    pub fn other(self) -> Self {
+        match self {
+            Self::Song => Self::Video,
+            Self::Video => Self::Song,
+        }
+    }
+}
+
+/// The other cut of a row, which [`crate::PlayerCommand::SetVersion`] swaps a
+/// playing track for.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TrackCounterpart {
+    pub key: String,
+    /// What the counterpart is; the row carrying it is the other one.
+    pub version: TrackVersion,
+    pub duration_ms: Option<u64>,
 }
 
 /// One artist a row credits: what the row calls them, and the key that opens them.
@@ -63,6 +91,11 @@ pub struct ArtistCredit {
 }
 
 impl TrackInfo {
+    /// Which cut this row is, known only when it has a counterpart.
+    pub fn version(&self) -> Option<TrackVersion> {
+        self.counterpart.as_ref().map(|other| other.version.other())
+    }
+
     /// The credit `artist` names in any case, else the lead: credits come in billing order.
     pub fn primary_credit(&self) -> Option<&ArtistCredit> {
         let billed = self.artist.trim();

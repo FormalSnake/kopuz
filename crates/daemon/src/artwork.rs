@@ -565,6 +565,7 @@ mod tests {
             replay_gain: config::ReplayGainInfo::default(),
             explicit: false,
             plays: None,
+            counterpart: None,
         }
     }
 

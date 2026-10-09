@@ -497,6 +497,7 @@ impl LibraryService {
             replay_gain: config::ReplayGainInfo::default(),
             explicit: false,
             plays: None,
+            counterpart: None,
         }
     }
 
@@ -743,6 +744,7 @@ mod tests {
             replay_gain: config::ReplayGainInfo::default(),
             explicit: false,
             plays: None,
+            counterpart: None,
         }
     }
 
@@ -889,6 +891,7 @@ mod tests {
             replay_gain: config::ReplayGainInfo::default(),
             explicit: false,
             plays: None,
+            counterpart: None,
         };
 
         let unregistered = library

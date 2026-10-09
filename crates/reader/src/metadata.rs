@@ -181,6 +181,7 @@ pub fn extract_metadata(
         replay_gain: config::ReplayGainInfo::default(),
         explicit: false,
         plays: None,
+        counterpart: None,
     }
 }
 
@@ -520,6 +521,7 @@ fn read_with_symphonia(track_path: &Path) -> Option<ScannedTrack> {
         replay_gain: config::ReplayGainInfo::default(),
         explicit: false,
         plays: None,
+        counterpart: None,
     };
 
     let genre = find_symphonia_tag(&tags, |t| matches!(t, StandardTag::Genre(_)), &["GENRE"])

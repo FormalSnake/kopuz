@@ -97,6 +97,7 @@ fn song_to_track(
         replay_gain,
         explicit: false,
         plays: None,
+        counterpart: None,
     }
 }
 
@@ -254,6 +255,7 @@ impl MediaSource for SubsonicSource {
                         replay_gain,
                         explicit: false,
                         plays: None,
+                        counterpart: None,
                     });
                 }
             }
@@ -284,6 +286,7 @@ impl MediaSource for SubsonicSource {
             downloads: true,
             discover: false,
             dont_recommend: false,
+            music_videos: false,
             radio: RadioSeeds::TRACK,
             playlists: PlaylistOps::Reorder,
             artist_view: ArtistView::Library,

@@ -484,6 +484,19 @@ impl YouTubeMusicClient {
             .await
     }
 
+    pub async fn get_video_stream(&self, video_id: &str) -> Result<player::YtVideoStream, String> {
+        self.account(player::resolve_video(video_id, self.cookies.as_deref()))
+            .await
+    }
+
+    pub async fn counterpart(&self, video_id: &str) -> Result<Option<reader::Counterpart>, String> {
+        self.account(mix::counterpart(
+            video_id,
+            self.cookies.as_deref().unwrap_or(""),
+        ))
+        .await
+    }
+
     // Public surfaces — work anonymously. `cookies.as_deref().unwrap_or("")`
     // hands an empty header to the parser, which the lower-level
     // discover/mix `post` and innertube::browse now interpret as "skip

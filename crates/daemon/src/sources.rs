@@ -79,6 +79,7 @@ fn capabilities(source: &dyn server::source::MediaSource) -> SourceCapabilities 
         save: caps.library_actions.save,
         remove_from_history: caps.library_actions.remove_from_history,
         playlist_details: caps.library_actions.playlist_details,
+        music_videos: caps.music_videos,
         track_radio: caps.radio.track,
         playlist_radio: caps.radio.playlist,
         search_radio: caps.radio.track && caps.radio.search,

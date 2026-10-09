@@ -81,6 +81,7 @@ impl TrackRow {
             },
             explicit: false,
             plays: None,
+            counterpart: None,
         }
     }
 }
@@ -179,6 +180,7 @@ impl QueueTrackRow {
             },
             explicit: false,
             plays: None,
+            counterpart: None,
         }
     }
 }
