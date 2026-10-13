@@ -2,12 +2,10 @@ use std::path::Path;
 
 use config::{Browser, BrowserEngine};
 
-/// A decrypted cookie — kopuz's consumers (YT Music + SoundCloud header
-/// builders) only ever read `name`/`value`, so this stays minimal and works on
-/// every platform (the non-Windows backend maps `rookie`'s richer struct down
-/// to it; Windows produces it natively).
+/// `domain` is the host as the store spells it, leading dot included.
 #[derive(Debug, Clone)]
 pub struct Cookie {
+    pub domain: String,
     pub name: String,
     pub value: String,
 }
@@ -130,6 +128,7 @@ async fn read_chromium_cookies(
         Ok(raw
             .into_iter()
             .map(|c| Cookie {
+                domain: c.domain,
                 name: c.name,
                 value: c.value,
             })
